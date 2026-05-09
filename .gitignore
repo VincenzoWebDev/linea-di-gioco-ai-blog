@@ -1,0 +1,66 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.fleet/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Python
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc.*
+.python-version
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# AI service
+ai/.venv/
+ai/venv/
+ai/__pycache__/
+ai/app/__pycache__/
+
+# Node / frontend
+node_modules/
+webapp/node_modules/
+webapp/public/build/
+webapp/public/hot
+
+# PHP / Laravel
+vendor/
+webapp/vendor/
+webapp/bootstrap/cache/*
+!webapp/bootstrap/cache/.gitignore
+webapp/storage/*.key
+webapp/public/storage
+
+# Database / local runtime artifacts
+*.sqlite
+*.sqlite3
+*.db
+webapp/database/*.sqlite*
+
+# Local deployment / auth files
+auth.json
+webapp/auth.json
+Homestead.json
+Homestead.yaml
+webapp/Homestead.json
+webapp/Homestead.yaml
