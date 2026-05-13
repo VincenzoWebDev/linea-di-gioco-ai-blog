@@ -5,7 +5,7 @@ return [
     'min_quality_score' => env('AI_NEWS_MIN_QUALITY_SCORE', 70),
     'max_articles_per_hour' => env('AI_NEWS_MAX_ARTICLES_PER_HOUR', 12),
     'sanitize_prompt_version' => env('AI_NEWS_SANITIZE_PROMPT_VERSION', 'v1'),
-    'schedule_every_minutes' => env('AI_NEWS_SCHEDULE_EVERY_MINUTES', 10),
+    'schedule_every_minutes' => env('AI_NEWS_SCHEDULE_EVERY_MINUTES', 60),
     'max_items_per_source' => env('AI_NEWS_MAX_ITEMS_PER_SOURCE', 10),
     'deduplication' => [
         'enabled' => env('AI_NEWS_DEDUP_ENABLED', true),
