@@ -65,6 +65,9 @@ class SanitizerAgent
                 'rewrite_mode' => 'crewai',
                 'language' => 'it',
             ];
+            if (is_array($crewOutput['geopolitical_tension'] ?? null)) {
+                $crewCandidate['geopolitical_tension'] = $crewOutput['geopolitical_tension'];
+            }
 
             if ($this->articleValidationService->validateContentPolicy($crewCandidate)['valid']) {
                 return $crewCandidate;

@@ -68,6 +68,9 @@ class CrewAiClient
                 ->take(5)
                 ->all();
             $sourceUrl = trim((string) ($article['source_url'] ?? $payload['source_url'] ?? ''));
+            $geopoliticalTension = is_array($article['geopolitical_tension'] ?? null)
+                ? $article['geopolitical_tension']
+                : null;
 
             if ($title === '' || $content === '') {
                 return null;
@@ -77,7 +80,7 @@ class CrewAiClient
                 $content = trim($content."\n\nFonte: ".$sourceUrl);
             }
 
-            return [
+            $result = [
                 'title' => Str::limit($title, 140, ''),
                 'summary' => Str::limit($summary, 240, ''),
                 'content' => Str::limit($content, 14000, ''),
@@ -87,6 +90,11 @@ class CrewAiClient
                 'source_url' => $sourceUrl,
                 'rewrite_mode' => 'crewai',
             ];
+            if ($geopoliticalTension !== null) {
+                $result['geopolitical_tension'] = $geopoliticalTension;
+            }
+
+            return $result;
         } catch (Throwable) {
             return null;
         }

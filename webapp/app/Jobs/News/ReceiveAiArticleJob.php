@@ -65,6 +65,9 @@ class ReceiveAiArticleJob implements ShouldQueue
             'rewrite_mode' => (string) ($this->payload['rewrite_mode'] ?? 'dispatch'),
             'language' => (string) ($this->payload['language'] ?? 'it'),
         ];
+        if (is_array($this->payload['geopolitical_tension'] ?? null)) {
+            $sanitizedPayload['geopolitical_tension'] = $this->payload['geopolitical_tension'];
+        }
 
         $publishedAt = isset($this->payload['published_at'])
             ? Carbon::parse((string) $this->payload['published_at'])

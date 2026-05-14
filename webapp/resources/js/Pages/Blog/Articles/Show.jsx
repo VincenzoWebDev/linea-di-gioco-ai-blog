@@ -27,10 +27,23 @@ function RelatedItem({ article }) {
     );
 }
 
-export default function ArticlesShow({ article, related = [] }) {
+export default function ArticlesShow({ article, related = [], newsArticleSchema = null }) {
     return (
         <>
-            <Head title={`${article.title} | Linea di gioco`} />
+            <Head title={`${article.title} | Linea di gioco`}>
+                {article.summary && <meta name="description" content={article.summary} />}
+                {article.categories?.length > 0 && (
+                    <meta name="keywords" content={article.categories.join(", ")} />
+                )}
+                {newsArticleSchema && (
+                    <script
+                        type="application/ld+json"
+                        dangerouslySetInnerHTML={{
+                            __html: JSON.stringify(newsArticleSchema),
+                        }}
+                    />
+                )}
+            </Head>
             <BlogLayout>
                 <article className="mx-auto max-w-4xl">
                     <Link

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\GeopoliticalTensionService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -34,6 +35,9 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'geopoliticalTensions' => fn () => app(GeopoliticalTensionService::class)
+                ->topForHeader()
+                ->all(),
         ];
     }
 }

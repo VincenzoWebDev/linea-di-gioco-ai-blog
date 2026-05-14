@@ -8,6 +8,7 @@ use App\Models\Article;
 use App\Models\IncomingNews;
 use App\Models\PublicationLog;
 use App\Services\CategoryAssignmentService;
+use App\Services\GeopoliticalTensionService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -25,7 +26,10 @@ class PersistArticleJob implements ShouldQueue
     {
     }
 
-    public function handle(CategoryAssignmentService $categoryAssignmentService): void
+    public function handle(
+        CategoryAssignmentService $categoryAssignmentService,
+        GeopoliticalTensionService $geopoliticalTensionService
+    ): void
     {
         $incoming = IncomingNews::query()
             ->with('source')
@@ -90,6 +94,8 @@ class PersistArticleJob implements ShouldQueue
         if ($categoryIds !== []) {
             $article->categories()->sync($categoryIds);
         }
+
+        $geopoliticalTensionService->upsertFromAgentOutput($payload, $article);
 
         if ($autoPublish) {
             PublishArticleJob::dispatch($article->id)
