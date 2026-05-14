@@ -5,6 +5,7 @@ namespace App\Services\Agents;
 use App\Models\NewsSource;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -66,6 +67,13 @@ class NewsScoutAgent
                 ->get($source->endpoint);
 
             if (! $response->successful()) {
+                Log::warning('ai_news_rss_fetch_failed', [
+                    'source_id' => $source->id,
+                    'source_name' => $source->name,
+                    'endpoint' => $source->endpoint,
+                    'status' => $response->status(),
+                ]);
+
                 return [];
             }
 
@@ -74,7 +82,14 @@ class NewsScoutAgent
             $limit = (int) config('ai_news.max_items_per_source', 10);
 
             return array_slice($items, 0, max($limit, 1));
-        } catch (Throwable) {
+        } catch (Throwable $exception) {
+            Log::warning('ai_news_rss_fetch_exception', [
+                'source_id' => $source->id,
+                'source_name' => $source->name,
+                'endpoint' => $source->endpoint,
+                'message' => $exception->getMessage(),
+            ]);
+
             return [];
         }
     }
@@ -89,6 +104,7 @@ class NewsScoutAgent
         libxml_clear_errors();
 
         if (! $feed) {
+            Log::warning('ai_news_rss_parse_failed');
             return [];
         }
 

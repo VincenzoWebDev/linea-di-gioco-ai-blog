@@ -12,6 +12,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 class ParseAndStoreIncomingJob implements ShouldQueue
 {
@@ -39,6 +40,12 @@ class ParseAndStoreIncomingJob implements ShouldQueue
         $fingerprint = hash('sha256', mb_strtolower($title.'|'.$url.'|'.$publishedAt));
 
         if (! $scopeService->isInScope($title, $summary, $url)) {
+            Log::info('ai_news_item_rejected_out_of_scope', [
+                'news_source_id' => $this->newsSourceId,
+                'title' => $title,
+                'url' => $url,
+            ]);
+
             if ((bool) config('ai_news.scope.store_rejected', false)) {
                 $this->firstOrCreateByFingerprint(
                     $fingerprint,
@@ -74,10 +81,22 @@ class ParseAndStoreIncomingJob implements ShouldQueue
         );
 
         if (! $incoming->wasRecentlyCreated) {
+            Log::info('ai_news_item_skipped_duplicate_fingerprint', [
+                'news_source_id' => $this->newsSourceId,
+                'title' => $title,
+                'url' => $url,
+            ]);
+
             return;
         }
 
         $incoming->update(['status' => IncomingNewsStatus::QUEUED]);
+
+        Log::info('ai_news_item_queued_for_extraction', [
+            'incoming_news_id' => $incoming->id,
+            'news_source_id' => $this->newsSourceId,
+            'queue_extract' => config('ai_news.queues.extract', 'news-extract'),
+        ]);
 
         ExtractSourceContentJob::dispatch($incoming->id)
             ->onQueue(config('ai_news.queues.extract', 'news-extract'));

@@ -16,14 +16,14 @@ class NewsSourceSeeder extends Seeder
             [
                 'name' => 'BBC World',
                 'type' => 'rss',
-                'endpoint' => 'http://feeds.bbci.co.uk/news/world/rss.xml',
+                'endpoint' => 'https://feeds.bbci.co.uk/news/world/rss.xml',
                 'is_active' => true,
                 'poll_interval_minutes' => 10,
             ],
             [
                 'name' => 'BBC Middle East',
                 'type' => 'rss',
-                'endpoint' => 'http://feeds.bbci.co.uk/news/world/middle_east/rss.xml',
+                'endpoint' => 'https://feeds.bbci.co.uk/news/world/middle_east/rss.xml',
                 'is_active' => true,
                 'poll_interval_minutes' => 10,
             ],
@@ -48,20 +48,6 @@ class NewsSourceSeeder extends Seeder
                 'is_active' => true,
                 'poll_interval_minutes' => 10,
             ],
-            [
-                'name' => 'Mock Sport Feed',
-                'type' => 'mock',
-                'endpoint' => 'https://mock.local/sport',
-                'is_active' => false,
-                'poll_interval_minutes' => 10,
-            ],
-            [
-                'name' => 'Mock Tech Feed',
-                'type' => 'mock',
-                'endpoint' => 'https://mock.local/tech',
-                'is_active' => false,
-                'poll_interval_minutes' => 10,
-            ],
         ];
 
         foreach ($sources as $source) {
@@ -70,5 +56,15 @@ class NewsSourceSeeder extends Seeder
                 $source
             );
         }
+
+        NewsSource::query()
+            ->where(function ($query) {
+                $query->whereIn('name', ['Mock Sport Feed', 'Mock Tech Feed'])
+                    ->orWhere('type', 'mock')
+                    ->orWhere('name', 'like', '%telegram%')
+                    ->orWhere('endpoint', 'like', '%t.me/%')
+                    ->orWhere('endpoint', 'like', '%telegram.%');
+            })
+            ->delete();
     }
 }
