@@ -36,6 +36,8 @@ def send_to_laravel(
         "language": "it",
         "published_at": published_at or datetime.now(timezone.utc).isoformat(),
     }
+    if article.geopolitical_tension is not None:
+        payload["geopolitical_tension"] = article.geopolitical_tension.model_dump()
 
     try:
         with httpx.Client(timeout=timeout) as client:
