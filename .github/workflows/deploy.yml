@@ -22,15 +22,9 @@ jobs:
           script: |
             set -e
 
-            mkdir -p /var/www/lineadigioco
             cd /var/www/lineadigioco
-
-            if [ ! -d .git ]; then
-              git clone git@github.com:VincenzoWebDev/linea-di-gioco-ai-blog.git .
-            else
-              git fetch --all
-              git reset --hard origin/main
-            fi
+            git fetch origin main
+            git reset --hard origin/main
 
             cd /var/www/lineadigioco/webapp
             composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
