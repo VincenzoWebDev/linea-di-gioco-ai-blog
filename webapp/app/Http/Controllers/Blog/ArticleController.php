@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Blog;
 
 use App\Http\Controllers\Controller;
 use App\Models\Article;
+use App\Services\NewsArticleSchemaService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Http\RedirectResponse;
@@ -49,7 +50,7 @@ class ArticleController extends Controller
         ]);
     }
 
-    public function show(int $id, string $slug): Response|RedirectResponse
+    public function show(int $id, string $slug, NewsArticleSchemaService $newsArticleSchemaService): Response|RedirectResponse
     {
         $article = Article::query()
             ->where('status', 'published')
@@ -61,6 +62,7 @@ class ArticleController extends Controller
                 'summary',
                 'content',
                 'published_at',
+                'updated_at',
                 'cover_path',
                 'thumb_path',
             ]);
@@ -106,6 +108,7 @@ class ArticleController extends Controller
                 'thumb_url' => $article->thumb_path ? Storage::url($article->thumb_path) : null,
             ],
             'related' => $related,
+            'newsArticleSchema' => $newsArticleSchemaService->make($article),
         ]);
     }
 }

@@ -6,7 +6,7 @@ import re
 from html import unescape
 from typing import Any, Dict, Tuple
 
-from .schemas import ArticleOut, ProcessRequest
+from .schemas import ArticleOut, GeopoliticalTensionOut, ProcessRequest
 
 ITALIAN_HINTS = {
     " il ", " lo ", " la ", " gli ", " le ", " di ", " che ", " per ", " con ", " non ", " una ", " nel ", " sono ", " anche ",
@@ -55,9 +55,9 @@ def _run_crewai(payload: ProcessRequest) -> Tuple[ArticleOut, Dict[str, Any]]:
     require_json = os.getenv("CREWAI_REQUIRE_JSON", "true").lower() == "true"
     source_blob = _source_blob(payload)
 
-    scout = Agent(
-        role="Geopolitical Scout",
-        goal="Estrarre i fatti geopolitici principali e verificabili dalla notizia.",
+    analyst = Agent(
+        role="Geopolitical Analyst",
+        goal="Estrarre metadati geopolitici strutturati e verificabili dalla notizia.",
         backstory="Analista senior di politica estera e conflitti internazionali.",
         llm=model,
         verbose=False,
@@ -84,17 +84,26 @@ def _run_crewai(payload: ProcessRequest) -> Tuple[ArticleOut, Dict[str, Any]]:
 
     t1 = Task(
         description=(
-            "Estrai 5-8 fatti geopolitici chiave in italiano, evitando opinioni e dettagli non pertinenti. "
+            "Estrai un report JSON strutturato dalla notizia. "
+            "Deve includere: area geografica colpita, livello di tensione da 1 a 100, "
+            "direzione del trend e una sintesi di 10 parole. "
+            "Usa termini comprensibili e concreti: per esempio preferisci "
+            "'Rischio Forniture Gas' a 'Instabilita geoeconomica delle pipeline'. "
+            "Non aggiungere testo fuori dal JSON. "
             f"\n\nMATERIALE:\n{source_blob}"
         ),
-        expected_output="Elenco puntato fatti geopolitici essenziali.",
-        agent=scout,
+        expected_output=(
+            "JSON valido con chiavi: region_name, risk_score, trend_direction, "
+            "status_label, tension_summary."
+        ),
+        agent=analyst,
+        output_pydantic=GeopoliticalTensionOut,
     )
 
     json_clause = (
-        "Output SOLO JSON valido con chiavi: title, summary, content, topic, categories, quality_score, source_url."
+        "Output SOLO JSON valido con chiavi: title, summary, content, topic, categories, quality_score, source_url, geopolitical_tension."
         if require_json
-        else "Output preferibilmente JSON con chiavi: title, summary, content, topic, categories, quality_score, source_url."
+        else "Output preferibilmente JSON con chiavi: title, summary, content, topic, categories, quality_score, source_url, geopolitical_tension."
     )
 
     t2 = Task(
@@ -102,6 +111,7 @@ def _run_crewai(payload: ProcessRequest) -> Tuple[ArticleOut, Dict[str, Any]]:
             "Partendo dai fatti estratti, scrivi un articolo originale obbligatoriamente in italiano (600-1400 caratteri), "
             "tono giornalistico professionale, senza copiare frasi dalla fonte. "
             "Vietato usare frasi in inglese, salvo nomi propri internazionali. "
+            "Mantieni il campo geopolitical_tension ricevuto dall'Analyst senza trasformarlo in testo libero. "
             f'Chiudi sempre con: "Fonte: {payload.source_url}". {json_clause}'
         ),
         expected_output="JSON articolo pronto per validazione.",
@@ -113,23 +123,28 @@ def _run_crewai(payload: ProcessRequest) -> Tuple[ArticleOut, Dict[str, Any]]:
         description=(
             "Controlla qualità finale, correggi eventuali errori di formato e restituisci JSON definitivo. "
             "quality_score deve essere un numero 0-100. "
-            "Verifica rigorosamente che title/summary/content siano in italiano."
+            "Verifica rigorosamente che title/summary/content siano in italiano. "
+            "geopolitical_tension deve restare un oggetto JSON pulito con region_name, risk_score 1-100, "
+            "trend_direction rising/falling/stable, status_label accessibile e tension_summary di 10 parole."
         ),
         expected_output="JSON finale compatibile con Laravel ingest.",
         agent=dispatch_prep,
         context=[t2],
+        output_pydantic=ArticleOut,
     )
 
     crew = Crew(
-        agents=[scout, editor, dispatch_prep],
+        agents=[analyst, editor, dispatch_prep],
         tasks=[t1, t2, t3],
         process=Process.sequential,
         verbose=False,
     )
 
     result = crew.kickoff()
-    raw = str(result)
-    data = _parse_maybe_json(raw)
+    data = result.to_dict() if hasattr(result, "to_dict") else {}
+    if not data:
+        raw = str(result)
+        data = _parse_maybe_json(raw)
 
     title = _clean_text(str(data.get("title", "")).strip())[:140]
     summary = _clean_text(str(data.get("summary", "")).strip())[:240]
@@ -151,6 +166,7 @@ def _run_crewai(payload: ProcessRequest) -> Tuple[ArticleOut, Dict[str, Any]]:
         categories=_normalize_categories(data.get("categories"), data.get("topic", "geopolitica")),
         quality_score=float(data.get("quality_score", 0)),
         source_url=str(data.get("source_url", payload.source_url)),
+        geopolitical_tension=_normalize_tension(data.get("geopolitical_tension"), payload),
     )
 
     if "fonte:" not in article.content.lower():
@@ -229,6 +245,58 @@ def _parse_maybe_json(text: str) -> Dict[str, Any]:
     return parsed
 
 
+def _normalize_tension(raw: Any, payload: ProcessRequest) -> GeopoliticalTensionOut:
+    if not isinstance(raw, dict):
+        return _fallback_tension(payload)
+
+    trend = str(raw.get("trend_direction", "stable")).strip().lower()
+    trend_aliases = {
+        "in crescita": "rising",
+        "crescente": "rising",
+        "rising": "rising",
+        "in calo": "falling",
+        "calo": "falling",
+        "falling": "falling",
+        "stabile": "stable",
+        "stable": "stable",
+    }
+    trend_direction = trend_aliases.get(trend, "stable")
+
+    try:
+        risk_score = int(raw.get("risk_score", 50))
+    except (TypeError, ValueError):
+        risk_score = 50
+
+    data = {
+        "region_name": _clean_text(str(raw.get("region_name", "")).strip())[:120] or "Area non specificata",
+        "risk_score": min(100, max(1, risk_score)),
+        "trend_direction": trend_direction,
+        "status_label": _clean_text(str(raw.get("status_label", "")).strip())[:80] or "Tensione geopolitica",
+        "tension_summary": _ten_word_summary(str(raw.get("tension_summary", "")), payload),
+    }
+
+    return GeopoliticalTensionOut(**data)
+
+
+def _fallback_tension(payload: ProcessRequest) -> GeopoliticalTensionOut:
+    source = _clean_text(payload.title or payload.summary or "Aggiornamento geopolitico")
+    return GeopoliticalTensionOut(
+        region_name="Area non specificata",
+        risk_score=50,
+        trend_direction="stable",
+        status_label="Tensione geopolitica",
+        tension_summary=_ten_word_summary(source, payload),
+    )
+
+
+def _ten_word_summary(text: str, payload: ProcessRequest) -> str:
+    fallback = _clean_text(payload.title or payload.summary or "Rischio geopolitico da monitorare nelle prossime ore con prudenza")
+    words = re.findall(r"\S+", _clean_text(text) or fallback)
+    if len(words) < 10:
+        words.extend("situazione da monitorare con attenzione nelle prossime ore".split())
+    return " ".join(words[:10])
+
+
 def _fallback_article(payload: ProcessRequest) -> ArticleOut:
     base = _clean_text(payload.source_content or payload.summary or payload.title)
     body = base[:1200]
@@ -262,6 +330,7 @@ def _fallback_article(payload: ProcessRequest) -> ArticleOut:
         categories=["geopolitica"],
         quality_score=quality,
         source_url=str(payload.source_url),
+        geopolitical_tension=_fallback_tension(payload),
     )
 
 

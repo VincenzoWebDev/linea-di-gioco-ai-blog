@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import { Menu, X } from "lucide-react";
+import TensionHeader from "@/Components/blog/TensionHeader";
+import logo from "@/../assets/linea-di-gioco-logo.png";
 
 export default function BlogHeader() {
     const [isOpen, setIsOpen] = useState(false);
+    const { geopoliticalTensions = [] } = usePage().props;
 
     const menuItems = [
         { label: "Home", href: route("home"), active: route().current("home") },
@@ -16,10 +19,17 @@ export default function BlogHeader() {
 
     return (
         <header className="border-b border-[#1C2333]">
-            <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
+            <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
                 <Link href="/" className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#1C2333] bg-[#131823] text-[#E5E7EB]">
-                        L
+                    {/* <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#1C2333] bg-[#131823] text-[#E5E7EB]">
+                        <span className="text-sm font-bold">LG</span>
+                    </div> */}
+                    <div className="flex h-20 w-20 items-center justify-center">
+                        <img
+                            src={logo}
+                            alt="Logo Linea di gioco"
+                            className="h-20 w-auto"
+                        />
                     </div>
                     <div>
                         <div className="font-serif text-lg">Linea di gioco</div>
@@ -34,7 +44,9 @@ export default function BlogHeader() {
                             key={item.label}
                             href={item.href}
                             className={`transition ${
-                                item.active ? "text-[#E5E7EB]" : "text-[#9CA3AF] hover:text-[#E5E7EB]"
+                                item.active
+                                    ? "text-[#E5E7EB]"
+                                    : "text-[#9CA3AF] hover:text-[#E5E7EB]"
                             }`}
                         >
                             {item.label}
@@ -55,9 +67,15 @@ export default function BlogHeader() {
                     className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[#1C2333] bg-[#131823] text-[#9CA3AF] transition hover:text-[#E5E7EB] md:hidden"
                     aria-label="Apri menu"
                 >
-                    {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                    {isOpen ? (
+                        <X className="h-5 w-5" />
+                    ) : (
+                        <Menu className="h-5 w-5" />
+                    )}
                 </button>
             </div>
+
+            <TensionHeader tensions={geopoliticalTensions} />
 
             <div
                 className={`border-t border-[#1C2333] bg-[#131823] px-6 py-4 md:hidden ${
