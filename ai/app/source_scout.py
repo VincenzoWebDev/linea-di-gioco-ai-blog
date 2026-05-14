@@ -10,8 +10,8 @@ from typing import Any, Dict, List
 import httpx
 
 DEFAULT_SOURCES = [
-    {"name": "BBC World", "url": "http://feeds.bbci.co.uk/news/world/rss.xml"},
-    {"name": "BBC Middle East", "url": "http://feeds.bbci.co.uk/news/world/middle_east/rss.xml"},
+    {"name": "BBC World", "url": "https://feeds.bbci.co.uk/news/world/rss.xml"},
+    {"name": "BBC Middle East", "url": "https://feeds.bbci.co.uk/news/world/middle_east/rss.xml"},
     {"name": "Guardian World", "url": "https://www.theguardian.com/world/rss"},
     {"name": "Guardian Politics", "url": "https://www.theguardian.com/politics/rss"},
     {"name": "Al Jazeera", "url": "https://www.aljazeera.com/xml/rss/all.xml"},
@@ -29,38 +29,8 @@ BLOCK_KEYWORDS = [
     "serie a", "champions league", "premier league", "nba", "nfl", "tennis",
     "formula 1", "motogp", "goal", "match", "transfer", "calcio", "basket",
     "gossip", "celebrity", "entertainment", "movie", "music", "lifestyle",
-    "meteo", "weather", "drought", "siccita", "siccità",
+    "meteo", "weather", "drought", "siccita", "siccitÃ ",
 ]
-
-TELEGRAM_NOISE_PATTERNS = [
-    r"please\s+open\s+telegram\s+to\s+view\s+this\s+post",
-    r"view\s+in\s+telegram",
-    r"open\s+in\s+telegram",
-    r"join\s+telegram",
-    r"photo\b",
-    r"video\b",
-    r"epstein\s+files\s*-\s*24/7\s+deep\s+dive",
-    r"https?://t\.me/\S+",
-    r"https?://\S+",
-    r"@\w+",
-]
-
-EMOJI_RE = re.compile(
-    "["
-    "\U0001F1E0-\U0001F1FF"
-    "\U0001F300-\U0001F5FF"
-    "\U0001F600-\U0001F64F"
-    "\U0001F680-\U0001F6FF"
-    "\U0001F700-\U0001F77F"
-    "\U0001F780-\U0001F7FF"
-    "\U0001F800-\U0001F8FF"
-    "\U0001F900-\U0001F9FF"
-    "\U0001FA00-\U0001FAFF"
-    "\U00002700-\U000027BF"
-    "\U00002600-\U000026FF"
-    "]+",
-    flags=re.UNICODE,
-)
 
 
 def load_sources() -> List[Dict[str, str]]:
@@ -189,70 +159,7 @@ def _sanitize_item_text(source_name: str, title: str, summary: str, link: str) -
     title = _clean_text(title)
     summary = _clean_text(summary)
 
-    if not _is_telegram_source(source_name, link):
-        return title, summary
-
-    title = _clean_telegram_text(title)
-    summary = _clean_telegram_text(summary)
-
-    if not title:
-        title = _derive_title_from_summary(summary)
-
-    summary = _drop_prefixed_title(summary=summary, title=title)
-
-    if not summary:
-        summary = title
-
-    if len(summary) < 80:
-        summary = _clean_telegram_text(f"{title}. {summary}")
-
     return title[:220], summary[:5000]
-
-
-def _is_telegram_source(source_name: str, link: str) -> bool:
-    sn = source_name.lower()
-    lk = link.lower()
-    return "telegram" in sn or "t.me/" in lk
-
-
-def _clean_telegram_text(text: str) -> str:
-    t = _clean_text(text)
-    t = EMOJI_RE.sub(" ", t)
-
-    for pat in TELEGRAM_NOISE_PATTERNS:
-        t = re.sub(pat, " ", t, flags=re.I)
-
-    t = re.sub(r"\b\w+\s*\|\s*", " ", t)
-    t = re.sub(r"[\u200b-\u200f\u2060\ufeff]", " ", t)
-    t = re.sub(r"\s+", " ", t).strip(" -|:\n\t")
-
-    return t
-
-
-def _derive_title_from_summary(summary: str) -> str:
-    if not summary:
-        return ""
-
-    parts = re.split(r"(?<=[.!?])\s+", summary)
-    for part in parts:
-        p = part.strip(" -|:\n\t")
-        if len(p) >= 28:
-            return p[:220]
-
-    return summary[:220]
-
-
-def _drop_prefixed_title(summary: str, title: str) -> str:
-    if not summary or not title:
-        return summary
-
-    s_low = summary.lower().strip()
-    t_low = title.lower().strip()
-
-    if s_low.startswith(t_low):
-        summary = summary[len(title):].lstrip(" .:-|")
-
-    return summary
 
 
 def _is_geopolitical(title: str, summary: str) -> bool:
