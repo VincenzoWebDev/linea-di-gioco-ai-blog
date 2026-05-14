@@ -1,0 +1,41 @@
+name: Deploy VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script_stop: true
+          script: |
+            set -e
+
+            cd /var/www/lineadigioco
+            git fetch --all
+            git reset --hard origin/main
+
+            cd /var/www/lineadigioco/webapp
+            composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+            npm ci
+            npm run build
+            php artisan migrate --force
+            php artisan optimize:clear
+            php artisan config:cache
+            php artisan queue:restart
+
+            cd /var/www/lineadigioco/ai
+            ./venv/bin/pip install -r requirements.txt
+
+            sudo systemctl restart ai.service
