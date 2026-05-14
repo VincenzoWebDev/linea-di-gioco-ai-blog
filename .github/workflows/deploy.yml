@@ -36,6 +36,16 @@ jobs:
             php artisan queue:restart
 
             cd /var/www/lineadigioco/ai
+            if [ ! -d venv ]; then
+              python3 -m venv venv
+            fi
+            ./venv/bin/pip install --upgrade pip
             ./venv/bin/pip install -r requirements.txt
 
-            sudo systemctl restart ai.service
+            if systemctl list-unit-files | grep -q '^ai\.service'; then
+              sudo systemctl restart ai.service
+            fi
+
+            if systemctl list-unit-files | grep -q '^laravel-queue\.service'; then
+              sudo systemctl restart laravel-queue.service
+            fi
