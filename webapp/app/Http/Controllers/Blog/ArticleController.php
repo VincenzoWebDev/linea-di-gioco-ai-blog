@@ -32,6 +32,7 @@ class ArticleController extends Controller
             ])
             ->map(function (Article $article) {
                 $categoryNames = $article->categories->pluck('name')->values();
+
                 return [
                     'id' => $article->id,
                     'title' => $article->title,
@@ -39,15 +40,20 @@ class ArticleController extends Controller
                     'summary' => $article->summary,
                     'excerpt' => $article->summary ?: Str::limit(strip_tags($article->content), 220),
                     'topic' => $categoryNames->first() ?: null,
+                    'categories' => $categoryNames,
                     'published_at' => optional($article->published_at)->toISOString(),
                     'cover_url' => $article->cover_path ? Storage::url($article->cover_path) : null,
                     'thumb_url' => $article->thumb_path ? Storage::url($article->thumb_path) : null,
+                    'operation_code' => sprintf('OP-%04d', $article->id),
                 ];
             })
             ->values();
 
         return Inertia::render('Blog/Articles/Index', [
             'articles' => $articles,
+            'stats' => [
+                'total' => $articles->count(),
+            ],
         ]);
     }
 

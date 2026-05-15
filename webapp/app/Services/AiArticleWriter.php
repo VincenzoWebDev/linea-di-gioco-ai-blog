@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\ArticleContentNormalizer;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Throwable;
@@ -146,7 +147,7 @@ PROMPT;
 
         $title = trim((string) ($decoded['title'] ?? ''));
         $summary = trim((string) ($decoded['summary'] ?? ''));
-        $body = $this->stripSourceFooter(trim((string) ($decoded['content'] ?? '')));
+        $body = ArticleContentNormalizer::stripSourceFooter(trim((string) ($decoded['content'] ?? '')));
         $topic = trim((string) ($decoded['topic'] ?? 'news'));
 
         if ($title === '' || $body === '') {
@@ -158,7 +159,7 @@ PROMPT;
             'summary' => Str::limit($summary, 240, ''),
             'content' => Str::limit($body, 14000, ''),
             'topic' => Str::limit($topic, 60, ''),
-            'categories' => $this->normalizeCategories($decoded['categories'] ?? [$topic]),
+            'categories' => ArticleContentNormalizer::normalizeCategories($decoded['categories'] ?? [$topic], 3),
         ];
     }
 
@@ -192,37 +193,10 @@ PROMPT;
         return [
             'title' => Str::limit($title, 140, ''),
             'summary' => Str::limit($plain, 240, ''),
-            'content' => Str::limit($this->stripSourceFooter($plain), 14000, ''),
+            'content' => Str::limit(ArticleContentNormalizer::stripSourceFooter($plain), 14000, ''),
             'topic' => 'news',
             'categories' => ['news'],
         ];
     }
 
-    private function stripSourceFooter(string $content): string
-    {
-        $clean = preg_replace('/(?:\s*\n\s*)*fonte\s*:\s*https?:\/\/\S+\s*$/iu', '', $content) ?? $content;
-        $clean = preg_replace('/(?:\s*\n\s*)*fonte\s*:\s*.+\s*$/iu', '', $clean) ?? $clean;
-
-        return trim($clean);
-    }
-
-    /**
-     * @param mixed $categories
-     * @return array<int, string>
-     */
-    private function normalizeCategories(mixed $categories): array
-    {
-        if (! is_array($categories)) {
-            return [];
-        }
-
-        return collect($categories)
-            ->map(fn ($value) => trim((string) $value))
-            ->filter(fn ($value) => $value !== '')
-            ->map(fn ($value) => Str::limit($value, 120, ''))
-            ->unique(fn ($value) => mb_strtolower($value))
-            ->values()
-            ->take(3)
-            ->all();
-    }
 }

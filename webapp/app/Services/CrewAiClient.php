@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\ArticleContentNormalizer;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Throwable;
@@ -9,7 +10,7 @@ use Throwable;
 class CrewAiClient
 {
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      * @return array<string, mixed>|null
      */
     public function process(array $payload): ?array
@@ -59,15 +60,10 @@ class CrewAiClient
 
             $title = trim((string) ($article['title'] ?? ''));
             $summary = trim((string) ($article['summary'] ?? ''));
-            $content = $this->stripSourceFooter(trim((string) ($article['content'] ?? '')));
+            $content = ArticleContentNormalizer::stripSourceFooter(trim((string) ($article['content'] ?? '')));
             $topic = trim((string) ($article['topic'] ?? 'geopolitica'));
-            $categories = collect((array) ($article['categories'] ?? []))
-                ->map(fn ($value) => trim((string) $value))
-                ->filter(fn ($value) => $value !== '')
-                ->values()
-                ->take(5)
-                ->all();
-            $sourceUrl = $this->preferNonEmptyString(
+            $categories = ArticleContentNormalizer::normalizeCategories($article['categories'] ?? []);
+            $sourceUrl = ArticleContentNormalizer::preferNonEmptyString(
                 $article['source_url'] ?? null,
                 $payload['source_url'] ?? null
             );
@@ -97,25 +93,5 @@ class CrewAiClient
         } catch (Throwable) {
             return null;
         }
-    }
-
-    private function stripSourceFooter(string $content): string
-    {
-        $clean = preg_replace('/(?:\s*\n\s*)*fonte\s*:\s*https?:\/\/\S+\s*$/iu', '', $content) ?? $content;
-        $clean = preg_replace('/(?:\s*\n\s*)*fonte\s*:\s*.+\s*$/iu', '', $clean) ?? $clean;
-
-        return trim($clean);
-    }
-
-    private function preferNonEmptyString(mixed ...$values): string
-    {
-        foreach ($values as $value) {
-            $normalized = trim((string) $value);
-            if ($normalized !== '') {
-                return $normalized;
-            }
-        }
-
-        return '';
     }
 }

@@ -89,6 +89,8 @@ def _run_crewai(payload: ProcessRequest) -> Tuple[ArticleOut, Dict[str, Any]]:
             "direzione del trend e una sintesi di 10 parole. "
             "Usa termini comprensibili e concreti: per esempio preferisci "
             "'Rischio Forniture Gas' a 'Instabilita geoeconomica delle pipeline'. "
+            "Per region_name usa un'area geografica precisa e standard (es. Ucraina, Gaza, Medio Oriente, Taiwan, Sahel) "
+            "mai 'Area non specificata' se il luogo e deducibile dal testo. "
             "Non aggiungere testo fuori dal JSON. "
             f"\n\nMATERIALE:\n{source_blob}"
         ),

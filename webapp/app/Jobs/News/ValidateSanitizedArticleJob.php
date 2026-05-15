@@ -5,6 +5,8 @@ namespace App\Jobs\News;
 use App\Enums\IncomingNewsStatus;
 use App\Models\IncomingNews;
 use App\Services\ArticleValidationService;
+use App\Services\News\IncomingNewsStateMachine;
+use App\Services\News\NewsPipelineOrchestrator;
 use App\Services\NewsDuplicateDetectionService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -24,9 +26,10 @@ class ValidateSanitizedArticleJob implements ShouldQueue
 
     public function handle(
         ArticleValidationService $validationService,
-        NewsDuplicateDetectionService $duplicateDetectionService
-    ): void
-    {
+        NewsDuplicateDetectionService $duplicateDetectionService,
+        IncomingNewsStateMachine $stateMachine,
+        NewsPipelineOrchestrator $pipeline
+    ): void {
         $incoming = IncomingNews::query()->find($this->incomingNewsId);
         if (! $incoming) {
             return;
@@ -34,28 +37,20 @@ class ValidateSanitizedArticleJob implements ShouldQueue
 
         $duplicate = $duplicateDetectionService->detect($incoming, $incoming->sanitized_payload ?? []);
         if (($duplicate['is_duplicate'] ?? false) === true) {
-            $incoming->update([
-                'status' => IncomingNewsStatus::REJECTED,
-                'rejection_reason' => $this->duplicateReason($duplicate),
-            ]);
+            $stateMachine->reject($incoming, $this->duplicateReason($duplicate));
 
             return;
         }
 
         $result = $validationService->validateSanitizedPayload($incoming->sanitized_payload ?? []);
         if (! $result['valid']) {
-            $incoming->update([
-                'status' => IncomingNewsStatus::REJECTED,
-                'rejection_reason' => implode('; ', $result['errors']),
-            ]);
+            $stateMachine->reject($incoming, implode('; ', $result['errors']));
 
             return;
         }
 
-        $incoming->update(['status' => IncomingNewsStatus::VALIDATED]);
-
-        PersistArticleJob::dispatch($incoming->id)
-            ->onQueue(config('ai_news.queues.publish', 'news-publish'));
+        $stateMachine->transition($incoming, IncomingNewsStatus::VALIDATED);
+        $pipeline->advance($incoming);
     }
 
     /**

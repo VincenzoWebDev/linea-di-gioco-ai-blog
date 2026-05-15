@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\Category;
 use App\Models\GeopoliticalTension;
+use App\Services\RegionCoordinateResolver;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -13,6 +14,11 @@ use Inertia\Response;
 
 class HomeController extends Controller
 {
+    public function __construct(
+        private readonly RegionCoordinateResolver $coordinateResolver
+    ) {
+    }
+
     public function index(): Response
     {
         $articles = Article::query()
@@ -93,13 +99,15 @@ class HomeController extends Controller
     private function commandLocations()
     {
         return GeopoliticalTension::query()
-            ->with('featuredArticle:id,title,slug,status,published_at,summary,quality_score,thumb_path,cover_path')
+            ->with('featuredArticle:id,title,slug,status,published_at,summary,content,quality_score,thumb_path,cover_path')
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
             ->orderByDesc('risk_score')
             ->orderBy('region_name')
             ->limit(12)
             ->get()
             ->map(function (GeopoliticalTension $tension) {
-                $coordinates = $this->coordinatesForRegion($tension->region_name);
+                $coordinates = $this->coordinatesForTension($tension);
                 if ($coordinates === null) {
                     return null;
                 }
@@ -140,53 +148,23 @@ class HomeController extends Controller
     /**
      * @return array{lat: float, long: float}|null
      */
-    private function coordinatesForRegion(string $regionName): ?array
+    private function coordinatesForTension(GeopoliticalTension $tension): ?array
     {
-        $region = $this->normalizeRegionName($regionName);
-        $coordinates = [
-            ['aliases' => ['russia ukraine', 'ukraine russia', 'russia-ukraine', 'ukraine-russia'], 'point' => ['lat' => 49.0, 'long' => 31.0]],
-            ['aliases' => ['israel gaza', 'gaza israel', 'israele gaza', 'gaza striscia', 'gaza strip'], 'point' => ['lat' => 31.4, 'long' => 34.4]],
-            ['aliases' => ['israel lebanon', 'israele libano', 'lebanon israel', 'libano israele'], 'point' => ['lat' => 33.3, 'long' => 35.3]],
-            ['aliases' => ['middle east', 'medio oriente', 'levant'], 'point' => ['lat' => 33.0, 'long' => 44.0]],
-            ['aliases' => ['indo pacifico', 'indo pacific', 'indo-pacifico', 'indo-pacific'], 'point' => ['lat' => 14.6, 'long' => 120.98]],
-            ['aliases' => ['stati uniti', 'united states', 'usa', 'washington'], 'point' => ['lat' => 38.9072, 'long' => -77.0369]],
-            ['aliases' => ['libano', 'lebanon', 'beirut'], 'point' => ['lat' => 33.8938, 'long' => 35.5018]],
-            ['aliases' => ['ucraina', 'ukraine', 'kyiv', 'kiev'], 'point' => ['lat' => 50.4501, 'long' => 30.5234]],
-            ['aliases' => ['russia', 'mosca', 'moscow'], 'point' => ['lat' => 55.7558, 'long' => 37.6173]],
-            ['aliases' => ['cina', 'china', 'beijing', 'pechino'], 'point' => ['lat' => 39.9042, 'long' => 116.4074]],
-            ['aliases' => ['taiwan', 'taipei'], 'point' => ['lat' => 25.0330, 'long' => 121.5654]],
-            ['aliases' => ['israele', 'israel', 'jerusalem', 'gerusalemme'], 'point' => ['lat' => 31.7683, 'long' => 35.2137]],
-            ['aliases' => ['iran', 'tehran', 'teheran'], 'point' => ['lat' => 35.6892, 'long' => 51.3890]],
-            ['aliases' => ['gaza'], 'point' => ['lat' => 31.5017, 'long' => 34.4668]],
-            ['aliases' => ['cuba', 'havana', 'avana'], 'point' => ['lat' => 23.1136, 'long' => -82.3666]],
-            ['aliases' => ['sahel'], 'point' => ['lat' => 17.5707, 'long' => 3.9962]],
-            ['aliases' => ['mediterraneo', 'mediterranean'], 'point' => ['lat' => 35.0, 'long' => 18.0]],
-            ['aliases' => ['europa', 'europe', 'bruxelles', 'brussels'], 'point' => ['lat' => 50.8503, 'long' => 4.3517]],
-            ['aliases' => ['africa'], 'point' => ['lat' => 9.0820, 'long' => 8.6753]],
-            ['aliases' => ['asia'], 'point' => ['lat' => 34.0479, 'long' => 100.6197]],
-        ];
-
-        foreach ($coordinates as $entry) {
-            foreach ($entry['aliases'] as $alias) {
-                if (str_contains($region, $this->normalizeRegionName($alias))) {
-                    return $entry['point'];
-                }
-            }
+        if ($tension->hasMapCoordinates()) {
+            return [
+                'lat' => (float) $tension->latitude,
+                'long' => (float) $tension->longitude,
+            ];
         }
 
-        return null;
-    }
+        $article = $tension->featuredArticle;
+        $context = trim(implode(' ', array_filter([
+            $article?->title,
+            $article?->summary,
+            $article?->content ? Str::limit(strip_tags($article->content), 500, '') : null,
+        ])));
 
-    private function normalizeRegionName(string $value): string
-    {
-        $normalized = Str::of($value)
-            ->lower()
-            ->ascii()
-            ->replaceMatches('/[^a-z0-9]+/', ' ')
-            ->trim()
-            ->value();
-
-        return preg_replace('/\s+/', ' ', $normalized) ?? $normalized;
+        return $this->coordinateResolver->resolve($tension->region_name, $context);
     }
 
     private function severityFromRisk(int $score): string

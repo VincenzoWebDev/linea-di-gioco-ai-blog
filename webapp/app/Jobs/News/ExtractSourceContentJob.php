@@ -5,6 +5,8 @@ namespace App\Jobs\News;
 use App\Enums\IncomingNewsStatus;
 use App\Models\AgentRun;
 use App\Models\IncomingNews;
+use App\Services\News\IncomingNewsStateMachine;
+use App\Services\News\NewsPipelineOrchestrator;
 use App\Services\SourceContentExtractor;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -25,8 +27,11 @@ class ExtractSourceContentJob implements ShouldQueue
     {
     }
 
-    public function handle(SourceContentExtractor $extractor): void
-    {
+    public function handle(
+        SourceContentExtractor $extractor,
+        IncomingNewsStateMachine $stateMachine,
+        NewsPipelineOrchestrator $pipeline
+    ): void {
         $incoming = IncomingNews::query()->find($this->incomingNewsId);
         if (! $incoming) {
             return;
@@ -44,10 +49,7 @@ class ExtractSourceContentJob implements ShouldQueue
                     'error_message' => (string) $result['error'],
                 ]);
 
-                $incoming->update([
-                    'status' => IncomingNewsStatus::REJECTED,
-                    'rejection_reason' => 'extractor_'.$result['error'],
-                ]);
+                $stateMachine->reject($incoming, 'extractor_'.$result['error']);
 
                 return;
             }
@@ -62,21 +64,16 @@ class ExtractSourceContentJob implements ShouldQueue
                 ],
             ]);
 
-            $incoming->update([
+            $stateMachine->transition($incoming, IncomingNewsStatus::EXTRACTED, [
                 'source_content' => (string) $result['content'],
                 'extracted_at' => now(),
-                'status' => IncomingNewsStatus::EXTRACTED,
             ]);
 
-            SanitizeIncomingNewsJob::dispatch($incoming->id)
-                ->onQueue(config('ai_news.queues.sanitize', 'news-sanitize'));
+            $pipeline->advance($incoming);
         } catch (Throwable $exception) {
-            IncomingNews::query()
-                ->whereKey($this->incomingNewsId)
-                ->update([
-                'status' => IncomingNewsStatus::REJECTED,
-                'rejection_reason' => 'extractor_exception',
-                ]);
+            if ($incoming = IncomingNews::query()->find($this->incomingNewsId)) {
+                $stateMachine->reject($incoming, 'extractor_exception');
+            }
 
             throw $exception;
         }

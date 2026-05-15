@@ -1,6 +1,6 @@
-# AI Agents Service (`ai/`) - AI First
+# AI Agents Service (`ai/`)
 
-Pipeline: Scout news geopolitiche -> CrewAI riscrive in italiano -> Dispatch a Laravel ingest.
+Servizio **solo riscrittura** CrewAI: Laravel gestisce fonti RSS (DB) e orchestrazione; questo modulo espone `POST /process`.
 
 ## Setup
 
@@ -19,24 +19,23 @@ uvicorn app.main:app --host 127.0.0.1 --port 8001 --reload
 
 ## Endpoints
 
-- `GET /health`
-- `POST /process` (singolo input)
-- `POST /run-once?limit_per_source=5` (scouting + rewrite + dispatch completo)
+- `GET /health` — stato servizio
+- `POST /process` — riscrittura singola notizia (chiamato da Laravel `CrewAiClient`)
+- `POST /run-once` — **deprecato (410)**; usare `php artisan ai-news:run` in `webapp/`
 
-## Test automazione completa
+## Pipeline completa (Laravel)
 
 ```bash
-curl -X POST "http://127.0.0.1:8001/run-once?limit_per_source=3"
+cd webapp
+php artisan ai-news:run
+php artisan queue:work --queue=news-ingest,news-extract,news-sanitize,news-publish,news-images
 ```
 
-La risposta mostra quanti articoli sono stati inviati con successo a Laravel.
-
-## Laravel
-
-Nel `.env` di `webapp`:
+Assicurati in `webapp/.env`:
 
 ```env
-AI_NEWS_INGEST_TOKEN=change-me-ingest-token
+AI_NEWS_CREWAI_ENABLED=true
+AI_NEWS_CREWAI_BASE_URL=http://127.0.0.1:8001
 ```
 
-Assicurati che API Laravel sia online su `http://127.0.0.1:8000`.
+Fonti RSS: tabella `news_sources` (seed `NewsSourceSeeder`), non più file/env JSON in `ai/`.

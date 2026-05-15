@@ -5,6 +5,7 @@ namespace App\Services\Agents;
 use App\Services\AiArticleWriter;
 use App\Services\ArticleValidationService;
 use App\Services\CrewAiClient;
+use App\Support\ArticleContentNormalizer;
 use Illuminate\Support\Str;
 
 class SanitizerAgent
@@ -13,12 +14,11 @@ class SanitizerAgent
         private readonly AiArticleWriter $aiArticleWriter,
         private readonly CrewAiClient $crewAiClient,
         private readonly ArticleValidationService $articleValidationService
-    )
-    {
+    ) {
     }
 
     /**
-     * @param array<string, mixed> $rawNews
+     * @param  array<string, mixed>  $rawNews
      * @return array<string, mixed>
      */
     public function sanitize(array $rawNews): array
@@ -48,7 +48,7 @@ class SanitizerAgent
 
         if (is_array($crewOutput)) {
             $crewTitle = (string) ($crewOutput['title'] ?? $safeTitle);
-            $crewContent = $this->stripSourceFooter((string) ($crewOutput['content'] ?? $body));
+            $crewContent = ArticleContentNormalizer::stripSourceFooter((string) ($crewOutput['content'] ?? $body));
             $crewScore = (float) ($crewOutput['quality_score'] ?? 0);
             if ($crewScore <= 0) {
                 $crewScore = $this->qualityScore($crewTitle, $crewContent);
@@ -59,9 +59,11 @@ class SanitizerAgent
                 'summary' => (string) ($crewOutput['summary'] ?? $finalSummary),
                 'content' => $crewContent,
                 'topic' => (string) ($crewOutput['topic'] ?? 'geopolitica'),
-                'categories' => $this->normalizeCategories($crewOutput['categories'] ?? [($crewOutput['topic'] ?? 'geopolitica')]),
+                'categories' => ArticleContentNormalizer::normalizeCategories(
+                    $crewOutput['categories'] ?? [($crewOutput['topic'] ?? 'geopolitica')]
+                ),
                 'quality_score' => $crewScore,
-                'source_url' => $this->preferNonEmptyString($crewOutput['source_url'] ?? null, $sourceUrl),
+                'source_url' => ArticleContentNormalizer::preferNonEmptyString($crewOutput['source_url'] ?? null, $sourceUrl),
                 'rewrite_mode' => 'crewai',
                 'language' => 'it',
             ];
@@ -82,14 +84,16 @@ class SanitizerAgent
         ]);
 
         if (is_array($aiOutput)) {
-            $aiBody = $this->stripSourceFooter(trim((string) ($aiOutput['content'] ?? '')));
+            $aiBody = ArticleContentNormalizer::stripSourceFooter(trim((string) ($aiOutput['content'] ?? '')));
 
             $aiCandidate = [
                 'title' => (string) ($aiOutput['title'] ?? $safeTitle),
                 'summary' => (string) ($aiOutput['summary'] ?? $finalSummary),
                 'content' => $aiBody,
                 'topic' => (string) ($aiOutput['topic'] ?? 'news'),
-                'categories' => $this->normalizeCategories($aiOutput['categories'] ?? [($aiOutput['topic'] ?? 'news')]),
+                'categories' => ArticleContentNormalizer::normalizeCategories(
+                    $aiOutput['categories'] ?? [($aiOutput['topic'] ?? 'news')]
+                ),
                 'quality_score' => $this->qualityScore((string) ($aiOutput['title'] ?? $safeTitle), $aiBody),
                 'source_url' => $sourceUrl,
                 'rewrite_mode' => 'ai',
@@ -127,44 +131,5 @@ class SanitizerAgent
         }
 
         return min($score, 100.0);
-    }
-
-    private function preferNonEmptyString(mixed ...$values): string
-    {
-        foreach ($values as $value) {
-            $normalized = trim((string) $value);
-            if ($normalized !== '') {
-                return $normalized;
-            }
-        }
-
-        return '';
-    }
-
-    private function stripSourceFooter(string $content): string
-    {
-        $clean = preg_replace('/(?:\s*\n\s*)*fonte\s*:\s*https?:\/\/\S+\s*$/iu', '', $content) ?? $content;
-        $clean = preg_replace('/(?:\s*\n\s*)*fonte\s*:\s*.+\s*$/iu', '', $clean) ?? $clean;
-
-        return trim($clean);
-    }
-
-    /**
-     * @param mixed $categories
-     * @return array<int, string>
-     */
-    private function normalizeCategories(mixed $categories): array
-    {
-        if (! is_array($categories)) {
-            return [];
-        }
-
-        return collect($categories)
-            ->map(fn ($value) => trim((string) $value))
-            ->filter(fn ($value) => $value !== '')
-            ->unique(fn ($value) => mb_strtolower($value))
-            ->values()
-            ->take(5)
-            ->all();
     }
 }

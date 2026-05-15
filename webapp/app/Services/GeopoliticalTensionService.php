@@ -13,6 +13,11 @@ class GeopoliticalTensionService
 {
     private const HEADER_CACHE_KEY = 'geopolitical_tensions.header_top_5';
 
+    public function __construct(
+        private readonly RegionCoordinateResolver $coordinateResolver
+    ) {
+    }
+
     /**
      * @param array<string, mixed> $agentOutput
      */
@@ -36,15 +41,22 @@ class GeopoliticalTensionService
         $trendDirection = $this->normalizeTrendDirection($payload['trend_direction'] ?? 'stable');
         $statusLabel = trim((string) ($payload['status_label'] ?? ''));
 
+        $context = $this->articleContext($featuredArticle);
+        $coordinates = $this->coordinateResolver->resolve($regionName, $context);
+
+        $attributes = [
+            'risk_score' => $riskScore,
+            'trend_direction' => $trendDirection,
+            'status_label' => Str::limit($statusLabel !== '' ? $statusLabel : 'Tensione geopolitica', 255, ''),
+            'featured_article_id' => $featuredArticle?->id,
+            'updated_at' => now(),
+            'latitude' => $coordinates['lat'] ?? null,
+            'longitude' => $coordinates['long'] ?? null,
+        ];
+
         $tension = GeopoliticalTension::query()->updateOrCreate(
             ['region_name' => Str::limit($regionName, 255, '')],
-            [
-                'risk_score' => $riskScore,
-                'trend_direction' => $trendDirection,
-                'status_label' => Str::limit($statusLabel !== '' ? $statusLabel : 'Tensione geopolitica', 255, ''),
-                'featured_article_id' => $featuredArticle?->id,
-                'updated_at' => now(),
-            ]
+            $attributes
         );
 
         $this->clearHeaderCache();
@@ -122,6 +134,19 @@ class GeopoliticalTensionService
         $trend = strtolower(trim((string) $value));
 
         return in_array($trend, ['rising', 'falling', 'stable'], true) ? $trend : 'stable';
+    }
+
+    private function articleContext(?Article $article): string
+    {
+        if (! $article) {
+            return '';
+        }
+
+        return trim(implode(' ', array_filter([
+            $article->title,
+            $article->summary,
+            $article->content ? Str::limit(strip_tags($article->content), 600, '') : null,
+        ])));
     }
 
     private function articleUrl(GeopoliticalTension $tension): ?string

@@ -1,6 +1,13 @@
 <?php
 
 return [
+    /*
+    | Pipeline unificata (v2):
+    | - Fonti RSS: solo tabella news_sources (Laravel FetchNewsJob)
+    | - Riscrittura CrewAI: servizio Python POST /process (CrewAiClient)
+    | - Pubblicazione: code Laravel (validate → persist → publish)
+    | Non usare POST /run-once sul servizio Python (deprecato).
+    */
     'auto_publish' => env('AI_NEWS_AUTO_PUBLISH', false),
     'min_quality_score' => env('AI_NEWS_MIN_QUALITY_SCORE', 70),
     'max_articles_per_hour' => env('AI_NEWS_MAX_ARTICLES_PER_HOUR', 12),

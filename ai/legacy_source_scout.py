@@ -1,3 +1,7 @@
+"""
+DEPRECATO: lo scouting RSS è gestito solo da Laravel (NewsScoutAgent + tabella news_sources).
+Questo modulo resta per test/diagnostica locali, non è usato dall'API FastAPI.
+"""
 from __future__ import annotations
 
 import json

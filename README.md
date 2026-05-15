@@ -4,24 +4,25 @@ Blog automatizzato basato su AI per la raccolta, riscrittura, validazione e pubb
 
 Il progetto è composto da due moduli collegati:
 
-- `ai/`: servizio Python/FastAPI che scopre notizie da feed RSS, le elabora con una pipeline multi-agent e le invia a Laravel tramite API.
-- `webapp/`: applicazione Laravel che riceve i contenuti AI, li valida, li deduplica, li salva come articoli e li pubblica nel blog.
+- `ai/`: servizio Python/FastAPI con CrewAI per la **riscrittura** (`POST /process`).
+- `webapp/`: orchestratore — fonti RSS dal DB, fetch, extract, validazione, pubblicazione blog.
 
-## Cosa fa il sistema
+## Cosa fa il sistema (pipeline unificata v2)
 
-Il flusso principale è questo:
+1. **Laravel** legge le fonti attive dalla tabella `news_sources` (unica fonte di verità).
+2. `FetchNewsJob` scarica i feed RSS e accoda ogni notizia in scope.
+3. `ExtractSourceContentJob` estrae il testo dalla pagina articolo.
+4. **Laravel → Python**: `SanitizerAgent` chiama `POST /process` sul servizio `ai` (3 agenti CrewAI).
+5. Laravel valida, deduplica, persiste l'articolo e (se configurato) pubblica e genera immagini.
 
-1. Il servizio `ai` legge una lista di fonti RSS geopolitiche.
-2. Una pipeline di 3 agenti AI elabora ogni notizia:
-   - `Geopolitical Scout`: estrae i fatti chiave.
-   - `Italian Editorial Agent`: riscrive il contenuto in italiano.
-   - `Dispatch Preparation Agent`: valida il formato finale del payload.
-3. Il servizio `ai` invia l'articolo a Laravel su `POST /api/ai-news/ingest`.
-4. Laravel autentica la richiesta con bearer token, calcola una chiave di idempotenza e mette il payload in coda.
-5. Laravel valida, deduplica, assegna categorie, crea l'articolo e lo lascia in review oppure lo pubblica automaticamente.
-6. Se abilitato, Laravel genera anche cover e thumbnail dell'articolo.
+Avvio manuale del ciclo:
 
-Oltre al flusso via ingest da `ai/`, `webapp/` contiene anche una pipeline interna schedulata che può leggere direttamente fonti RSS e processarle con i servizi Laravel.
+```bash
+cd webapp
+php artisan ai-news:run
+```
+
+`POST /run-once` sul servizio Python è deprecato (non fetcha più RSS).
 
 ## Architettura
 
@@ -42,15 +43,12 @@ Endpoint principali:
 
 - `GET /health`
 - `POST /process`
-- `POST /run-once`
 
 Responsabilità:
 
-- discovery di news geopolitiche da RSS
-- filtraggio per keyword consentite/bloccate
-- normalizzazione contenuti anche da feed rumorosi
-- riscrittura in italiano
-- dispatch verso Laravel
+- riscrittura in italiano via CrewAI (3 agenti)
+- estrazione metadati tensione geopolitica
+- **non** fetch RSS (gestito da Laravel)
 
 ### Modulo `webapp/`
 
@@ -68,7 +66,10 @@ Tecnologie principali:
 
 Responsabilità:
 
-- ingest sicuro dei payload AI
+- gestione fonti `news_sources` (DB)
+- fetch RSS, filtro geopolitico, extract HTML
+- chiamata CrewAI (`CrewAiClient` → `ai/process`)
+- ingest opzionale legacy (`POST /api/ai-news/ingest`)
 - validazione strutturale e contenutistica
 - deduplicazione notizie
 - persistenza articoli e log di pubblicazione
@@ -221,13 +222,14 @@ uvicorn app.main:app --host 127.0.0.1 --port 8001 --reload
 
 ## Modalità operative
 
-### Eseguire un ciclo completo dal servizio AI
-
-Questo comando effettua scouting, rewrite e dispatch verso Laravel:
+### Eseguire un ciclo completo (Laravel orchestratore)
 
 ```bash
-curl -X POST "http://127.0.0.1:8001/run-once?limit_per_source=3"
+cd webapp
+php artisan ai-news:run
 ```
+
+Richiede `queue:work` attivo e servizio `ai` su porta 8001 con `AI_NEWS_CREWAI_ENABLED=true`.
 
 ### Testare solo la salute del servizio AI
 
@@ -249,24 +251,19 @@ Protezione:
 - bearer token
 - rate limit `120` richieste al minuto
 
-## Pipeline Laravel
+## Pipeline Laravel (principale)
 
-Nel flusso ingest AI, Laravel esegue questi passaggi:
+Orchestrata da `NewsPipelineOrchestrator` (transizioni in `IncomingNewsStateMachine`):
 
-1. `AiNewsIngestController` valida il payload.
-2. `ReceiveAiArticleJob` salva `IncomingNews`, calcola score e idempotenza.
-3. `ValidateSanitizedArticleJob` controlla duplicati e policy.
-4. `PersistArticleJob` crea l'articolo e assegna categorie.
-5. `PublishArticleJob` pubblica se `AI_NEWS_AUTO_PUBLISH=true`.
-6. `GenerateArticleImagesJob` crea immagini se `AI_NEWS_IMAGES_ENABLED=true`.
+1. `FetchNewsJob` — RSS da `news_sources` (DB)
+2. `ParseAndStoreIncomingJob` — filtro scope + dedup → `queueNewItem()`
+3. `ExtractSourceContentJob` — HTML articolo (saltato se il testo è già presente)
+4. `SanitizeIncomingNewsJob` — `CrewAiClient` → `POST /process` (Python)
+5. `ValidateSanitizedArticleJob` → `PersistArticleJob` → `PublishArticleJob` / immagini
 
-È presente anche una pipeline interna schedulata:
+Ogni job, al termine, chiama `$pipeline->advance()` per il passo successivo.
 
-- `FetchNewsJob`
-- `ParseAndStoreIncomingJob`
-- `ExtractSourceContentJob`
-- `SanitizeIncomingNewsJob`
-- `ValidateSanitizedArticleJob`
+**Ingest legacy** (`POST /api/ai-news/ingest`): per integrazioni esterne; gli articoli `rewrite_mode=crewai` non vengono risanitizzati due volte.
 
 ## Frontend e aree disponibili
 

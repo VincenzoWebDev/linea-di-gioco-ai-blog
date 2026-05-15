@@ -9,6 +9,8 @@ use App\Models\IncomingNews;
 use App\Models\PublicationLog;
 use App\Services\CategoryAssignmentService;
 use App\Services\GeopoliticalTensionService;
+use App\Services\News\IncomingNewsStateMachine;
+use App\Support\ArticleContentNormalizer;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -28,7 +30,8 @@ class PersistArticleJob implements ShouldQueue
 
     public function handle(
         CategoryAssignmentService $categoryAssignmentService,
-        GeopoliticalTensionService $geopoliticalTensionService
+        GeopoliticalTensionService $geopoliticalTensionService,
+        IncomingNewsStateMachine $stateMachine
     ): void
     {
         $incoming = IncomingNews::query()
@@ -65,7 +68,7 @@ class PersistArticleJob implements ShouldQueue
             $suggestedCategories
         );
 
-        $content = $this->stripSourceFooter((string) ($payload['content'] ?? ''));
+        $content = ArticleContentNormalizer::stripSourceFooter((string) ($payload['content'] ?? ''));
 
         $article = Article::query()->create([
             'incoming_news_id' => $incoming->id,
@@ -76,7 +79,7 @@ class PersistArticleJob implements ShouldQueue
             'status' => $autoPublish ? 'published' : 'review',
             'publication_status' => $publicationStatus,
             'created_by' => 'ai',
-            'source_url' => $this->preferNonEmptyString($payload['source_url'] ?? null, $incoming->url),
+            'source_url' => ArticleContentNormalizer::preferNonEmptyString($payload['source_url'] ?? null, $incoming->url),
             'source_name' => (string) ($incoming->source?->name ?? 'unknown'),
             'ai_generated' => true,
             'quality_score' => (float) ($payload['quality_score'] ?? 0),
@@ -107,9 +110,9 @@ class PersistArticleJob implements ShouldQueue
         GenerateArticleImagesJob::dispatch($article->id)
             ->onQueue(config('ai_news.queues.images', 'news-images'));
 
-        $incoming->update([
-            'status' => $autoPublish ? IncomingNewsStatus::PUBLISHED : IncomingNewsStatus::VALIDATED,
-        ]);
+        if ($autoPublish) {
+            $stateMachine->transition($incoming, IncomingNewsStatus::PUBLISHED);
+        }
     }
 
     private function uniqueSlug(string $baseSlug, int $incomingId): string
@@ -125,23 +128,4 @@ class PersistArticleJob implements ShouldQueue
         return $slug;
     }
 
-    private function stripSourceFooter(string $content): string
-    {
-        $clean = preg_replace('/(?:\s*\n\s*)*fonte\s*:\s*https?:\/\/\S+\s*$/iu', '', $content) ?? $content;
-        $clean = preg_replace('/(?:\s*\n\s*)*fonte\s*:\s*.+\s*$/iu', '', $clean) ?? $clean;
-
-        return trim($clean);
-    }
-
-    private function preferNonEmptyString(mixed ...$values): string
-    {
-        foreach ($values as $value) {
-            $normalized = trim((string) $value);
-            if ($normalized !== '') {
-                return $normalized;
-            }
-        }
-
-        return '';
-    }
 }

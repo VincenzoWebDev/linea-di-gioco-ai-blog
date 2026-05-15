@@ -5,6 +5,8 @@ namespace App\Jobs\News;
 use App\Enums\IncomingNewsStatus;
 use App\Models\IncomingNews;
 use App\Services\GeopoliticsScopeService;
+use App\Services\News\IncomingNewsStateMachine;
+use App\Services\News\NewsPipelineOrchestrator;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -23,7 +25,7 @@ class ParseAndStoreIncomingJob implements ShouldQueue
     public array $backoff = [30, 120, 300];
 
     /**
-     * @param array<string, mixed> $rawNews
+     * @param  array<string, mixed>  $rawNews
      */
     public function __construct(
         public int $newsSourceId,
@@ -31,8 +33,11 @@ class ParseAndStoreIncomingJob implements ShouldQueue
     ) {
     }
 
-    public function handle(GeopoliticsScopeService $scopeService): void
-    {
+    public function handle(
+        GeopoliticsScopeService $scopeService,
+        IncomingNewsStateMachine $stateMachine,
+        NewsPipelineOrchestrator $pipeline
+    ): void {
         $title = trim((string) ($this->rawNews['title'] ?? ''));
         $summary = trim((string) ($this->rawNews['summary'] ?? ''));
         $url = trim((string) ($this->rawNews['url'] ?? ''));
@@ -47,7 +52,7 @@ class ParseAndStoreIncomingJob implements ShouldQueue
             ]);
 
             if ((bool) config('ai_news.scope.store_rejected', false)) {
-                $this->firstOrCreateByFingerprint(
+                $rejected = $this->firstOrCreateByFingerprint(
                     $fingerprint,
                     [
                         'news_source_id' => $this->newsSourceId,
@@ -57,10 +62,13 @@ class ParseAndStoreIncomingJob implements ShouldQueue
                         'summary' => $summary !== '' ? $summary : null,
                         'raw_payload' => $this->rawNews,
                         'published_at' => Carbon::parse($publishedAt),
-                        'status' => IncomingNewsStatus::REJECTED,
-                        'rejection_reason' => 'out_of_scope_geopolitics',
+                        'status' => IncomingNewsStatus::RAW,
                     ]
                 );
+
+                if ($rejected->wasRecentlyCreated) {
+                    $stateMachine->reject($rejected, 'out_of_scope_geopolitics');
+                }
             }
 
             return;
@@ -90,20 +98,16 @@ class ParseAndStoreIncomingJob implements ShouldQueue
             return;
         }
 
-        $incoming->update(['status' => IncomingNewsStatus::QUEUED]);
-
-        Log::info('ai_news_item_queued_for_extraction', [
+        Log::info('ai_news_item_queued_for_pipeline', [
             'incoming_news_id' => $incoming->id,
             'news_source_id' => $this->newsSourceId,
-            'queue_extract' => config('ai_news.queues.extract', 'news-extract'),
         ]);
 
-        ExtractSourceContentJob::dispatch($incoming->id)
-            ->onQueue(config('ai_news.queues.extract', 'news-extract'));
+        $pipeline->queueNewItem($incoming);
     }
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     private function firstOrCreateByFingerprint(string $fingerprint, array $attributes): IncomingNews
     {

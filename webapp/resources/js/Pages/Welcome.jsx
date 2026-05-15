@@ -7,7 +7,6 @@ import {
     Crosshair,
     FileSearch,
     MapPin,
-    Image as ImageIcon,
     Radar,
     RadioTower,
     Satellite,
@@ -26,6 +25,8 @@ import {
 } from "react-simple-maps";
 import { useMemo, useState } from "react";
 import BlogLayout from "@/Layouts/BlogLayout";
+import ArticleCoverImage from "@/Components/blog/articles/ArticleCoverImage";
+import ArticleIntelligenceCard from "@/Components/blog/articles/ArticleIntelligenceCard";
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
@@ -131,28 +132,6 @@ function normalizeOperations(locations, articles) {
     }));
 }
 
-function OperationImage({ item, className = "", compact = false }) {
-    const imageUrl = item.cover_url || item.thumb_url || item.article?.cover_url || item.article?.thumb_url;
-
-    return (
-        <div className={`relative overflow-hidden bg-[#0B0F15] ${className}`}>
-            {imageUrl ? (
-                <img
-                    src={imageUrl}
-                    alt={item.title}
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                    loading="lazy"
-                />
-            ) : (
-                <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,rgba(215,181,109,0.16),transparent_32%),linear-gradient(135deg,rgba(31,58,95,0.5),rgba(11,15,21,0.96)_58%,rgba(158,42,43,0.24))]">
-                    <ImageIcon className={compact ? "h-5 w-5 text-[#D7B56D]/70" : "h-9 w-9 text-[#D7B56D]/70"} />
-                </div>
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#080B10]/86 via-transparent to-transparent" />
-        </div>
-    );
-}
-
 function GlobalMap({ operations }) {
     const [activeId, setActiveId] = useState(operations[0]?.id || null);
     const active = operations.find((item) => item.id === activeId) || operations[0];
@@ -177,9 +156,9 @@ function GlobalMap({ operations }) {
                         </div>
                     </div>
 
-                    <div className="mt-7 aspect-[1.72] w-full border border-[#182234] bg-[#0B0F15]/80">
+                    <div className="mt-7 aspect-[1.72] w-full overflow-hidden border border-[#182234] bg-[#0B0F15]/80 [&_svg]:origin-center [&_svg]:scale-[1.1]">
                         <ComposableMap
-                            projectionConfig={{ rotate: [-10, 0, 0], scale: 145 }}
+                            projectionConfig={{ rotate: [-10, 0, 0], scale: 178 }}
                             className="h-full w-full"
                         >
                             <Graticule stroke="#233047" strokeWidth={0.35} />
@@ -248,7 +227,7 @@ function GlobalMap({ operations }) {
                                 <SignalBox icon={MapPin} label="Coord" value={`${formatCoordinate(active.lat, "lat")} / ${formatCoordinate(active.long, "long")}`} />
                             </div>
 
-                            <OperationImage item={active} className="mt-5 h-40 border border-[#202A3D]" />
+                            <ArticleCoverImage item={active} className="mt-5 h-40 border border-[#202A3D]" />
 
                             <p className="mt-5 font-mono text-sm leading-7 text-[#B8C2D2]">
                                 {active.title}
@@ -313,57 +292,28 @@ function IntelligenceCard({ item, index }) {
     const TrendIcon = trendCopy[item.trend_direction]?.icon || Activity;
 
     return (
-        <motion.article
-            initial={{ opacity: 0, y: 18 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.42, delay: Math.min(index * 0.06, 0.3) }}
-            className="group border border-[#202A3D] bg-[#101620] transition hover:-translate-y-1 hover:border-[#D7B56D]/50"
-        >
-            <Link href={item.url || route("blog.articles.index")} className="block">
-                <div className="relative">
-                    <OperationImage item={item} className="h-48 border-b border-[#202A3D]" />
-                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-3">
-                        <span className="border border-[#D7B56D]/40 bg-[#080B10]/82 px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.22em] text-[#FDE68A] backdrop-blur">
-                            {item.operation_code}
-                        </span>
-                        <span className={`shrink-0 border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] backdrop-blur ${severity.border} ${severity.bg} ${severity.text}`}>
-                            {severity.label}
-                        </span>
-                    </div>
-                </div>
-
-                <div className="p-5">
-                    <h3 className="text-xl font-semibold leading-tight text-[#F3F4F6]">
-                        {item.title}
-                    </h3>
-
-                    <div className="mt-4 flex flex-wrap gap-2">
-                        <DataChip icon={MapPin} value={item.region_name} />
-                        <DataChip icon={TrendIcon} value={trendCopy[item.trend_direction]?.label || "Stabile"} />
-                    </div>
-
-                    <div className="mt-4 min-w-0">
-                        <p className="line-clamp-3 text-sm leading-6 text-[#AAB3C2]">
-                            {item.summary || "Briefing in aggiornamento automatico."}
-                        </p>
-                        <div className="mt-5 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.18em] text-[#D7B56D]">
-                            Analizza file
-                            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-                        </div>
-                    </div>
-                </div>
-            </Link>
-        </motion.article>
-    );
-}
-
-function DataChip({ icon: Icon, value }) {
-    return (
-        <span className="inline-flex max-w-full items-center gap-2 border border-[#202A3D] bg-[#0B0F15] px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.14em] text-[#9CA3AF]">
-            <Icon className="h-3.5 w-3.5 shrink-0 text-[#D7B56D]" />
-            <span className="truncate">{value}</span>
-        </span>
+        <ArticleIntelligenceCard
+            article={{
+                id: item.article?.id ?? item.id,
+                slug: item.article?.slug ?? String(item.id),
+                title: item.title,
+                summary: item.summary,
+                cover_url: item.cover_url,
+                thumb_url: item.thumb_url,
+                operation_code: item.operation_code,
+            }}
+            index={index}
+            href={item.url || route("blog.articles.index")}
+            ctaLabel="Analizza file"
+            statusBadge={severity}
+            chips={[
+                { icon: MapPin, value: item.region_name || "Hotspot" },
+                {
+                    icon: TrendIcon,
+                    value: trendCopy[item.trend_direction]?.label || "Stabile",
+                },
+            ]}
+        />
     );
 }
 
@@ -465,7 +415,7 @@ export default function Welcome({
                                 href={route("blog.articles.show", { id: article.id, slug: article.slug })}
                                 className="grid grid-cols-[76px_1fr_auto] items-center gap-4 border border-[#202A3D] bg-[#0B0F15] p-3 transition hover:border-[#D7B56D]/50"
                             >
-                                <OperationImage item={article} compact className="h-14 border border-[#182234]" />
+                                <ArticleCoverImage item={article} compact className="h-14 border border-[#182234]" />
                                 <span className="min-w-0 truncate text-sm text-[#D7DEE8]">{article.title}</span>
                                 <ShieldAlert className="h-4 w-4 shrink-0 text-[#D7B56D]" />
                             </Link>

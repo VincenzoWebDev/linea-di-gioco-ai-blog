@@ -11,6 +11,8 @@ class GeopoliticalTension extends Model
 
     protected $fillable = [
         'region_name',
+        'latitude',
+        'longitude',
         'risk_score',
         'trend_direction',
         'status_label',
@@ -18,8 +20,15 @@ class GeopoliticalTension extends Model
     ];
 
     protected $casts = [
+        'latitude' => 'float',
+        'longitude' => 'float',
         'risk_score' => 'integer',
     ];
+
+    public function hasMapCoordinates(): bool
+    {
+        return $this->latitude !== null && $this->longitude !== null;
+    }
 
     public function featuredArticle(): BelongsTo
     {

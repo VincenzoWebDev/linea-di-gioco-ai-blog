@@ -33,6 +33,15 @@ Artisan::command('ai-news:dispatch {--force : Ignora il poll interval delle sour
     $this->info($message);
 })->purpose('Dispatch manuale della pipeline AI news');
 
+Artisan::command('ai-news:run {--force : Ignora il poll interval delle source}', function () {
+    FetchNewsJob::dispatch((bool) $this->option('force'))
+        ->onQueue(config('ai_news.queues.ingest', 'news-ingest'));
+
+    $this->info('Pipeline avviata: fetch RSS da news_sources (DB) → extract → CrewAI (/process) → publish.');
+    $this->line('Assicurati che code e scheduler siano attivi (queue:work, schedule:work).');
+    $this->line('Servizio Python: POST /process su '.config('ai_news.crewai.base_url', 'http://127.0.0.1:8001'));
+})->purpose('Avvia il ciclo completo news (alias raccomandato di ai-news:dispatch)');
+
 Artisan::command('ai-news:probe {--limit=5}', function (NewsScoutAgent $scout, GeopoliticsScopeService $scope) {
     $limit = max((int) $this->option('limit'), 1);
     $sources = NewsSource::query()->where('is_active', true)->get();
