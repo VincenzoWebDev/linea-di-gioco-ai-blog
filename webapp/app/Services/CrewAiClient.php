@@ -59,7 +59,7 @@ class CrewAiClient
 
             $title = trim((string) ($article['title'] ?? ''));
             $summary = trim((string) ($article['summary'] ?? ''));
-            $content = trim((string) ($article['content'] ?? ''));
+            $content = $this->stripSourceFooter(trim((string) ($article['content'] ?? '')));
             $topic = trim((string) ($article['topic'] ?? 'geopolitica'));
             $categories = collect((array) ($article['categories'] ?? []))
                 ->map(fn ($value) => trim((string) $value))
@@ -74,10 +74,6 @@ class CrewAiClient
 
             if ($title === '' || $content === '') {
                 return null;
-            }
-
-            if (! Str::contains(Str::lower($content), 'fonte:')) {
-                $content = trim($content."\n\nFonte: ".$sourceUrl);
             }
 
             $result = [
@@ -98,5 +94,13 @@ class CrewAiClient
         } catch (Throwable) {
             return null;
         }
+    }
+
+    private function stripSourceFooter(string $content): string
+    {
+        $clean = preg_replace('/(?:\s*\n\s*)*fonte\s*:\s*https?:\/\/\S+\s*$/iu', '', $content) ?? $content;
+        $clean = preg_replace('/(?:\s*\n\s*)*fonte\s*:\s*.+\s*$/iu', '', $clean) ?? $clean;
+
+        return trim($clean);
     }
 }

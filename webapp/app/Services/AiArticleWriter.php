@@ -48,6 +48,7 @@ Regole:
 - Se la notizia riguarda sport, gossip, intrattenimento, lifestyle o temi fuori scope, restituisci JSON con title, summary, content vuoti e topic "scarto".
 - Se manca un dato, non inventarlo.
 - Se viene nominata qualche testata giornalistica, eliminala e adattala al contesto del blog.
+- Non inserire mai righe o frasi finali con "Fonte:"; la fonte viene salvata separatamente in source_url.
 - Rispondi solo con JSON valido, senza markdown e senza testo extra.
 
 INPUT
@@ -145,7 +146,7 @@ PROMPT;
 
         $title = trim((string) ($decoded['title'] ?? ''));
         $summary = trim((string) ($decoded['summary'] ?? ''));
-        $body = trim((string) ($decoded['content'] ?? ''));
+        $body = $this->stripSourceFooter(trim((string) ($decoded['content'] ?? '')));
         $topic = trim((string) ($decoded['topic'] ?? 'news'));
 
         if ($title === '' || $body === '') {
@@ -185,20 +186,24 @@ PROMPT;
             return null;
         }
 
-        $withSource = Str::contains(Str::lower($plain), 'fonte:')
-            ? $plain
-            : trim($plain . ' Fonte: ' . $sourceUrl);
-
         $titleFromText = Str::of($plain)->before('.')->trim()->toString();
         $title = $titleFromText !== '' ? $titleFromText : $sourceTitle;
 
         return [
             'title' => Str::limit($title, 140, ''),
             'summary' => Str::limit($plain, 240, ''),
-            'content' => Str::limit($withSource, 14000, ''),
+            'content' => Str::limit($this->stripSourceFooter($plain), 14000, ''),
             'topic' => 'news',
             'categories' => ['news'],
         ];
+    }
+
+    private function stripSourceFooter(string $content): string
+    {
+        $clean = preg_replace('/(?:\s*\n\s*)*fonte\s*:\s*https?:\/\/\S+\s*$/iu', '', $content) ?? $content;
+        $clean = preg_replace('/(?:\s*\n\s*)*fonte\s*:\s*.+\s*$/iu', '', $clean) ?? $clean;
+
+        return trim($clean);
     }
 
     /**

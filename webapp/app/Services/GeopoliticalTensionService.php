@@ -18,7 +18,7 @@ class GeopoliticalTensionService
      */
     public function upsertFromAgentOutput(array $agentOutput, ?Article $featuredArticle = null): ?GeopoliticalTension
     {
-        if (!Schema::hasTable('geopolitical_tensions')) {
+        if (! Schema::hasTable('geopolitical_tensions')) {
             return null;
         }
 
@@ -57,7 +57,7 @@ class GeopoliticalTensionService
      */
     public function topForHeader(int $limit = 5): Collection
     {
-        if (!Schema::hasTable('geopolitical_tensions')) {
+        if (! Schema::hasTable('geopolitical_tensions')) {
             return collect();
         }
 
@@ -65,21 +65,16 @@ class GeopoliticalTensionService
             return $this->queryTopForHeader($limit);
         }
 
-        // return collect(Cache::rememberForever(
-        //     self::HEADER_CACHE_KEY,
-        //     fn () => $this->queryTopForHeader(5)->all()
-        // ));
         return collect(Cache::remember(
             self::HEADER_CACHE_KEY,
             now()->addMinutes(1),
-            fn() => $this->queryTopForHeader(5)->all()
+            fn () => $this->queryTopForHeader(5)->all()
         ));
     }
 
     public function clearHeaderCache(): void
     {
         Cache::forget(self::HEADER_CACHE_KEY);
-        Cache::forget('geopolitical_tensions.header_top_5');
     }
 
     /**
@@ -93,7 +88,7 @@ class GeopoliticalTensionService
             ->orderBy('region_name')
             ->limit($limit)
             ->get()
-            ->map(fn(GeopoliticalTension $tension) => [
+            ->map(fn (GeopoliticalTension $tension) => [
                 'region_name' => $tension->region_name,
                 'risk_score' => $tension->risk_score,
                 'trend_direction' => $tension->trend_direction,
@@ -132,7 +127,7 @@ class GeopoliticalTensionService
     private function articleUrl(GeopoliticalTension $tension): ?string
     {
         $article = $tension->featuredArticle;
-        if (!$article || $article->status !== 'published') {
+        if (! $article || $article->status !== 'published') {
             return null;
         }
 

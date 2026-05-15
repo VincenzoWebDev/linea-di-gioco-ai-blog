@@ -36,7 +36,7 @@ class SanitizerAgent
 
         $intro = Str::limit($baseText, 280, '');
         $development = Str::limit(Str::after($baseText, $intro), 900, '');
-        $body = trim($intro."\n\n".$development."\n\nFonte: ".$sourceUrl);
+        $body = trim($intro."\n\n".$development);
         $finalSummary = $safeSummary !== '' ? $safeSummary : Str::limit($intro, 220, '');
 
         $crewOutput = $this->crewAiClient->process([
@@ -48,7 +48,7 @@ class SanitizerAgent
 
         if (is_array($crewOutput)) {
             $crewTitle = (string) ($crewOutput['title'] ?? $safeTitle);
-            $crewContent = (string) ($crewOutput['content'] ?? $body);
+            $crewContent = $this->stripSourceFooter((string) ($crewOutput['content'] ?? $body));
             $crewScore = (float) ($crewOutput['quality_score'] ?? 0);
             if ($crewScore <= 0) {
                 $crewScore = $this->qualityScore($crewTitle, $crewContent);
@@ -82,18 +82,15 @@ class SanitizerAgent
         ]);
 
         if (is_array($aiOutput)) {
-            $aiBody = trim((string) ($aiOutput['content'] ?? ''));
-            $contentWithSource = Str::contains(Str::lower($aiBody), 'fonte:')
-                ? $aiBody
-                : trim($aiBody."\n\nFonte: ".$sourceUrl);
+            $aiBody = $this->stripSourceFooter(trim((string) ($aiOutput['content'] ?? '')));
 
             $aiCandidate = [
                 'title' => (string) ($aiOutput['title'] ?? $safeTitle),
                 'summary' => (string) ($aiOutput['summary'] ?? $finalSummary),
-                'content' => $contentWithSource,
+                'content' => $aiBody,
                 'topic' => (string) ($aiOutput['topic'] ?? 'news'),
                 'categories' => $this->normalizeCategories($aiOutput['categories'] ?? [($aiOutput['topic'] ?? 'news')]),
-                'quality_score' => $this->qualityScore((string) ($aiOutput['title'] ?? $safeTitle), $contentWithSource),
+                'quality_score' => $this->qualityScore((string) ($aiOutput['title'] ?? $safeTitle), $aiBody),
                 'source_url' => $sourceUrl,
                 'rewrite_mode' => 'ai',
                 'language' => 'it',
@@ -129,11 +126,15 @@ class SanitizerAgent
             $score += 15;
         }
 
-        if (Str::contains(Str::lower($content), 'fonte: http')) {
-            $score += 10;
-        }
-
         return min($score, 100.0);
+    }
+
+    private function stripSourceFooter(string $content): string
+    {
+        $clean = preg_replace('/(?:\s*\n\s*)*fonte\s*:\s*https?:\/\/\S+\s*$/iu', '', $content) ?? $content;
+        $clean = preg_replace('/(?:\s*\n\s*)*fonte\s*:\s*.+\s*$/iu', '', $clean) ?? $clean;
+
+        return trim($clean);
     }
 
     /**

@@ -131,9 +131,6 @@ class ReceiveAiArticleJob implements ShouldQueue
         }
 
         $lowerContent = mb_strtolower($content);
-        if (str_contains($lowerContent, 'fonte:')) {
-            $score += 10;
-        }
 
         $lowerTopic = mb_strtolower($topic);
         if (

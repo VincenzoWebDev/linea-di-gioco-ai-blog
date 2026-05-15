@@ -65,12 +65,14 @@ class PersistArticleJob implements ShouldQueue
             $suggestedCategories
         );
 
+        $content = $this->stripSourceFooter((string) ($payload['content'] ?? ''));
+
         $article = Article::query()->create([
             'incoming_news_id' => $incoming->id,
             'title' => (string) ($payload['title'] ?? $incoming->title),
             'slug' => $slug,
             'summary' => (string) ($payload['summary'] ?? $incoming->summary),
-            'content' => (string) ($payload['content'] ?? ''),
+            'content' => $content,
             'status' => $autoPublish ? 'published' : 'review',
             'publication_status' => $publicationStatus,
             'created_by' => 'ai',
@@ -123,5 +125,13 @@ class PersistArticleJob implements ShouldQueue
         }
 
         return $slug;
+    }
+
+    private function stripSourceFooter(string $content): string
+    {
+        $clean = preg_replace('/(?:\s*\n\s*)*fonte\s*:\s*https?:\/\/\S+\s*$/iu', '', $content) ?? $content;
+        $clean = preg_replace('/(?:\s*\n\s*)*fonte\s*:\s*.+\s*$/iu', '', $clean) ?? $clean;
+
+        return trim($clean);
     }
 }

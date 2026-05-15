@@ -112,7 +112,7 @@ def _run_crewai(payload: ProcessRequest) -> Tuple[ArticleOut, Dict[str, Any]]:
             "tono giornalistico professionale, senza copiare frasi dalla fonte. "
             "Vietato usare frasi in inglese, salvo nomi propri internazionali. "
             "Mantieni il campo geopolitical_tension ricevuto dall'Analyst senza trasformarlo in testo libero. "
-            f'Chiudi sempre con: "Fonte: {payload.source_url}". {json_clause}'
+            f'Non inserire mai "Fonte:" o URL nel content: source_url resta un campo JSON separato. {json_clause}'
         ),
         expected_output="JSON articolo pronto per validazione.",
         agent=editor,
@@ -169,8 +169,7 @@ def _run_crewai(payload: ProcessRequest) -> Tuple[ArticleOut, Dict[str, Any]]:
         geopolitical_tension=_normalize_tension(data.get("geopolitical_tension"), payload),
     )
 
-    if "fonte:" not in article.content.lower():
-        article.content = f"{article.content}\n\nFonte: {payload.source_url}"
+    article.content = _strip_source_footer(article.content)
 
     if not article.title or not article.content:
         raise ValueError("Crew output incompleto")
@@ -299,9 +298,7 @@ def _ten_word_summary(text: str, payload: ProcessRequest) -> str:
 
 def _fallback_article(payload: ProcessRequest) -> ArticleOut:
     base = _clean_text(payload.source_content or payload.summary or payload.title)
-    body = base[:1200]
-    if "fonte:" not in body.lower():
-        body = f"{body}\n\nFonte: {payload.source_url}"
+    body = _strip_source_footer(base[:1200])
 
     title = _clean_text(payload.title or "Aggiornamento geopolitico")[:140]
     summary = _clean_text(payload.summary or base[:220])[:240]
@@ -319,7 +316,7 @@ def _fallback_article(payload: ProcessRequest) -> ArticleOut:
         # Fallback sicuro: non pubblicabile, verra scartato da Laravel per quality bassa
         title = "Notizia non traducibile automaticamente"
         summary = "Contenuto scartato: traduzione italiana non affidabile."
-        body = f"Impossibile ottenere una riscrittura italiana affidabile. Fonte: {payload.source_url}"
+        body = "Impossibile ottenere una riscrittura italiana affidabile."
         quality = 0.0
 
     return ArticleOut(
@@ -410,7 +407,7 @@ def _force_italian(
                 "Riscrivi e traduci in italiano. Rimuovi qualsiasi tag HTML. "
                 f"{strict_clause} {extra_clause} "
                 "Output SOLO JSON con chiavi title, summary, content. "
-                f'Chiudi content con "Fonte: {source_url}".\n\n'
+                "Non inserire mai righe con Fonte o URL nel content; la fonte resta in source_url.\n\n"
                 f"TITLE: {title}\nSUMMARY: {summary}\nCONTENT: {content}"
             ),
             expected_output="JSON valido in italiano.",
@@ -440,6 +437,12 @@ def _clean_text(text: str) -> str:
     t = re.sub(r"<[^>]+>", " ", t)
     t = re.sub(r"\s+", " ", t)
     return t.strip()
+
+
+def _strip_source_footer(text: str) -> str:
+    clean = re.sub(r"(?:\s*\n\s*)*fonte\s*:\s*https?://\S+\s*$", "", text or "", flags=re.IGNORECASE)
+    clean = re.sub(r"(?:\s*\n\s*)*fonte\s*:\s*.+\s*$", "", clean, flags=re.IGNORECASE)
+    return clean.strip()
 
 
 def _tokenize(text: str) -> list[str]:
@@ -486,8 +489,6 @@ def _estimated_quality(title: str, content: str) -> float:
         score += 12
 
     low = content.lower()
-    if "fonte:" in low:
-        score += 8
     if any(k in low for k in ["nato", "diplom", "sanzion", "guerra", "politica", "geopolit"]):
         score += 10
 
