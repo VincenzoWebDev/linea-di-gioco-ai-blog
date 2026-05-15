@@ -33,16 +33,15 @@ class GenerateArticleImagesJob implements ShouldQueue
         ArticleImageFallbackService $articleImageFallbackService
     ): void
     {
-        if (! (bool) config('ai_news.images.enabled', false)) {
-            return;
-        }
-
         $article = Article::query()->find($this->articleId);
         if (! $article) {
             return;
         }
 
-        if ($article->cover_path && $article->thumb_path) {
+        $coverIsPlaceholder = $this->isPlaceholderAsset($article->cover_path);
+        $thumbIsPlaceholder = $this->isPlaceholderAsset($article->thumb_path);
+
+        if ($article->cover_path && $article->thumb_path && ! $coverIsPlaceholder && ! $thumbIsPlaceholder) {
             return;
         }
 
@@ -50,11 +49,12 @@ class GenerateArticleImagesJob implements ShouldQueue
         $slug = $article->slug ?: 'article-'.$article->id;
         $updates = [];
         $provider = (string) config('ai_news.images.provider', 'gemini');
+        $aiImagesEnabled = (bool) config('ai_news.images.enabled', false);
 
         try {
             $generatedImage = null;
-            if (! $article->cover_path) {
-                if ($provider === 'gemini') {
+            if (! $article->cover_path || $coverIsPlaceholder) {
+                if ($aiImagesEnabled && $provider === 'gemini') {
                     try {
                         $generatedImage = $geminiImageService->generate($article->title, (string) $article->summary, 'cover');
                     } catch (\Throwable $geminiError) {
@@ -67,7 +67,7 @@ class GenerateArticleImagesJob implements ShouldQueue
                 }
 
                 if (! is_array($generatedImage)) {
-                    $generatedImage = $articleImageFallbackService->fetchFromSourceUrl((string) $article->source_url);
+                    $generatedImage = $articleImageFallbackService->fetchFromSourceUrl($this->resolveSourceUrl($article));
                 }
                 if (! is_array($generatedImage)) {
                     $generatedImage = $articleImageFallbackService->placeholder($article->title, 'cover');
@@ -79,7 +79,7 @@ class GenerateArticleImagesJob implements ShouldQueue
                 $updates['cover_path'] = $coverPath;
             }
 
-            if (! $article->thumb_path) {
+            if (! $article->thumb_path || $thumbIsPlaceholder) {
                 $sourceBytes = null;
                 $sourceMime = 'image/png';
 
@@ -138,6 +138,88 @@ class GenerateArticleImagesJob implements ShouldQueue
             'svg' => 'image/svg+xml',
             default => 'image/png',
         };
+    }
+
+    private function resolveSourceUrl(Article $article): string
+    {
+        $article->loadMissing('incomingNews:id,url,raw_payload,sanitized_payload');
+
+        $preferred = $this->preferUsableUrl(
+            data_get($article->incomingNews, 'url'),
+            data_get($article->incomingNews, 'sanitized_payload.source_url'),
+            data_get($article->incomingNews, 'raw_payload.source_url'),
+            data_get($article->incomingNews, 'raw_payload.url'),
+            $article->source_url
+        );
+
+        if ($preferred !== '') {
+            return $preferred;
+        }
+
+        return $this->preferNonEmptyString(
+            data_get($article->incomingNews, 'url'),
+            data_get($article->incomingNews, 'sanitized_payload.source_url'),
+            data_get($article->incomingNews, 'raw_payload.source_url'),
+            data_get($article->incomingNews, 'raw_payload.url'),
+            $article->source_url
+        );
+    }
+
+    private function isPlaceholderAsset(?string $path): bool
+    {
+        if (! is_string($path) || trim($path) === '') {
+            return false;
+        }
+
+        if (! Storage::disk('public')->exists($path)) {
+            return false;
+        }
+
+        if (strtolower(pathinfo($path, PATHINFO_EXTENSION)) !== 'svg') {
+            return false;
+        }
+
+        $contents = Storage::disk('public')->get($path);
+        if (! is_string($contents) || $contents === '') {
+            return false;
+        }
+
+        return str_contains($contents, 'Linea di Gioco');
+    }
+
+    private function preferUsableUrl(mixed ...$values): string
+    {
+        foreach ($values as $value) {
+            $normalized = trim((string) $value);
+            if ($this->isUsableUrl($normalized)) {
+                return $normalized;
+            }
+        }
+
+        return '';
+    }
+
+    private function preferNonEmptyString(mixed ...$values): string
+    {
+        foreach ($values as $value) {
+            $normalized = trim((string) $value);
+            if ($normalized !== '') {
+                return $normalized;
+            }
+        }
+
+        return '';
+    }
+
+    private function isUsableUrl(string $value): bool
+    {
+        if ($value === '' || ! filter_var($value, FILTER_VALIDATE_URL)) {
+            return false;
+        }
+
+        $host = strtolower((string) parse_url($value, PHP_URL_HOST));
+
+        return ! in_array($host, ['example.com', 'www.example.com', 'news.example.com', 'dispatch.local'], true);
     }
 
     /**

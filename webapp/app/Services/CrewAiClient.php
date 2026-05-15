@@ -67,7 +67,10 @@ class CrewAiClient
                 ->values()
                 ->take(5)
                 ->all();
-            $sourceUrl = trim((string) ($article['source_url'] ?? $payload['source_url'] ?? ''));
+            $sourceUrl = $this->preferNonEmptyString(
+                $article['source_url'] ?? null,
+                $payload['source_url'] ?? null
+            );
             $geopoliticalTension = is_array($article['geopolitical_tension'] ?? null)
                 ? $article['geopolitical_tension']
                 : null;
@@ -102,5 +105,17 @@ class CrewAiClient
         $clean = preg_replace('/(?:\s*\n\s*)*fonte\s*:\s*.+\s*$/iu', '', $clean) ?? $clean;
 
         return trim($clean);
+    }
+
+    private function preferNonEmptyString(mixed ...$values): string
+    {
+        foreach ($values as $value) {
+            $normalized = trim((string) $value);
+            if ($normalized !== '') {
+                return $normalized;
+            }
+        }
+
+        return '';
     }
 }

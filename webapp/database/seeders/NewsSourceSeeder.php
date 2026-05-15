@@ -14,6 +14,13 @@ class NewsSourceSeeder extends Seeder
     {
         $sources = [
             [
+                'name' => 'Reuters Top News',
+                'type' => 'rss',
+                'endpoint' => 'http://feeds.reuters.com/reuters/topNews',
+                'is_active' => true,
+                'poll_interval_minutes' => 10,
+            ],
+            [
                 'name' => 'BBC World',
                 'type' => 'rss',
                 'endpoint' => 'https://feeds.bbci.co.uk/news/world/rss.xml',
@@ -26,6 +33,48 @@ class NewsSourceSeeder extends Seeder
                 'endpoint' => 'https://feeds.bbci.co.uk/news/world/middle_east/rss.xml',
                 'is_active' => true,
                 'poll_interval_minutes' => 10,
+            ],
+            [
+                'name' => 'Al Jazeera World',
+                'type' => 'rss',
+                'endpoint' => 'https://www.aljazeera.com/xml/rss/all.xml',
+                'is_active' => true,
+                'poll_interval_minutes' => 10,
+            ],
+            [
+                'name' => 'UN News Top Stories',
+                'type' => 'rss',
+                'endpoint' => 'https://news.un.org/feed/subscribe/en/news/all/rss.xml',
+                'is_active' => true,
+                'poll_interval_minutes' => 15,
+            ],
+            [
+                'name' => 'Foreign Affairs Geopolitics',
+                'type' => 'rss',
+                'endpoint' => 'https://www.foreignaffairs.com/feeds/topic/Geopolitics/rss.xml',
+                'is_active' => true,
+                'poll_interval_minutes' => 20,
+            ],
+            [
+                'name' => 'The Diplomat',
+                'type' => 'rss',
+                'endpoint' => 'https://thediplomat.com/feed/',
+                'is_active' => true,
+                'poll_interval_minutes' => 20,
+            ],
+            [
+                'name' => 'War on the Rocks',
+                'type' => 'rss',
+                'endpoint' => 'https://warontherocks.com/feed/',
+                'is_active' => true,
+                'poll_interval_minutes' => 20,
+            ],
+            [
+                'name' => 'Geopolitical Futures',
+                'type' => 'rss',
+                'endpoint' => 'https://geopoliticalfutures.com/feed/',
+                'is_active' => true,
+                'poll_interval_minutes' => 20,
             ],
             [
                 'name' => 'Guardian World',
@@ -41,13 +90,6 @@ class NewsSourceSeeder extends Seeder
                 'is_active' => true,
                 'poll_interval_minutes' => 10,
             ],
-            [
-                'name' => 'Al Jazeera News',
-                'type' => 'rss',
-                'endpoint' => 'https://www.aljazeera.com/xml/rss/all.xml',
-                'is_active' => true,
-                'poll_interval_minutes' => 10,
-            ],
         ];
 
         foreach ($sources as $source) {
@@ -58,9 +100,12 @@ class NewsSourceSeeder extends Seeder
         }
 
         NewsSource::query()
+            ->whereIn('name', ['Mock Sport Feed', 'Mock Tech Feed', 'Al Jazeera News'])
+            ->delete();
+
+        NewsSource::query()
             ->where(function ($query) {
-                $query->whereIn('name', ['Mock Sport Feed', 'Mock Tech Feed'])
-                    ->orWhere('type', 'mock')
+                $query->where('type', 'mock')
                     ->orWhere('name', 'like', '%telegram%')
                     ->orWhere('endpoint', 'like', '%t.me/%')
                     ->orWhere('endpoint', 'like', '%telegram.%');

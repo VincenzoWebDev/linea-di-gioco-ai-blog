@@ -20,6 +20,10 @@ class FetchNewsJob implements ShouldQueue
 
     public array $backoff = [30, 120, 300];
 
+    public function __construct(private readonly bool $forcePoll = false)
+    {
+    }
+
     public function handle(NewsScoutAgent $newsScoutAgent): void
     {
         $sources = NewsSource::query()
@@ -72,6 +76,10 @@ class FetchNewsJob implements ShouldQueue
 
     private function shouldPollSource(NewsSource $source): bool
     {
+        if ($this->forcePoll) {
+            return true;
+        }
+
         $interval = max((int) ($source->poll_interval_minutes ?? 10), 1);
         $lastPolledAt = Cache::get($this->pollCacheKey($source->id));
 

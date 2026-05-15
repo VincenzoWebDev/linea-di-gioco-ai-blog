@@ -23,6 +23,7 @@ import {
     RadarChart,
     ResponsiveContainer,
 } from "recharts";
+import { useEffect, useState } from "react";
 import BlogLayout from "@/Layouts/BlogLayout";
 import ArticleMeta from "@/Components/blog/articles/ArticleMeta";
 
@@ -42,12 +43,19 @@ const regionCoordinates = [
 function RelatedItem({ article }) {
     return (
         <Link
-            href={route("blog.articles.show", { id: article.id, slug: article.slug })}
+            href={route("blog.articles.show", {
+                id: article.id,
+                slug: article.slug,
+            })}
             className="group grid grid-cols-[88px_1fr] gap-4 rounded-lg border border-[#202A3D] bg-[#121722] p-3 transition hover:border-[#D7B56D]/50"
         >
             <div className="h-20 w-[88px] overflow-hidden rounded-md bg-[#0B0F15]">
                 {article.thumb_url ? (
-                    <img src={article.thumb_url} alt={article.title} className="h-full w-full object-cover" />
+                    <img
+                        src={article.thumb_url}
+                        alt={article.title}
+                        className="h-full w-full object-cover"
+                    />
                 ) : (
                     <div className="h-full w-full bg-[#182234]" />
                 )}
@@ -57,7 +65,10 @@ function RelatedItem({ article }) {
                     {article.title}
                 </h4>
                 <div className="mt-2">
-                    <ArticleMeta topic={article.topic} publishedAt={article.published_at} />
+                    <ArticleMeta
+                        topic={article.topic}
+                        publishedAt={article.published_at}
+                    />
                 </div>
             </div>
         </Link>
@@ -101,7 +112,10 @@ function findCoordinates(article) {
         .join(" ")
         .toLowerCase();
 
-    return regionCoordinates.find((item) => region.includes(item.match))?.label || "41.9028 N / 12.4964 E";
+    return (
+        regionCoordinates.find((item) => region.includes(item.match))?.label ||
+        "41.9028 N / 12.4964 E"
+    );
 }
 
 function trendConfig(direction) {
@@ -133,24 +147,57 @@ function trendConfig(direction) {
 
 function buildIntelligence(article) {
     const seed = `${article.id}-${article.title}-${article.summary || ""}`;
-    const riskScore = clamp(article.tension?.risk_score ?? hashScore(seed, "risk"));
-    const qualityScore = clamp(article.quality_score ?? hashScore(seed, "quality"));
-    const categoryPressure = clamp((article.categories?.length || 1) * 18 + hashScore(seed, "category") / 3);
+    const riskScore = clamp(
+        article.tension?.risk_score ?? hashScore(seed, "risk"),
+    );
+    const qualityScore = clamp(
+        article.quality_score ?? hashScore(seed, "quality"),
+    );
+    const categoryPressure = clamp(
+        (article.categories?.length || 1) * 18 +
+            hashScore(seed, "category") / 3,
+    );
 
     const metrics = [
-        { axis: "Militare", value: clamp(riskScore + hashScore(seed, "military") / 8 - 5) },
-        { axis: "Economico", value: clamp(categoryPressure + hashScore(seed, "economy") / 4) },
-        { axis: "Diplomatico", value: clamp(riskScore * 0.72 + hashScore(seed, "diplomacy") / 3) },
-        { axis: "Energia", value: clamp(hashScore(seed, "energy") + (article.topic || "").length) },
-        { axis: "Informativo", value: clamp(qualityScore * 0.82 + hashScore(seed, "info") / 5) },
+        {
+            axis: "Militare",
+            value: clamp(riskScore + hashScore(seed, "military") / 8 - 5),
+        },
+        {
+            axis: "Economico",
+            value: clamp(categoryPressure + hashScore(seed, "economy") / 4),
+        },
+        {
+            axis: "Diplomatico",
+            value: clamp(riskScore * 0.72 + hashScore(seed, "diplomacy") / 3),
+        },
+        {
+            axis: "Energia",
+            value: clamp(
+                hashScore(seed, "energy") + (article.topic || "").length,
+            ),
+        },
+        {
+            axis: "Informativo",
+            value: clamp(qualityScore * 0.82 + hashScore(seed, "info") / 5),
+        },
     ];
 
-    const averageImpact = clamp(metrics.reduce((sum, item) => sum + item.value, 0) / metrics.length);
-    const alertLevel = riskScore >= 75 ? "Rosso" : riskScore >= 55 ? "Arancione" : riskScore >= 35 ? "Giallo" : "Verde";
+    const averageImpact = clamp(
+        metrics.reduce((sum, item) => sum + item.value, 0) / metrics.length,
+    );
+    const alertLevel =
+        riskScore >= 75
+            ? "Rossa"
+            : riskScore >= 55
+              ? "Arancione"
+              : riskScore >= 35
+                ? "Gialla"
+                : "Verde";
     const alertClasses = {
-        Rosso: "border-[#EF4444]/50 bg-[#EF4444]/15 text-[#FCA5A5]",
+        Rossa: "border-[#EF4444]/50 bg-[#EF4444]/15 text-[#FCA5A5]",
         Arancione: "border-[#F97316]/50 bg-[#F97316]/15 text-[#FDBA74]",
-        Giallo: "border-[#D7B56D]/50 bg-[#D7B56D]/15 text-[#FDE68A]",
+        Gialla: "border-[#D7B56D]/50 bg-[#D7B56D]/15 text-[#FDE68A]",
         Verde: "border-[#22C55E]/50 bg-[#22C55E]/15 text-[#86EFAC]",
     };
 
@@ -162,9 +209,10 @@ function buildIntelligence(article) {
         metrics,
         riskScore,
         qualityScore,
-        scenario: riskScore >= 65
-            ? "Probabile intensificazione della pressione diplomatica e aumento della sorveglianza nelle prossime finestre operative."
-            : "Scenario in consolidamento: monitorare segnali politici, catene logistiche e variazioni nella postura militare regionale.",
+        scenario:
+            riskScore >= 65
+                ? "Probabile intensificazione della pressione diplomatica e aumento della sorveglianza nelle prossime finestre operative."
+                : "Scenario in consolidamento: monitorare segnali politici, catene logistiche e variazioni nella postura militare regionale.",
     };
 }
 
@@ -173,13 +221,18 @@ function escapeRegExp(value) {
 }
 
 function glossaryRegex(glossary) {
-    const terms = Object.keys(glossary || {}).sort((a, b) => b.length - a.length);
+    const terms = Object.keys(glossary || {}).sort(
+        (a, b) => b.length - a.length,
+    );
 
     if (terms.length === 0) {
         return null;
     }
 
-    return new RegExp(`(?<![\\p{L}\\p{N}])(${terms.map(escapeRegExp).join("|")})(?![\\p{L}\\p{N}])`, "giu");
+    return new RegExp(
+        `(?<![\\p{L}\\p{N}])(${terms.map(escapeRegExp).join("|")})(?![\\p{L}\\p{N}])`,
+        "giu",
+    );
 }
 
 function renderGlossaryText(text, glossary) {
@@ -192,14 +245,20 @@ function renderGlossaryText(text, glossary) {
     const parts = String(text).split(regex);
 
     return parts.map((part, index) => {
-        const term = Object.keys(glossary).find((item) => item.toLowerCase() === part.toLowerCase());
+        const term = Object.keys(glossary).find(
+            (item) => item.toLowerCase() === part.toLowerCase(),
+        );
 
         if (!term) {
             return part;
         }
 
         return (
-            <GlossaryTooltip key={`${part}-${index}`} term={term} entry={glossary[term]} />
+            <GlossaryTooltip
+                key={`${part}-${index}`}
+                term={term}
+                entry={glossary[term]}
+            />
         );
     });
 }
@@ -214,18 +273,25 @@ function renderContent(content, glossary) {
                 return null;
             }
 
-            const isHeading = text.length < 90 && !text.includes(".") && index > 0;
+            const isHeading =
+                text.length < 90 && !text.includes(".") && index > 0;
 
             if (isHeading) {
                 return (
-                    <h2 key={`${text}-${index}`} className="mt-10 font-serif text-3xl leading-tight text-[#F3F4F6]">
+                    <h2
+                        key={`${text}-${index}`}
+                        className="mt-10 font-serif text-3xl leading-tight text-[#F3F4F6]"
+                    >
                         {renderGlossaryText(text, glossary)}
                     </h2>
                 );
             }
 
             return (
-                <p key={`${text}-${index}`} className="mt-6 whitespace-pre-line leading-[1.9] text-[#D7DEE8]">
+                <p
+                    key={`${text}-${index}`}
+                    className="mt-6 whitespace-pre-line leading-[1.9] text-[#D7DEE8]"
+                >
                     {renderGlossaryText(text, glossary)}
                 </p>
             );
@@ -233,31 +299,116 @@ function renderContent(content, glossary) {
 }
 
 function GlossaryTooltip({ term, entry }) {
+    const [usePopover, setUsePopover] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+
+    useEffect(() => {
+        if (
+            typeof window === "undefined" ||
+            typeof window.matchMedia !== "function"
+        ) {
+            return undefined;
+        }
+
+        const mediaQuery = window.matchMedia(
+            "(max-width: 767px), (pointer: coarse)",
+        );
+        const syncMode = () => setUsePopover(mediaQuery.matches);
+
+        syncMode();
+
+        if (typeof mediaQuery.addEventListener === "function") {
+            mediaQuery.addEventListener("change", syncMode);
+
+            return () => mediaQuery.removeEventListener("change", syncMode);
+        }
+
+        mediaQuery.addListener(syncMode);
+
+        return () => mediaQuery.removeListener(syncMode);
+    }, []);
+
+    const trigger = (
+        <button
+            type="button"
+            onClick={() => {
+                if (usePopover) {
+                    setIsOpen((current) => !current);
+                }
+            }}
+            className="group inline-flex cursor-help items-baseline gap-1 border-b border-dotted border-[#D7B56D]/80 text-left text-[#F3F4F6] decoration-transparent transition hover:text-[#FDE68A]"
+        >
+            <span>{term}</span>
+            <Info className="h-3 w-3 translate-y-[1px] opacity-70 transition group-hover:opacity-100" />
+        </button>
+    );
+
+    const content = (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.92, y: 4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.16, ease: "easeOut" }}
+            className="z-50 max-w-xs border border-[#D7B56D]/40 bg-[#0B0F15]/95 px-4 py-3 font-mono text-sm text-[#D7DEE8] shadow-2xl shadow-black/40 backdrop-blur"
+        >
+            <div className="text-[11px] uppercase tracking-[0.24em] text-[#D7B56D]">
+                {term}
+            </div>
+            <p className="mt-2 leading-6">{entry.definition}</p>
+            {entry.importance && (
+                <div className="mt-3 border-t border-[#202A3D] pt-2 text-[11px] uppercase tracking-[0.2em] text-[#8FA0B6]">
+                    Importanza:{" "}
+                    <span className="text-[#F3F4F6]">{entry.importance}</span>
+                </div>
+            )}
+        </motion.div>
+    );
+
+    if (usePopover) {
+        return (
+            <>
+                {trigger}
+                {isOpen && (
+                    <>
+                        <button
+                            type="button"
+                            aria-label={`Chiudi dettaglio ${term}`}
+                            className="fixed inset-0 z-40 bg-black/30"
+                            onClick={() => setIsOpen(false)}
+                        />
+                        <div className="fixed bottom-4 inset-x-4 z-50">
+                            <div className="relative border border-[#D7B56D]/40 bg-[#0B0F15]/95 px-4 py-3 font-mono text-sm text-[#D7DEE8] shadow-2xl shadow-black/40 backdrop-blur">
+                                <button
+                                    type="button"
+                                    aria-label={`Chiudi dettaglio ${term}`}
+                                    className="absolute right-3 top-3 text-xs uppercase tracking-[0.2em] text-[#8FA0B6]"
+                                    onClick={() => setIsOpen(false)}
+                                >
+                                    Chiudi
+                                </button>
+                                {content}
+                            </div>
+                        </div>
+                    </>
+                )}
+            </>
+        );
+    }
+
     return (
         <Tooltip.Root delayDuration={120}>
-            <Tooltip.Trigger asChild>
-                <span className="group inline-flex cursor-help items-baseline gap-1 border-b border-dotted border-[#D7B56D]/80 text-[#F3F4F6] decoration-transparent transition hover:text-[#FDE68A]">
-                    <span>{term}</span>
-                    <Info className="h-3 w-3 translate-y-[1px] opacity-0 transition group-hover:opacity-100" />
-                </span>
-            </Tooltip.Trigger>
+            <Tooltip.Trigger asChild>{trigger}</Tooltip.Trigger>
             <Tooltip.Portal>
-                <Tooltip.Content side="top" align="center" sideOffset={10} collisionPadding={16} asChild>
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.92, y: 4 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        transition={{ duration: 0.16, ease: "easeOut" }}
-                        className="z-50 max-w-xs border border-[#D7B56D]/40 bg-[#0B0F15]/95 px-4 py-3 font-mono text-sm text-[#D7DEE8] shadow-2xl shadow-black/40 backdrop-blur"
-                    >
-                        <div className="text-[11px] uppercase tracking-[0.24em] text-[#D7B56D]">{term}</div>
-                        <p className="mt-2 leading-6">{entry.definition}</p>
-                        {entry.importance && (
-                            <div className="mt-3 border-t border-[#202A3D] pt-2 text-[11px] uppercase tracking-[0.2em] text-[#8FA0B6]">
-                                Importanza: <span className="text-[#F3F4F6]">{entry.importance}</span>
-                            </div>
-                        )}
+                <Tooltip.Content
+                    side="top"
+                    align="center"
+                    sideOffset={10}
+                    collisionPadding={16}
+                    asChild
+                >
+                    <>
+                        {content}
                         <Tooltip.Arrow className="fill-[#D7B56D]/40" />
-                    </motion.div>
+                    </>
                 </Tooltip.Content>
             </Tooltip.Portal>
         </Tooltip.Root>
@@ -271,7 +422,9 @@ function DataPill({ icon: Icon, label, value }) {
                 <Icon className="h-3.5 w-3.5" />
                 {label}
             </div>
-            <div className="mt-1 truncate font-mono text-sm text-[#E8EDF5]">{value}</div>
+            <div className="mt-1 truncate font-mono text-sm text-[#E8EDF5]">
+                {value}
+            </div>
         </div>
     );
 }
@@ -293,7 +446,9 @@ function IntelligenceSidebar({ article, intelligence }) {
                         <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[#7E8796]">
                             Intelligence Matrix
                         </p>
-                        <h2 className="mt-2 text-xl font-semibold text-[#F3F4F6]">Impatto operativo</h2>
+                        <h2 className="mt-2 text-xl font-semibold text-[#F3F4F6]">
+                            Impatto operativo
+                        </h2>
                     </div>
                     <div className="flex h-11 w-11 items-center justify-center rounded-full border border-[#D7B56D]/40 bg-[#D7B56D]/10">
                         <RadarIcon />
@@ -302,11 +457,24 @@ function IntelligenceSidebar({ article, intelligence }) {
 
                 <div className="mt-5 h-80 border border-[#182234] bg-[#0E1116] px-2 py-3">
                     <ResponsiveContainer width="100%" height="100%">
-                        <RadarChart data={intelligence.metrics} outerRadius="64%" margin={{ top: 18, right: 34, bottom: 18, left: 34 }}>
+                        <RadarChart
+                            data={intelligence.metrics}
+                            outerRadius="64%"
+                            margin={{
+                                top: 18,
+                                right: 34,
+                                bottom: 18,
+                                left: 34,
+                            }}
+                        >
                             <PolarGrid stroke="#2A354D" radialLines />
                             <PolarAngleAxis
                                 dataKey="axis"
-                                tick={{ fill: "#AAB3C2", fontSize: 10, fontFamily: "monospace" }}
+                                tick={{
+                                    fill: "#AAB3C2",
+                                    fontSize: 10,
+                                    fontFamily: "monospace",
+                                }}
                             />
                             <Radar
                                 dataKey="value"
@@ -321,9 +489,21 @@ function IntelligenceSidebar({ article, intelligence }) {
                 </div>
 
                 <div className="mt-5 grid grid-cols-3 gap-3">
-                    <MetricBlock label="Rischio" value={intelligence.riskScore} icon={Crosshair} />
-                    <MetricBlock label="Impatto" value={intelligence.averageImpact} icon={Target} />
-                    <MetricBlock label="Fonte" value={intelligence.qualityScore} icon={Shield} />
+                    <MetricBlock
+                        label="Rischio"
+                        value={intelligence.riskScore}
+                        icon={Crosshair}
+                    />
+                    <MetricBlock
+                        label="Impatto"
+                        value={intelligence.averageImpact}
+                        icon={Target}
+                    />
+                    <MetricBlock
+                        label="Fonte"
+                        value={intelligence.qualityScore}
+                        icon={Shield}
+                    />
                 </div>
 
                 <div className="mt-5 grid gap-3">
@@ -332,9 +512,13 @@ function IntelligenceSidebar({ article, intelligence }) {
                             <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#7E8796]">
                                 Trend
                             </p>
-                            <p className="mt-1 text-sm text-[#D7DEE8]">{trend.label}</p>
+                            <p className="mt-1 text-sm text-[#D7DEE8]">
+                                {trend.label}
+                            </p>
                         </div>
-                        <div className={`flex h-10 w-10 items-center justify-center rounded-full ${trend.bg} ${trend.color}`}>
+                        <div
+                            className={`flex h-10 w-10 items-center justify-center rounded-full ${trend.bg} ${trend.color}`}
+                        >
                             <TrendIcon className="h-5 w-5" />
                         </div>
                     </div>
@@ -357,10 +541,14 @@ function MetricBlock({ icon: Icon, label, value }) {
     return (
         <div className="border border-[#202A3D] bg-[#121722] p-3">
             <div className="flex items-center justify-between text-[#7E8796]">
-                <span className="font-mono text-[10px] uppercase tracking-[0.2em]">{label}</span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em]">
+                    {label}
+                </span>
                 <Icon className="h-3.5 w-3.5" />
             </div>
-            <div className="mt-3 font-mono text-2xl font-semibold text-[#E8EDF5]">{value}</div>
+            <div className="mt-3 font-mono text-2xl font-semibold text-[#E8EDF5]">
+                {value}
+            </div>
         </div>
     );
 }
@@ -378,16 +566,29 @@ function RadarIcon() {
     );
 }
 
-export default function ArticlesShow({ article, related = [], glossary = {}, newsArticleSchema = null }) {
+export default function ArticlesShow({
+    article,
+    related = [],
+    glossary = {},
+    newsArticleSchema = null,
+}) {
     const intelligence = buildIntelligence(article);
-    const timestamp = article.tension?.updated_at || article.updated_at || article.published_at;
+    const timestamp =
+        article.tension?.updated_at ||
+        article.updated_at ||
+        article.published_at;
 
     return (
         <>
             <Head title={`${article.title} | Linea di gioco`}>
-                {article.summary && <meta name="description" content={article.summary} />}
+                {article.summary && (
+                    <meta name="description" content={article.summary} />
+                )}
                 {article.categories?.length > 0 && (
-                    <meta name="keywords" content={article.categories.join(", ")} />
+                    <meta
+                        name="keywords"
+                        content={article.categories.join(", ")}
+                    />
                 )}
                 {newsArticleSchema && (
                     <script
@@ -400,104 +601,131 @@ export default function ArticlesShow({ article, related = [], glossary = {}, new
             </Head>
             <BlogLayout>
                 <Tooltip.Provider>
-                <article>
-                    <Link
-                        href={route("blog.articles.index")}
-                        className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-[#9CA3AF] transition hover:text-[#E5E7EB]"
-                    >
-                        <ArrowLeft className="h-3.5 w-3.5" />
-                        Torna agli articoli
-                    </Link>
+                    <article>
+                        <Link
+                            href={route("blog.articles.index")}
+                            className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-[#9CA3AF] transition hover:text-[#E5E7EB]"
+                        >
+                            <ArrowLeft className="h-3.5 w-3.5" />
+                            Torna agli articoli
+                        </Link>
 
-                    <header className="mt-6 border-b border-[#202A3D] pb-8">
-                        <div className="flex flex-wrap items-center gap-3">
-                            <span className={`border px-3 py-1 font-mono text-xs uppercase tracking-[0.22em] ${intelligence.alertClasses}`}>
-                                Allerta {intelligence.alertLevel}
-                            </span>
-                            <ArticleMeta topic={article.topic} publishedAt={article.published_at} />
-                        </div>
+                        <header className="mt-6 border-b border-[#202A3D] pb-8">
+                            <div className="flex flex-wrap items-center gap-3">
+                                <span
+                                    className={`border px-3 py-1 font-mono text-xs uppercase tracking-[0.22em] ${intelligence.alertClasses}`}
+                                >
+                                    Allerta {intelligence.alertLevel}
+                                </span>
+                                <ArticleMeta
+                                    topic={article.topic}
+                                    publishedAt={article.published_at}
+                                />
+                            </div>
 
-                        <h1 className="mt-5 max-w-5xl font-serif text-4xl leading-tight text-[#F3F4F6] md:text-6xl">
-                            {article.title}
-                        </h1>
+                            <h1 className="mt-5 max-w-5xl font-serif text-4xl leading-tight text-[#F3F4F6] md:text-6xl">
+                                {article.title}
+                            </h1>
 
-                        {article.summary && (
-                            <p className="mt-6 max-w-3xl text-xl leading-8 text-[#AAB3C2]">
-                                {article.summary}
-                            </p>
+                            {article.summary && (
+                                <p className="mt-6 max-w-3xl text-xl leading-8 text-[#AAB3C2]">
+                                    {article.summary}
+                                </p>
+                            )}
+
+                            <div className="mt-8 grid overflow-hidden border border-[#202A3D] bg-[#101620] md:grid-cols-3">
+                                <DataPill
+                                    icon={MapPin}
+                                    label="Coordinate"
+                                    value={intelligence.coordinates}
+                                />
+                                <DataPill
+                                    icon={Clock3}
+                                    label="Ultimo update"
+                                    value={formatDateTime(timestamp)}
+                                />
+                                <DataPill
+                                    icon={RadioTower}
+                                    label="Area"
+                                    value={
+                                        article.tension?.region_name ||
+                                        article.topic ||
+                                        "Dossier globale"
+                                    }
+                                />
+                            </div>
+                        </header>
+
+                        {article.cover_url && (
+                            <div className="mt-8 overflow-hidden border border-[#202A3D] bg-[#0B0F15]">
+                                <img
+                                    src={article.cover_url}
+                                    alt={article.title}
+                                    className="h-[460px] w-full object-cover"
+                                />
+                            </div>
                         )}
 
-                        <div className="mt-8 grid overflow-hidden border border-[#202A3D] bg-[#101620] md:grid-cols-3">
-                            <DataPill icon={MapPin} label="Coordinate" value={intelligence.coordinates} />
-                            <DataPill icon={Clock3} label="Ultimo update" value={formatDateTime(timestamp)} />
-                            <DataPill
-                                icon={RadioTower}
-                                label="Area"
-                                value={article.tension?.region_name || article.topic || "Dossier globale"}
+                        <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_400px] xl:grid-cols-[minmax(0,1fr)_430px]">
+                            <main className="min-w-0">
+                                <div className="border-l border-[#2A354D] pl-5">
+                                    <p className="font-mono text-xs uppercase tracking-[0.3em] text-[#7E8796]">
+                                        Briefing report
+                                    </p>
+                                </div>
+                                <div className="mt-2 text-lg">
+                                    {renderContent(article.content, glossary)}
+                                </div>
+
+                                {article.source_url && (
+                                    <a
+                                        href={article.source_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="mt-10 inline-flex items-center gap-2 border border-[#2A354D] bg-[#121722] px-4 py-2 font-mono text-xs uppercase tracking-[0.2em] text-[#AAB3C2] transition hover:border-[#D7B56D]/60 hover:text-[#F3F4F6]"
+                                    >
+                                        <ExternalLink className="h-4 w-4" />
+                                        Fonte
+                                    </a>
+                                )}
+                            </main>
+
+                            <IntelligenceSidebar
+                                article={article}
+                                intelligence={intelligence}
                             />
                         </div>
+                    </article>
 
-                    </header>
-
-                    {article.cover_url && (
-                        <div className="mt-8 overflow-hidden border border-[#202A3D] bg-[#0B0F15]">
-                            <img src={article.cover_url} alt={article.title} className="h-[460px] w-full object-cover" />
-                        </div>
-                    )}
-
-                    <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_400px] xl:grid-cols-[minmax(0,1fr)_430px]">
-                        <main className="min-w-0">
-                            <div className="border-l border-[#2A354D] pl-5">
-                                <p className="font-mono text-xs uppercase tracking-[0.3em] text-[#7E8796]">
-                                    Briefing report
+                    <section className="mt-16 border border-[#202A3D] bg-[#101620] p-6">
+                        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                            <div>
+                                <p className="font-mono text-xs uppercase tracking-[0.28em] text-[#7E8796]">
+                                    Next actions
+                                </p>
+                                <h2 className="mt-2 font-serif text-3xl text-[#F3F4F6]">
+                                    Prossimi step consigliati
+                                </h2>
+                                <p className="mt-3 max-w-2xl text-[#AAB3C2]">
+                                    Incrociare questo dossier con fonti
+                                    regionali, aggiornare gli score sugli assi
+                                    critici e monitorare gli articoli correlati
+                                    per variazioni di contesto.
                                 </p>
                             </div>
-                            <div className="mt-2 text-lg">
-                                {renderContent(article.content, glossary)}
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#D7B56D]/40 bg-[#D7B56D]/10 text-[#D7B56D]">
+                                <FileSearch className="h-5 w-5" />
                             </div>
-
-                            {article.source_url && (
-                                <a
-                                    href={article.source_url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="mt-10 inline-flex items-center gap-2 border border-[#2A354D] bg-[#121722] px-4 py-2 font-mono text-xs uppercase tracking-[0.2em] text-[#AAB3C2] transition hover:border-[#D7B56D]/60 hover:text-[#F3F4F6]"
-                                >
-                                    <ExternalLink className="h-4 w-4" />
-                                    Fonte
-                                </a>
-                            )}
-                        </main>
-
-                        <IntelligenceSidebar article={article} intelligence={intelligence} />
-                    </div>
-                </article>
-
-                <section className="mt-16 border border-[#202A3D] bg-[#101620] p-6">
-                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                        <div>
-                            <p className="font-mono text-xs uppercase tracking-[0.28em] text-[#7E8796]">
-                                Next actions
-                            </p>
-                            <h2 className="mt-2 font-serif text-3xl text-[#F3F4F6]">Prossimi step consigliati</h2>
-                            <p className="mt-3 max-w-2xl text-[#AAB3C2]">
-                                Incrociare questo dossier con fonti regionali, aggiornare gli score sugli assi critici e
-                                monitorare gli articoli correlati per variazioni di contesto.
-                            </p>
                         </div>
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#D7B56D]/40 bg-[#D7B56D]/10 text-[#D7B56D]">
-                            <FileSearch className="h-5 w-5" />
-                        </div>
-                    </div>
 
-                    {related.length > 0 && (
-                        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                            {related.map((item) => (
-                                <RelatedItem key={item.id} article={item} />
-                            ))}
-                        </div>
-                    )}
-                </section>
+                        {related.length > 0 && (
+                            <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                {related.map((item) => (
+                                    <RelatedItem key={item.id} article={item} />
+                                ))}
+                            </div>
+                        )}
+                    </section>
                 </Tooltip.Provider>
             </BlogLayout>
         </>

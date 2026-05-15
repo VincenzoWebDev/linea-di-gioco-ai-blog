@@ -6,6 +6,7 @@ use App\Enums\IncomingNewsStatus;
 use App\Models\AgentRun;
 use App\Models\IncomingNews;
 use App\Models\NewsSource;
+use App\Services\ArticleValidationService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -30,7 +31,7 @@ class ReceiveAiArticleJob implements ShouldQueue
     ) {
     }
 
-    public function handle(): void
+    public function handle(ArticleValidationService $validationService): void
     {
         $sourceName = trim((string) ($this->payload['source_name'] ?? 'CrewAI Dispatch'));
         $sourceUrl = trim((string) ($this->payload['source_url'] ?? 'https://dispatch.local'));
@@ -68,6 +69,7 @@ class ReceiveAiArticleJob implements ShouldQueue
         if (is_array($this->payload['geopolitical_tension'] ?? null)) {
             $sanitizedPayload['geopolitical_tension'] = $this->payload['geopolitical_tension'];
         }
+        $requiresItalianRewrite = $validationService->needsItalianRewrite($sanitizedPayload);
 
         $publishedAt = isset($this->payload['published_at'])
             ? Carbon::parse((string) $this->payload['published_at'])
@@ -85,8 +87,8 @@ class ReceiveAiArticleJob implements ShouldQueue
                 'raw_payload' => $this->payload,
                 'sanitized_payload' => $sanitizedPayload,
                 'published_at' => $publishedAt,
-                'sanitized_at' => now(),
-                'status' => IncomingNewsStatus::SANITIZED,
+                'sanitized_at' => $requiresItalianRewrite ? null : now(),
+                'status' => $requiresItalianRewrite ? IncomingNewsStatus::QUEUED : IncomingNewsStatus::SANITIZED,
                 'quality_score' => $finalScore,
             ]
         );
@@ -105,6 +107,13 @@ class ReceiveAiArticleJob implements ShouldQueue
                 'idempotency_key' => $this->idempotencyKey,
             ],
         ]);
+
+        if ($requiresItalianRewrite) {
+            SanitizeIncomingNewsJob::dispatch($incoming->id)
+                ->onQueue(config('ai_news.queues.sanitize', 'news-sanitize'));
+
+            return;
+        }
 
         ValidateSanitizedArticleJob::dispatch($incoming->id)
             ->onQueue(config('ai_news.queues.publish', 'news-publish'));

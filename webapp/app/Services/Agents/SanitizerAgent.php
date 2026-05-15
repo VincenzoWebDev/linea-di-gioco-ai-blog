@@ -25,7 +25,7 @@ class SanitizerAgent
     {
         $title = trim((string) ($rawNews['title'] ?? 'Senza titolo'));
         $summary = trim((string) ($rawNews['summary'] ?? ''));
-        $sourceUrl = trim((string) ($rawNews['url'] ?? ''));
+        $sourceUrl = trim((string) ($rawNews['url'] ?? $rawNews['source_url'] ?? ''));
         $sourceContent = trim((string) ($rawNews['source_content'] ?? ''));
 
         $safeTitle = Str::limit(strip_tags($title), 140, '');
@@ -61,7 +61,7 @@ class SanitizerAgent
                 'topic' => (string) ($crewOutput['topic'] ?? 'geopolitica'),
                 'categories' => $this->normalizeCategories($crewOutput['categories'] ?? [($crewOutput['topic'] ?? 'geopolitica')]),
                 'quality_score' => $crewScore,
-                'source_url' => (string) ($crewOutput['source_url'] ?? $sourceUrl),
+                'source_url' => $this->preferNonEmptyString($crewOutput['source_url'] ?? null, $sourceUrl),
                 'rewrite_mode' => 'crewai',
                 'language' => 'it',
             ];
@@ -127,6 +127,18 @@ class SanitizerAgent
         }
 
         return min($score, 100.0);
+    }
+
+    private function preferNonEmptyString(mixed ...$values): string
+    {
+        foreach ($values as $value) {
+            $normalized = trim((string) $value);
+            if ($normalized !== '') {
+                return $normalized;
+            }
+        }
+
+        return '';
     }
 
     private function stripSourceFooter(string $content): string

@@ -22,10 +22,15 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Artisan::command('ai-news:dispatch', function () {
-    FetchNewsJob::dispatch()->onQueue(config('ai_news.queues.ingest', 'news-ingest'));
+Artisan::command('ai-news:dispatch {--force : Ignora il poll interval delle source}', function () {
+    FetchNewsJob::dispatch((bool) $this->option('force'))
+        ->onQueue(config('ai_news.queues.ingest', 'news-ingest'));
 
-    $this->info('Pipeline AI news dispatchata sulla coda ingest.');
+    $message = $this->option('force')
+        ? 'Pipeline AI news dispatchata sulla coda ingest forzando il polling delle source.'
+        : 'Pipeline AI news dispatchata sulla coda ingest.';
+
+    $this->info($message);
 })->purpose('Dispatch manuale della pipeline AI news');
 
 Artisan::command('ai-news:probe {--limit=5}', function (NewsScoutAgent $scout, GeopoliticsScopeService $scope) {

@@ -22,10 +22,6 @@ class ArticleValidationService
             $errors[] = 'Contenuto troppo corto';
         }
 
-        if (empty($payload['source_url']) || ! filter_var($payload['source_url'], FILTER_VALIDATE_URL)) {
-            $errors[] = 'URL fonte non valido';
-        }
-
         $minScore = (float) config('ai_news.min_quality_score', 70);
         if ((float) ($payload['quality_score'] ?? 0) < $minScore) {
             $errors[] = 'Quality score sotto soglia';
@@ -61,15 +57,23 @@ class ArticleValidationService
                 $errors[] = 'Contenuto non coerente con la linea geopolitica del blog';
             }
 
-            if (! $this->looksItalian($combinedText, (string) ($payload['language'] ?? ''))) {
-                $errors[] = 'Contenuto non sufficientemente in italiano';
-            }
         }
 
         return [
             'valid' => $errors === [],
             'errors' => $errors,
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    public function needsItalianRewrite(array $payload): bool
+    {
+        $combinedText = $this->combinedText($payload);
+
+        return $combinedText !== ''
+            && ! $this->looksItalian($combinedText, (string) ($payload['language'] ?? ''));
     }
 
     /**
@@ -133,13 +137,8 @@ class ArticleValidationService
         return is_string($pattern) && preg_match($pattern, $text) === 1;
     }
 
-    private function looksItalian(string $text, string $language): bool
+    private function looksItalian(string $text, string $_language): bool
     {
-        $declaredLanguage = Str::lower(trim($language));
-        if ($declaredLanguage !== '' && ! in_array($declaredLanguage, ['it', 'it-it', 'ita', 'italian'], true)) {
-            return false;
-        }
-
         $italianMarkers = [
             ' il ', ' lo ', ' la ', ' gli ', ' le ', ' un ', ' una ', ' che ', ' con ', ' per ',
             ' della ', ' delle ', ' degli ', ' nello ', ' nella ', ' mentre ', ' secondo ',

@@ -1,243 +1,477 @@
 import { Head, Link } from "@inertiajs/react";
-import { ArrowRight, Newspaper, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
+import {
+    Activity,
+    ArrowRight,
+    Binary,
+    Crosshair,
+    FileSearch,
+    MapPin,
+    Image as ImageIcon,
+    Radar,
+    RadioTower,
+    Satellite,
+    ShieldAlert,
+    Target,
+    TrendingDown,
+    TrendingUp,
+} from "lucide-react";
+import Marquee from "react-fast-marquee";
+import {
+    ComposableMap,
+    Geographies,
+    Geography,
+    Graticule,
+    Marker,
+} from "react-simple-maps";
+import { useMemo, useState } from "react";
 import BlogLayout from "@/Layouts/BlogLayout";
-import FeaturedCard from "@/Components/blog/FeaturedCard";
-import ArticleCard from "@/Components/blog/articles/ArticleCard";
+
+const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
+
+const severityClasses = {
+    high: {
+        label: "Rosso",
+        marker: "#EF4444",
+        border: "border-[#EF4444]/50",
+        text: "text-[#FCA5A5]",
+        bg: "bg-[#EF4444]/10",
+        fill: "#EF4444",
+    },
+    elevated: {
+        label: "Arancione",
+        marker: "#F97316",
+        border: "border-[#F97316]/50",
+        text: "text-[#FDBA74]",
+        bg: "bg-[#F97316]/10",
+        fill: "#F97316",
+    },
+    guarded: {
+        label: "Giallo",
+        marker: "#D7B56D",
+        border: "border-[#D7B56D]/50",
+        text: "text-[#FDE68A]",
+        bg: "bg-[#D7B56D]/10",
+        fill: "#D7B56D",
+    },
+    low: {
+        label: "Verde",
+        marker: "#22C55E",
+        border: "border-[#22C55E]/50",
+        text: "text-[#86EFAC]",
+        bg: "bg-[#22C55E]/10",
+        fill: "#22C55E",
+    },
+};
+
+const trendCopy = {
+    rising: { label: "Escalation", icon: TrendingUp },
+    falling: { label: "Decompressione", icon: TrendingDown },
+    stable: { label: "Stabile", icon: Activity },
+};
 
 function formatDate(value) {
     if (!value) {
-        return null;
+        return "In arrivo";
     }
 
     return new Date(value).toLocaleDateString("it-IT", {
         day: "2-digit",
-        month: "long",
+        month: "short",
         year: "numeric",
     });
 }
 
+function formatCoordinate(value, axis) {
+    const numeric = Number(value) || 0;
+    const direction = axis === "lat"
+        ? numeric >= 0 ? "N" : "S"
+        : numeric >= 0 ? "E" : "W";
+
+    return `${Math.abs(numeric).toFixed(2)} ${direction}`;
+}
+
+function hashScore(seed, offset) {
+    const chars = `${seed}-${offset}`;
+    let hash = 0;
+
+    for (let index = 0; index < chars.length; index += 1) {
+        hash = (hash * 31 + chars.charCodeAt(index)) % 9973;
+    }
+
+    return 34 + (hash % 53);
+}
+
+function normalizeOperations(locations, articles) {
+    if (locations.length > 0) {
+        return locations.map((location) => ({
+            ...location,
+            title: location.article?.title || location.region_name,
+            summary: location.article?.summary || location.status_label,
+            url: location.article?.url || null,
+            published_at: location.article?.published_at || location.updated_at,
+            thumb_url: location.article?.thumb_url || location.article?.cover_url || null,
+            cover_url: location.article?.cover_url || location.article?.thumb_url || null,
+        }));
+    }
+
+    return articles.map((article, index) => ({
+        ...article,
+        title: article.title,
+        summary: article.excerpt || article.summary,
+        url: route("blog.articles.show", { id: article.id, slug: article.slug }),
+        region_name: article.topic || "Dossier globale",
+        risk_score: hashScore(article.title, "fallback"),
+        severity: index === 0 ? "elevated" : "guarded",
+        trend_direction: "stable",
+        operation_code: article.operation_code || `OP-${String(article.id).padStart(4, "0")}`,
+        article,
+        thumb_url: article.thumb_url || article.cover_url || null,
+        cover_url: article.cover_url || article.thumb_url || null,
+    }));
+}
+
+function OperationImage({ item, className = "", compact = false }) {
+    const imageUrl = item.cover_url || item.thumb_url || item.article?.cover_url || item.article?.thumb_url;
+
+    return (
+        <div className={`relative overflow-hidden bg-[#0B0F15] ${className}`}>
+            {imageUrl ? (
+                <img
+                    src={imageUrl}
+                    alt={item.title}
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    loading="lazy"
+                />
+            ) : (
+                <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,rgba(215,181,109,0.16),transparent_32%),linear-gradient(135deg,rgba(31,58,95,0.5),rgba(11,15,21,0.96)_58%,rgba(158,42,43,0.24))]">
+                    <ImageIcon className={compact ? "h-5 w-5 text-[#D7B56D]/70" : "h-9 w-9 text-[#D7B56D]/70"} />
+                </div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#080B10]/86 via-transparent to-transparent" />
+        </div>
+    );
+}
+
+function GlobalMap({ operations }) {
+    const [activeId, setActiveId] = useState(operations[0]?.id || null);
+    const active = operations.find((item) => item.id === activeId) || operations[0];
+
+    return (
+        <section className="relative overflow-hidden border border-[#202A3D] bg-[#080B10] shadow-[0_32px_90px_rgba(0,0,0,0.32)]">
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(215,181,109,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(215,181,109,0.04)_1px,transparent_1px)] bg-[size:44px_44px]" />
+            <div className="relative grid gap-6 p-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:p-7">
+                <div className="min-w-0">
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                        <div>
+                            <p className="font-mono text-xs uppercase tracking-[0.34em] text-[#7E8796]">
+                                Global Situation Room
+                            </p>
+                            <h1 className="mt-3 font-serif text-4xl leading-tight text-[#F3F4F6] md:text-6xl">
+                                The Command Hub
+                            </h1>
+                        </div>
+                        <div className="flex items-center gap-3 border border-[#2A354D] bg-[#101620]/90 px-4 py-3 font-mono text-xs uppercase tracking-[0.18em] text-[#AAB3C2]">
+                            <Satellite className="h-4 w-4 text-[#D7B56D]" />
+                            AI watch active
+                        </div>
+                    </div>
+
+                    <div className="mt-7 aspect-[1.72] w-full border border-[#182234] bg-[#0B0F15]/80">
+                        <ComposableMap
+                            projectionConfig={{ rotate: [-10, 0, 0], scale: 145 }}
+                            className="h-full w-full"
+                        >
+                            <Graticule stroke="#233047" strokeWidth={0.35} />
+                            <Geographies geography={geoUrl}>
+                                {({ geographies }) => geographies.map((geo) => (
+                                    <Geography
+                                        key={geo.rsmKey}
+                                        geography={geo}
+                                        fill="#111827"
+                                        stroke="#263248"
+                                        strokeWidth={0.42}
+                                        style={{
+                                            default: { outline: "none" },
+                                            hover: { fill: "#162238", outline: "none" },
+                                            pressed: { outline: "none" },
+                                        }}
+                                    />
+                                ))}
+                            </Geographies>
+
+                            {operations.map((item) => {
+                                const severity = severityClasses[item.severity] || severityClasses.guarded;
+
+                                return (
+                                    <Marker
+                                        key={`${item.id}-${item.region_name}`}
+                                        coordinates={[Number(item.long), Number(item.lat)]}
+                                        onMouseEnter={() => setActiveId(item.id)}
+                                        onFocus={() => setActiveId(item.id)}
+                                    >
+                                        <motion.g
+                                            animate={{ scale: [1, 1.28, 1] }}
+                                            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                                            className="cursor-pointer"
+                                        >
+                                            <circle r={12} fill={severity.marker} fillOpacity={0.16} />
+                                            <circle r={5.5} fill={severity.marker} fillOpacity={0.34} />
+                                            <circle r={2.6} fill={severity.marker} />
+                                        </motion.g>
+                                    </Marker>
+                                );
+                            })}
+                        </ComposableMap>
+                    </div>
+                </div>
+
+                <aside className="border border-[#202A3D] bg-[#101620]/95 p-5">
+                    {active ? (
+                        <>
+                            <div className="flex items-center justify-between gap-4">
+                                <div>
+                                    <p className="font-mono text-[11px] uppercase tracking-[0.26em] text-[#7E8796]">
+                                        Hotspot selected
+                                    </p>
+                                    <h2 className="mt-2 text-2xl font-semibold leading-tight text-[#F3F4F6]">
+                                        {active.region_name}
+                                    </h2>
+                                </div>
+                                <span className={`border px-3 py-1 font-mono text-xs uppercase tracking-[0.2em] ${severityClasses[active.severity]?.border} ${severityClasses[active.severity]?.bg} ${severityClasses[active.severity]?.text}`}>
+                                    {severityClasses[active.severity]?.label}
+                                </span>
+                            </div>
+
+                            <div className="mt-5 grid grid-cols-2 gap-3">
+                                <SignalBox icon={Crosshair} label="Risk" value={active.risk_score} />
+                                <SignalBox icon={MapPin} label="Coord" value={`${formatCoordinate(active.lat, "lat")} / ${formatCoordinate(active.long, "long")}`} />
+                            </div>
+
+                            <OperationImage item={active} className="mt-5 h-40 border border-[#202A3D]" />
+
+                            <p className="mt-5 font-mono text-sm leading-7 text-[#B8C2D2]">
+                                {active.title}
+                            </p>
+
+                            {active.url && (
+                                <Link
+                                    href={active.url}
+                                    className="mt-5 inline-flex w-full items-center justify-center gap-2 border border-[#D7B56D]/40 bg-[#D7B56D]/10 px-4 py-3 font-mono text-xs uppercase tracking-[0.2em] text-[#FDE68A] transition hover:border-[#D7B56D]/70 hover:bg-[#D7B56D]/15"
+                                >
+                                    Apri dossier
+                                    <ArrowRight className="h-4 w-4" />
+                                </Link>
+                            )}
+                        </>
+                    ) : (
+                        <div className="flex min-h-80 items-center justify-center text-center font-mono text-sm uppercase tracking-[0.24em] text-[#7E8796]">
+                            Nessun hotspot attivo
+                        </div>
+                    )}
+                </aside>
+            </div>
+        </section>
+    );
+}
+
+function SignalBox({ icon: Icon, label, value }) {
+    return (
+        <div className="border border-[#202A3D] bg-[#0B0F15] p-3">
+            <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-[#7E8796]">
+                <Icon className="h-3.5 w-3.5" />
+                {label}
+            </div>
+            <div className="mt-2 truncate font-mono text-sm text-[#E8EDF5]">{value}</div>
+        </div>
+    );
+}
+
+function TacticalTicker({ items }) {
+    if (items.length === 0) {
+        return null;
+    }
+
+    return (
+        <section className="mt-6 overflow-hidden border-y border-[#202A3D] bg-[#0B0F15] py-3">
+            <Marquee gradient={false} speed={28} pauseOnHover>
+                {items.map((item) => (
+                    <div key={`${item.id}-${item.title}`} className="mx-6 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.18em] text-[#9CA3AF]">
+                        <RadioTower className="h-4 w-4 text-[#D7B56D]" />
+                        <span className="text-[#D7B56D]">{item.operation_code}</span>
+                        <span>{formatCoordinate(item.lat, "lat")} / {formatCoordinate(item.long, "long")}</span>
+                        <span className="max-w-[420px] truncate text-[#E8EDF5]">{item.title}</span>
+                    </div>
+                ))}
+            </Marquee>
+        </section>
+    );
+}
+
+function IntelligenceCard({ item, index }) {
+    const severity = severityClasses[item.severity] || severityClasses.guarded;
+    const TrendIcon = trendCopy[item.trend_direction]?.icon || Activity;
+
+    return (
+        <motion.article
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.42, delay: Math.min(index * 0.06, 0.3) }}
+            className="group border border-[#202A3D] bg-[#101620] transition hover:-translate-y-1 hover:border-[#D7B56D]/50"
+        >
+            <Link href={item.url || route("blog.articles.index")} className="block">
+                <div className="relative">
+                    <OperationImage item={item} className="h-48 border-b border-[#202A3D]" />
+                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-3">
+                        <span className="border border-[#D7B56D]/40 bg-[#080B10]/82 px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.22em] text-[#FDE68A] backdrop-blur">
+                            {item.operation_code}
+                        </span>
+                        <span className={`shrink-0 border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] backdrop-blur ${severity.border} ${severity.bg} ${severity.text}`}>
+                            {severity.label}
+                        </span>
+                    </div>
+                </div>
+
+                <div className="p-5">
+                    <h3 className="text-xl font-semibold leading-tight text-[#F3F4F6]">
+                        {item.title}
+                    </h3>
+
+                    <div className="mt-4 flex flex-wrap gap-2">
+                        <DataChip icon={MapPin} value={item.region_name} />
+                        <DataChip icon={TrendIcon} value={trendCopy[item.trend_direction]?.label || "Stabile"} />
+                    </div>
+
+                    <div className="mt-4 min-w-0">
+                        <p className="line-clamp-3 text-sm leading-6 text-[#AAB3C2]">
+                            {item.summary || "Briefing in aggiornamento automatico."}
+                        </p>
+                        <div className="mt-5 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.18em] text-[#D7B56D]">
+                            Analizza file
+                            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+                        </div>
+                    </div>
+                </div>
+            </Link>
+        </motion.article>
+    );
+}
+
+function DataChip({ icon: Icon, value }) {
+    return (
+        <span className="inline-flex max-w-full items-center gap-2 border border-[#202A3D] bg-[#0B0F15] px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.14em] text-[#9CA3AF]">
+            <Icon className="h-3.5 w-3.5 shrink-0 text-[#D7B56D]" />
+            <span className="truncate">{value}</span>
+        </span>
+    );
+}
+
+function EmptyState() {
+    return (
+        <div className="border border-dashed border-[#2A354D] bg-[#101620] p-8 text-[#9CA3AF]">
+            La situation room si popolera automaticamente con le prime analisi pubblicate.
+        </div>
+    );
+}
+
 export default function Welcome({
-    featuredArticle = null,
-    spotlightArticle = null,
     latestArticles = [],
     briefingArticles = [],
+    locations = [],
+    tickerItems = [],
     stats = {},
 }) {
+    const operations = useMemo(() => normalizeOperations(locations, []), [locations]);
+    const feedItems = operations.length > 0 ? operations : normalizeOperations([], latestArticles);
+
     const statItems = [
-        {
-            label: "Analisi pubblicate",
-            value: stats.articlesCount || 0,
-        },
-        {
-            label: "Aree tematiche",
-            value: stats.categoriesCount || 0,
-        },
-        {
-            label: "Ultimo aggiornamento",
-            value: formatDate(stats.latestPublishedAt) || "In arrivo",
-        },
+        { label: "Dossier", value: stats.articlesCount || 0, icon: FileSearch },
+        { label: "Hotspot", value: stats.hotspotsCount || operations.length, icon: Target },
+        { label: "Sync", value: formatDate(stats.latestPublishedAt), icon: Binary },
     ];
 
     return (
         <>
-            <Head title="Linea di gioco" />
+            <Head title="Global Situation Room | Linea di gioco" />
             <BlogLayout>
-                <section className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
-                    <div className="relative">
-                        <div className="absolute -left-4 top-3 hidden h-24 w-24 rounded-full bg-[#9E2A2B]/10 blur-3xl sm:block" />
-                        <p className="text-xs uppercase tracking-[0.4em] text-[#9CA3AF]">
-                            Osservatorio geopolitico
-                        </p>
-                        <h1 className="mt-4 font-serif text-4xl leading-tight text-[#E5E7EB] sm:text-5xl">
-                            Un blog strategico costruito per leggere rapidamente
-                            gli snodi del nuovo ordine globale.
-                        </h1>
-                        <p className="mt-6 max-w-2xl text-[#9CA3AF]">
-                            Approfondimenti, scenari e aggiornamenti ordinati
-                            per priorita. La home ora porta subito ai contenuti
-                            piu recenti e ai percorsi di lettura utili.
-                        </p>
-                        <div className="mt-8 flex flex-wrap gap-4">
-                            <Link
-                                href={route("blog.articles.index")}
-                                className="inline-flex items-center gap-2 rounded-full bg-[#1F3A5F] px-6 py-3 text-sm uppercase tracking-[0.2em] text-white transition hover:bg-[#23456f]"
-                            >
-                                Tutti gli articoli
-                                <ArrowRight className="h-4 w-4" />
-                            </Link>
-                        </div>
-                        <div className="mt-10 grid gap-4 sm:grid-cols-3">
-                            {statItems.map((item) => (
-                                <div
-                                    key={item.label}
-                                    className="rounded-2xl border border-[#1C2333] bg-[#131823]/80 p-4 backdrop-blur"
-                                >
-                                    <div className="text-xs uppercase tracking-[0.24em] text-[#6B7280]">
-                                        {item.label}
-                                    </div>
-                                    <div className="mt-2 text-lg font-semibold text-[#E5E7EB]">
-                                        {item.value}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    {spotlightArticle ? (
-                        <Link
-                            href={route("blog.articles.show", {
-                                id: spotlightArticle.id,
-                                slug: spotlightArticle.slug,
-                            })}
-                            className="block rounded-[2rem] border border-[#1C2333] bg-gradient-to-br from-[#131823] via-[#151c28] to-[#1F3A5F]/35 p-6 shadow-[0_32px_80px_rgba(0,0,0,0.24)] transition duration-300 hover:-translate-y-1 hover:border-[#2A354D]"
-                        >
-                            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-[#6B7280]">
-                                <Sparkles className="h-4 w-4 text-[#9E2A2B]" />
-                                Focus del giorno
+                <GlobalMap operations={operations} />
+
+                <TacticalTicker items={operations.length > 0 ? operations : []} />
+
+                <section className="mt-12 grid gap-4 md:grid-cols-3">
+                    {statItems.map((item) => (
+                        <div key={item.label} className="border border-[#202A3D] bg-[#101620] p-5">
+                            <div className="flex items-center justify-between gap-4">
+                                <p className="font-mono text-xs uppercase tracking-[0.24em] text-[#7E8796]">
+                                    {item.label}
+                                </p>
+                                <item.icon className="h-5 w-5 text-[#D7B56D]" />
                             </div>
-                            <h2 className="mt-4 font-serif text-3xl leading-tight text-[#E5E7EB]">
-                                {spotlightArticle.title}
-                            </h2>
-                            <p className="mt-4 text-[#9CA3AF]">
-                                {spotlightArticle.excerpt}
-                            </p>
-                            <div className="mt-6 inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[#E5E7EB]">
-                                Apri analisi
-                                <ArrowRight className="h-4 w-4" />
+                            <div className="mt-4 font-mono text-2xl font-semibold text-[#E8EDF5]">
+                                {item.value}
                             </div>
-                        </Link>
-                    ) : (
-                        <div className="rounded-[2rem] border border-dashed border-[#2A354D] bg-[#131823]/70 p-6">
-                            <p className="text-xs uppercase tracking-[0.3em] text-[#6B7280]">
-                                Focus del giorno
-                            </p>
-                            <h2 className="mt-4 font-serif text-2xl text-[#E5E7EB]">
-                                La home si aggiornera automaticamente con gli ultimi articoli pubblicati.
-                            </h2>
-                            <p className="mt-4 text-[#9CA3AF]">
-                                Appena saranno disponibili nuovi contenuti,
-                                questa sezione mostrera subito il pezzo in evidenza.
-                            </p>
                         </div>
-                    )}
+                    ))}
                 </section>
 
-                {featuredArticle ? (
-                    <section className="mt-16">
-                        <div className="mb-6 flex items-center justify-between gap-4">
-                            <div>
-                                <p className="text-xs uppercase tracking-[0.3em] text-[#6B7280]">
-                                    In primo piano
-                                </p>
-                                <h2 className="mt-2 font-serif text-3xl text-[#E5E7EB]">
-                                    L'analisi da cui partire
-                                </h2>
-                            </div>
-                            <Link
-                                href={route("blog.articles.index")}
-                                className="hidden text-sm text-[#9CA3AF] transition hover:text-[#E5E7EB] sm:inline-flex"
-                            >
-                                Vai all'archivio
-                            </Link>
-                        </div>
-                        <FeaturedCard
-                            title={featuredArticle.title}
-                            description={featuredArticle.excerpt}
-                            tag={featuredArticle.topic || "Scenario"}
-                            meta={formatDate(featuredArticle.published_at) || "Pubblicato ora"}
-                            href={route("blog.articles.show", {
-                                id: featuredArticle.id,
-                                slug: featuredArticle.slug,
-                            })}
-                        />
-                    </section>
-                ) : null}
-
-                <section className="mt-16">
+                <section className="mt-14">
                     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
                         <div>
-                            <p className="text-xs uppercase tracking-[0.3em] text-[#6B7280]">
-                                Ultime notizie
+                            <p className="font-mono text-xs uppercase tracking-[0.3em] text-[#7E8796]">
+                                Intelligence Feed
                             </p>
-                            <h2 className="mt-2 font-serif text-3xl text-[#E5E7EB]">
-                                Notizie recenti e accesso diretto agli articoli
+                            <h2 className="mt-2 font-serif text-4xl leading-tight text-[#F3F4F6]">
+                                File declassificati
                             </h2>
                         </div>
                         <Link
                             href={route("blog.articles.index")}
-                            className="inline-flex items-center gap-2 text-sm text-[#9CA3AF] transition hover:text-[#E5E7EB]"
+                            className="inline-flex items-center gap-2 border border-[#2A354D] bg-[#101620] px-4 py-2 font-mono text-xs uppercase tracking-[0.2em] text-[#AAB3C2] transition hover:border-[#D7B56D]/60 hover:text-[#F3F4F6]"
                         >
-                            Tutti gli articoli
+                            Archivio completo
                             <ArrowRight className="h-4 w-4" />
                         </Link>
                     </div>
 
-                    {latestArticles.length > 0 ? (
-                        <div className="grid gap-6 lg:grid-cols-3">
-                            {latestArticles.map((article) => (
-                                <ArticleCard key={article.id} article={article} />
+                    {feedItems.length > 0 ? (
+                        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                            {feedItems.slice(0, 9).map((item, index) => (
+                                <IntelligenceCard key={`${item.id}-${item.operation_code}`} item={item} index={index} />
                             ))}
                         </div>
                     ) : (
-                        <div className="rounded-[2rem] border border-dashed border-[#2A354D] bg-[#131823]/70 p-8 text-[#9CA3AF]">
-                            Nessuna notizia pubblicata al momento. Quando arriveranno
-                            nuovi articoli, compariranno qui in automatico.
-                        </div>
+                        <EmptyState />
                     )}
                 </section>
 
-                <section className="mt-16 grid gap-8 lg:grid-cols-[0.7fr_1.3fr]">
-                    <div className="rounded-[2rem] border border-[#1C2333] bg-[#131823] p-6">
-                        <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-[#6B7280]">
-                            <Newspaper className="h-4 w-4 text-[#9E2A2B]" />
+                <section className="mt-14 grid gap-6 border border-[#202A3D] bg-[#101620] p-6 lg:grid-cols-[0.75fr_1.25fr]">
+                    <div>
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#D7B56D]/40 bg-[#D7B56D]/10 text-[#D7B56D]">
+                            <Radar className="h-5 w-5" />
+                        </div>
+                        <p className="mt-5 font-mono text-xs uppercase tracking-[0.3em] text-[#7E8796]">
                             Briefing rapido
-                        </div>
-                        <h3 className="mt-4 font-serif text-2xl">Letture da aprire subito</h3>
-                        <div className="mt-6 space-y-3">
-                            {briefingArticles.length > 0 ? (
-                                briefingArticles.map((article, index) => (
-                                    <Link
-                                        key={article.id}
-                                        href={route("blog.articles.show", {
-                                            id: article.id,
-                                            slug: article.slug,
-                                        })}
-                                        className="flex items-start gap-4 rounded-2xl border border-transparent px-3 py-3 text-sm text-[#9CA3AF] transition hover:border-[#1C2333] hover:bg-[#0E1116] hover:text-[#E5E7EB]"
-                                    >
-                                        <span className="mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#1C2333] text-xs text-[#E5E7EB]">
-                                            {index + 1}
-                                        </span>
-                                        <span className="flex-1">{article.title}</span>
-                                    </Link>
-                                ))
-                            ) : (
-                                <p className="text-sm text-[#9CA3AF]">
-                                    Il briefing si popola appena vengono pubblicati i primi articoli.
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                    <div className="rounded-[2rem] border border-[#1C2333] bg-gradient-to-br from-[#131823] via-[#131823] to-[#1F3A5F]/40 p-8">
-                        <p className="text-xs uppercase tracking-[0.3em] text-[#6B7280]">
-                            Newsletter
                         </p>
-                        <h3 className="mt-4 font-serif text-3xl">
-                            Ricevi l'analisi strategica ogni settimana.
+                        <h3 className="mt-2 font-serif text-3xl text-[#F3F4F6]">
+                            Ultime finestre operative
                         </h3>
-                        <p className="mt-4 max-w-xl text-[#9CA3AF]">
-                            Insight curati su geopolitica, energia e sicurezza,
-                            con un focus sulle aree di frizione.
-                        </p>
-                        <div className="mt-6 flex flex-col gap-4 sm:flex-row">
-                            <div className="w-full rounded-full border border-[#1C2333] bg-[#0E1116] px-5 py-3 text-sm text-[#6B7280]">
-                                Iscriviti da una pagina dedicata, pensata per una UX piu chiara.
-                            </div>
+                    </div>
+
+                    <div className="grid gap-3">
+                        {briefingArticles.length > 0 ? briefingArticles.slice(0, 5).map((article) => (
                             <Link
-                                href={route("newsletter")}
-                                className="rounded-full bg-[#9E2A2B] px-6 py-3 text-center text-sm uppercase tracking-[0.2em] text-white transition hover:bg-[#b33435]"
+                                key={article.id}
+                                href={route("blog.articles.show", { id: article.id, slug: article.slug })}
+                                className="grid grid-cols-[76px_1fr_auto] items-center gap-4 border border-[#202A3D] bg-[#0B0F15] p-3 transition hover:border-[#D7B56D]/50"
                             >
-                                Vai alla newsletter
+                                <OperationImage item={article} compact className="h-14 border border-[#182234]" />
+                                <span className="min-w-0 truncate text-sm text-[#D7DEE8]">{article.title}</span>
+                                <ShieldAlert className="h-4 w-4 shrink-0 text-[#D7B56D]" />
                             </Link>
-                        </div>
+                        )) : (
+                            <p className="text-sm text-[#9CA3AF]">Nessun briefing disponibile.</p>
+                        )}
                     </div>
                 </section>
             </BlogLayout>

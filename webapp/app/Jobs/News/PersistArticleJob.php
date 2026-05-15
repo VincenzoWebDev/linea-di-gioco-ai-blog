@@ -76,7 +76,7 @@ class PersistArticleJob implements ShouldQueue
             'status' => $autoPublish ? 'published' : 'review',
             'publication_status' => $publicationStatus,
             'created_by' => 'ai',
-            'source_url' => (string) ($payload['source_url'] ?? $incoming->url),
+            'source_url' => $this->preferNonEmptyString($payload['source_url'] ?? null, $incoming->url),
             'source_name' => (string) ($incoming->source?->name ?? 'unknown'),
             'ai_generated' => true,
             'quality_score' => (float) ($payload['quality_score'] ?? 0),
@@ -104,10 +104,8 @@ class PersistArticleJob implements ShouldQueue
                 ->onQueue(config('ai_news.queues.publish', 'news-publish'));
         }
 
-        if ((bool) config('ai_news.images.enabled', false)) {
-            GenerateArticleImagesJob::dispatch($article->id)
-                ->onQueue(config('ai_news.queues.images', 'news-images'));
-        }
+        GenerateArticleImagesJob::dispatch($article->id)
+            ->onQueue(config('ai_news.queues.images', 'news-images'));
 
         $incoming->update([
             'status' => $autoPublish ? IncomingNewsStatus::PUBLISHED : IncomingNewsStatus::VALIDATED,
@@ -133,5 +131,17 @@ class PersistArticleJob implements ShouldQueue
         $clean = preg_replace('/(?:\s*\n\s*)*fonte\s*:\s*.+\s*$/iu', '', $clean) ?? $clean;
 
         return trim($clean);
+    }
+
+    private function preferNonEmptyString(mixed ...$values): string
+    {
+        foreach ($values as $value) {
+            $normalized = trim((string) $value);
+            if ($normalized !== '') {
+                return $normalized;
+            }
+        }
+
+        return '';
     }
 }

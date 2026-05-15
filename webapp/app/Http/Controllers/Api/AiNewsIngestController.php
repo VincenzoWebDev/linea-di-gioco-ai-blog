@@ -20,7 +20,7 @@ class AiNewsIngestController extends Controller
             'categories' => ['nullable', 'array'],
             'categories.*' => ['string', 'max:120'],
             'quality_score' => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'source_url' => ['required', 'url', 'max:2048'],
+            'source_url' => ['nullable', 'string', 'max:2048'],
             'source_name' => ['nullable', 'string', 'max:255'],
             'rewrite_mode' => ['nullable', 'string', 'max:40'],
             'language' => ['nullable', 'string', 'max:8'],
@@ -34,11 +34,13 @@ class AiNewsIngestController extends Controller
             'geopolitical_tension.tension_summary' => ['required_with:geopolitical_tension', 'string', 'max:160'],
         ]);
 
+        $sourceUrl = (string) ($validated['source_url'] ?? '');
+
         $idempotencyKey = hash(
             'sha256',
             mb_strtolower(
                 (string) $validated['title'].'|'.
-                (string) $validated['source_url'].'|'.
+                $sourceUrl.'|'.
                 Str::limit((string) $validated['content'], 1200, '')
             )
         );
