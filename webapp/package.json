@@ -23,7 +23,7 @@
         "framer-motion": "^12.38.0",
         "lucide-react": "^0.563.0",
         "react-fast-marquee": "^1.6.5",
-        "react-simple-maps": "^1.0.0",
+        "react-simple-maps": "^3.0.0",
         "recharts": "^3.8.1"
     }
 }
