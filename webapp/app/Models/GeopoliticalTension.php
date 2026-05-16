@@ -38,9 +38,9 @@ class GeopoliticalTension extends Model
     public function getStatusColor(): string
     {
         return match (true) {
-            $this->risk_score >= 75 => 'text-red-600',
-            $this->risk_score >= 50 => 'text-orange-600',
-            $this->risk_score >= 25 => 'text-yellow-600',
+            $this->risk_score >= (int) config('ai_news.risk.severity_high', 80) => 'text-red-600',
+            $this->risk_score >= (int) config('ai_news.risk.severity_elevated', 60) => 'text-orange-600',
+            $this->risk_score >= (int) config('ai_news.risk.severity_guarded', 40) => 'text-yellow-600',
             default => 'text-green-600',
         };
     }

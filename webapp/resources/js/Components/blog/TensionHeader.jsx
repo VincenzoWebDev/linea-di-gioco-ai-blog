@@ -8,13 +8,13 @@ const trendIcon = {
 };
 
 function riskColor(score) {
-    if (score >= 75) {
+    if (score >= 80) {
         return "text-red-600";
     }
-    if (score >= 50) {
+    if (score >= 60) {
         return "text-orange-600";
     }
-    if (score >= 25) {
+    if (score >= 40) {
         return "text-yellow-600";
     }
 

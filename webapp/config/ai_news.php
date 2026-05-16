@@ -68,6 +68,20 @@ return [
         'sanitize' => env('AI_NEWS_QUEUE_SANITIZE', 'news-sanitize'),
         'publish' => env('AI_NEWS_QUEUE_PUBLISH', 'news-publish'),
         'images' => env('AI_NEWS_QUEUE_IMAGES', 'news-images'),
+        'glossary' => env('AI_NEWS_QUEUE_GLOSSARY', 'news-sanitize'),
+    ],
+    'glossary' => [
+        'enabled' => env('AI_NEWS_GLOSSARY_ENABLED', true),
+        'max_terms' => env('AI_NEWS_GLOSSARY_MAX_TERMS', 12),
+        'timeout_seconds' => env('AI_NEWS_GLOSSARY_TIMEOUT_SECONDS', 45),
+    ],
+    'risk' => [
+        'alert_high' => env('AI_NEWS_RISK_ALERT_HIGH', 82),
+        'alert_elevated' => env('AI_NEWS_RISK_ALERT_ELEVATED', 62),
+        'alert_guarded' => env('AI_NEWS_RISK_ALERT_GUARDED', 42),
+        'severity_high' => env('AI_NEWS_RISK_SEVERITY_HIGH', 80),
+        'severity_elevated' => env('AI_NEWS_RISK_SEVERITY_ELEVATED', 60),
+        'severity_guarded' => env('AI_NEWS_RISK_SEVERITY_GUARDED', 40),
     ],
     'ingest' => [
         'token' => env('AI_NEWS_INGEST_TOKEN', ''),

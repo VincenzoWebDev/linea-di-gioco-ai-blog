@@ -27,12 +27,14 @@ class Article extends Model
         'source_name',
         'ai_generated',
         'quality_score',
+        'glossary',
     ];
 
     protected $casts = [
         'published_at' => 'datetime',
         'ai_generated' => 'boolean',
         'quality_score' => 'decimal:2',
+        'glossary' => 'array',
     ];
 
     public function incomingNews(): BelongsTo

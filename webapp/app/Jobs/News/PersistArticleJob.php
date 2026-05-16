@@ -110,6 +110,9 @@ class PersistArticleJob implements ShouldQueue
         GenerateArticleImagesJob::dispatch($article->id)
             ->onQueue(config('ai_news.queues.images', 'news-images'));
 
+        GenerateArticleGlossaryJob::dispatch($article->id)
+            ->onQueue(config('ai_news.queues.glossary', 'news-sanitize'));
+
         if ($autoPublish) {
             $stateMachine->transition($incoming, IncomingNewsStatus::PUBLISHED);
         }

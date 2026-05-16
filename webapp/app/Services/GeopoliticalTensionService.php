@@ -14,7 +14,8 @@ class GeopoliticalTensionService
     private const HEADER_CACHE_KEY = 'geopolitical_tensions.header_top_5';
 
     public function __construct(
-        private readonly RegionCoordinateResolver $coordinateResolver
+        private readonly RegionCoordinateResolver $coordinateResolver,
+        private readonly RiskScoreCalibrationService $riskScoreCalibration
     ) {
     }
 
@@ -37,11 +38,11 @@ class GeopoliticalTensionService
             return null;
         }
 
-        $riskScore = $this->normalizeRiskScore($payload['risk_score'] ?? 0);
-        $trendDirection = $this->normalizeTrendDirection($payload['trend_direction'] ?? 'stable');
         $statusLabel = trim((string) ($payload['status_label'] ?? ''));
-
         $context = $this->articleContext($featuredArticle);
+        $rawRisk = $this->normalizeRiskScore($payload['risk_score'] ?? 0);
+        $riskScore = $this->riskScoreCalibration->calibrate($rawRisk, $context, $statusLabel);
+        $trendDirection = $this->normalizeTrendDirection($payload['trend_direction'] ?? 'stable');
         $coordinates = $this->coordinateResolver->resolve($regionName, $context);
 
         $attributes = [

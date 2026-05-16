@@ -79,17 +79,6 @@ function clamp(value, min = 0, max = 100) {
     return Math.min(max, Math.max(min, Math.round(Number(value) || 0)));
 }
 
-function hashScore(seed, offset) {
-    const chars = `${seed}-${offset}`;
-    let hash = 0;
-
-    for (let index = 0; index < chars.length; index += 1) {
-        hash = (hash * 31 + chars.charCodeAt(index)) % 9973;
-    }
-
-    return 34 + (hash % 53);
-}
-
 function formatDateTime(value) {
     if (!value) {
         return "Non disponibile";
@@ -145,53 +134,57 @@ function trendConfig(direction) {
     };
 }
 
-function buildIntelligence(article) {
-    const seed = `${article.id}-${article.title}-${article.summary || ""}`;
+function buildIntelligence(article, riskThresholds = {}) {
+    const hasTension = article.tension?.risk_score != null;
     const riskScore = clamp(
-        article.tension?.risk_score ?? hashScore(seed, "risk"),
+        hasTension ? article.tension.risk_score : 38,
     );
-    const qualityScore = clamp(
-        article.quality_score ?? hashScore(seed, "quality"),
-    );
-    const categoryPressure = clamp(
-        (article.categories?.length || 1) * 18 +
-            hashScore(seed, "category") / 3,
-    );
+    const qualityScore = clamp(article.quality_score ?? 55);
+    const trendBump =
+        article.tension?.trend_direction === "rising"
+            ? 5
+            : article.tension?.trend_direction === "falling"
+              ? -4
+              : 0;
 
     const metrics = [
         {
             axis: "Militare",
-            value: clamp(riskScore + hashScore(seed, "military") / 8 - 5),
+            value: clamp(riskScore + trendBump + 2),
         },
         {
             axis: "Economico",
-            value: clamp(categoryPressure + hashScore(seed, "economy") / 4),
+            value: clamp(riskScore * 0.88 + 4),
         },
         {
             axis: "Diplomatico",
-            value: clamp(riskScore * 0.72 + hashScore(seed, "diplomacy") / 3),
+            value: clamp(riskScore * 0.78 + trendBump),
         },
         {
             axis: "Energia",
-            value: clamp(
-                hashScore(seed, "energy") + (article.topic || "").length,
-            ),
+            value: clamp(riskScore * 0.72 + (article.topic ? 6 : 0)),
         },
         {
             axis: "Informativo",
-            value: clamp(qualityScore * 0.82 + hashScore(seed, "info") / 5),
+            value: clamp(qualityScore * 0.75 + riskScore * 0.2),
         },
     ];
 
     const averageImpact = clamp(
         metrics.reduce((sum, item) => sum + item.value, 0) / metrics.length,
     );
+
+    const alertHigh = riskThresholds.alertHigh ?? 82;
+    const alertElevated = riskThresholds.alertElevated ?? 62;
+    const alertGuarded = riskThresholds.alertGuarded ?? 42;
+    const scenarioHigh = riskThresholds.scenarioHigh ?? 78;
+
     const alertLevel =
-        riskScore >= 75
+        riskScore >= alertHigh
             ? "Rossa"
-            : riskScore >= 55
+            : riskScore >= alertElevated
               ? "Arancione"
-              : riskScore >= 35
+              : riskScore >= alertGuarded
                 ? "Gialla"
                 : "Verde";
     const alertClasses = {
@@ -210,9 +203,10 @@ function buildIntelligence(article) {
         riskScore,
         qualityScore,
         scenario:
-            riskScore >= 65
+            riskScore >= scenarioHigh
                 ? "Probabile intensificazione della pressione diplomatica e aumento della sorveglianza nelle prossime finestre operative."
                 : "Scenario in consolidamento: monitorare segnali politici, catene logistiche e variazioni nella postura militare regionale.",
+        hasTension,
     };
 }
 
@@ -570,9 +564,10 @@ export default function ArticlesShow({
     article,
     related = [],
     glossary = {},
+    riskThresholds = {},
     newsArticleSchema = null,
 }) {
-    const intelligence = buildIntelligence(article);
+    const intelligence = buildIntelligence(article, riskThresholds);
     const timestamp =
         article.tension?.updated_at ||
         article.updated_at ||

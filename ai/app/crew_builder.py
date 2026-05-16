@@ -87,6 +87,14 @@ def _run_crewai(payload: ProcessRequest) -> Tuple[ArticleOut, Dict[str, Any]]:
             "Estrai un report JSON strutturato dalla notizia. "
             "Deve includere: area geografica colpita, livello di tensione da 1 a 100, "
             "direzione del trend e una sintesi di 10 parole. "
+            "Calibra risk_score con prudenza (evita allarmismo): "
+            "85-100 solo per guerra attiva, attacchi confermati, mobilitazioni maggiori, minacce nucleari; "
+            "65-84 per escalation seria con prove concrete; "
+            "45-64 per tensione elevata ma gestibile; "
+            "25-44 per frizione diplomatica o monitoraggio; "
+            "1-24 per notizie istituzionali a basso impatto. "
+            "Default 30-50 se mancano segnali di escalation. "
+            "Non superare 70 per articoli speculativi, dichiarazioni generiche o routine diplomatica. "
             "Usa termini comprensibili e concreti: per esempio preferisci "
             "'Rischio Forniture Gas' a 'Instabilita geoeconomica delle pipeline'. "
             "Per region_name usa un'area geografica precisa e standard (es. Ucraina, Gaza, Medio Oriente, Taiwan, Sahel) "
@@ -268,6 +276,12 @@ def _normalize_tension(raw: Any, payload: ProcessRequest) -> GeopoliticalTension
     except (TypeError, ValueError):
         risk_score = 50
 
+    risk_score = _calibrate_risk_score(
+        risk_score,
+        _source_blob(payload),
+        str(raw.get("status_label", "")),
+    )
+
     data = {
         "region_name": _clean_text(str(raw.get("region_name", "")).strip())[:120] or "Area non specificata",
         "risk_score": min(100, max(1, risk_score)),
@@ -279,11 +293,53 @@ def _normalize_tension(raw: Any, payload: ProcessRequest) -> GeopoliticalTension
     return GeopoliticalTensionOut(**data)
 
 
+def _calibrate_risk_score(raw_score: int, context: str, status_label: str = "") -> int:
+    text = f"{context} {status_label}".lower()
+    score = max(1, min(100, int(raw_score)))
+
+    high_signals = (
+        "guerra",
+        "invasione",
+        "bombardamento",
+        "missile",
+        "mobilitazione militare",
+        "nucleare",
+        "attacco militare",
+        "offensiva",
+        "caduti",
+    )
+    medium_signals = ("sanzioni", "embargo", "escalation", "truppe", "drone", "artiglieria")
+    routine_signals = ("vertice", "summit", "trattativa", "accordo", "comunicato", "monitoraggio")
+    speculative_signals = ("potrebbe", "rischia", "timori", "non confermato", "specul")
+
+    high_count = sum(1 for signal in high_signals if signal in text)
+    medium_count = sum(1 for signal in medium_signals if signal in text)
+
+    if score >= 70:
+        if high_count == 0 and medium_count == 0:
+            score = min(score, 52)
+        elif high_count == 0 and medium_count <= 1:
+            score = min(score, 58)
+        elif high_count == 0 and score >= 80:
+            score = min(score, 65)
+
+    if score >= 55 and high_count == 0 and any(signal in text for signal in routine_signals):
+        score = min(score, 48)
+
+    if score >= 60 and high_count == 0 and any(signal in text for signal in speculative_signals):
+        score = min(score, 52)
+
+    if score < 35 and high_count >= 2:
+        score = max(score, 55)
+
+    return max(1, min(100, score))
+
+
 def _fallback_tension(payload: ProcessRequest) -> GeopoliticalTensionOut:
     source = _clean_text(payload.title or payload.summary or "Aggiornamento geopolitico")
     return GeopoliticalTensionOut(
         region_name="Area non specificata",
-        risk_score=50,
+        risk_score=42,
         trend_direction="stable",
         status_label="Tensione geopolitica",
         tension_summary=_ten_word_summary(source, payload),

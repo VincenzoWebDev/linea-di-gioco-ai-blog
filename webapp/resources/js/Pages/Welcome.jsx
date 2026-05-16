@@ -92,17 +92,6 @@ function formatCoordinate(value, axis) {
     return `${Math.abs(numeric).toFixed(2)} ${direction}`;
 }
 
-function hashScore(seed, offset) {
-    const chars = `${seed}-${offset}`;
-    let hash = 0;
-
-    for (let index = 0; index < chars.length; index += 1) {
-        hash = (hash * 31 + chars.charCodeAt(index)) % 9973;
-    }
-
-    return 34 + (hash % 53);
-}
-
 function normalizeOperations(locations, articles) {
     if (locations.length > 0) {
         return locations.map((location) => ({
@@ -122,7 +111,7 @@ function normalizeOperations(locations, articles) {
         summary: article.excerpt || article.summary,
         url: route("blog.articles.show", { id: article.id, slug: article.slug }),
         region_name: article.topic || "Dossier globale",
-        risk_score: hashScore(article.title, "fallback"),
+        risk_score: 38,
         severity: index === 0 ? "elevated" : "guarded",
         trend_direction: "stable",
         operation_code: article.operation_code || `OP-${String(article.id).padStart(4, "0")}`,

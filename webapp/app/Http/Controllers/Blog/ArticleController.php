@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Blog;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\GeopoliticalTension;
+use App\Services\ArticleGlossaryService;
 use App\Services\NewsArticleSchemaService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -57,7 +58,12 @@ class ArticleController extends Controller
         ]);
     }
 
-    public function show(int $id, string $slug, NewsArticleSchemaService $newsArticleSchemaService): Response|RedirectResponse
+    public function show(
+        int $id,
+        string $slug,
+        NewsArticleSchemaService $newsArticleSchemaService,
+        ArticleGlossaryService $glossaryService
+    ): Response|RedirectResponse
     {
         $article = Article::query()
             ->where('status', 'published')
@@ -75,6 +81,7 @@ class ArticleController extends Controller
                 'source_url',
                 'source_name',
                 'quality_score',
+                'glossary',
             ]);
 
         if ($article->slug !== $slug) {
@@ -133,7 +140,13 @@ class ArticleController extends Controller
                 ] : null,
             ],
             'related' => $related,
-            'glossary' => $this->buildGlossary((string) $article->content),
+            'glossary' => $this->resolveGlossary($article, $glossaryService),
+            'riskThresholds' => [
+                'alertHigh' => (int) config('ai_news.risk.alert_high', 82),
+                'alertElevated' => (int) config('ai_news.risk.alert_elevated', 62),
+                'alertGuarded' => (int) config('ai_news.risk.alert_guarded', 42),
+                'scenarioHigh' => 78,
+            ],
             'newsArticleSchema' => $newsArticleSchemaService->make($article),
         ]);
     }
@@ -141,72 +154,22 @@ class ArticleController extends Controller
     /**
      * @return array<string, array{definition: string, importance: string}>
      */
-    private function buildGlossary(string $content): array
+    private function resolveGlossary(Article $article, ArticleGlossaryService $glossaryService): array
     {
-        $terms = [
-            'NATO' => [
-                'definition' => 'Alleanza militare transatlantica fondata sulla difesa collettiva tra Stati membri.',
-                'importance' => 'Alta',
-            ],
-            'ONU' => [
-                'definition' => 'Organizzazione internazionale che coordina diplomazia, sicurezza e cooperazione tra Stati.',
-                'importance' => 'Alta',
-            ],
-            'Consiglio di Sicurezza' => [
-                'definition' => 'Organo ONU responsabile di pace, sanzioni e missioni internazionali.',
-                'importance' => 'Critica',
-            ],
-            'UE' => [
-                'definition' => 'Unione politica ed economica europea con competenze su mercato, regole e diplomazia.',
-                'importance' => 'Alta',
-            ],
-            'sanzioni' => [
-                'definition' => 'Misure economiche o politiche usate per fare pressione su governi, aziende o individui.',
-                'importance' => 'Alta',
-            ],
-            'deterrenza' => [
-                'definition' => 'Strategia per scoraggiare un avversario mostrando costi militari o politici elevati.',
-                'importance' => 'Alta',
-            ],
-            'proxy' => [
-                'definition' => 'Attore locale sostenuto da una potenza esterna per influenzare un conflitto.',
-                'importance' => 'Media',
-            ],
-            'escalation' => [
-                'definition' => 'Aumento progressivo dell’intensita politica, militare o diplomatica di una crisi.',
-                'importance' => 'Critica',
-            ],
-            'cessate il fuoco' => [
-                'definition' => 'Interruzione temporanea o concordata delle ostilita tra parti in conflitto.',
-                'importance' => 'Alta',
-            ],
-            'corridoio umanitario' => [
-                'definition' => 'Passaggio protetto per civili, aiuti o evacuazioni in zone di conflitto.',
-                'importance' => 'Alta',
-            ],
-            'Stretto di Hormuz' => [
-                'definition' => 'Passaggio marittimo vitale tra Oman e Iran per il traffico petrolifero mondiale.',
-                'importance' => 'Critica',
-            ],
-            'Mar Nero' => [
-                'definition' => 'Area strategica tra Europa orientale, Caucaso e rotte commerciali verso il Mediterraneo.',
-                'importance' => 'Alta',
-            ],
-            'Indo-Pacifico' => [
-                'definition' => 'Quadrante strategico che collega Oceano Indiano, Pacifico e competizione tra potenze.',
-                'importance' => 'Alta',
-            ],
-            'BRICS' => [
-                'definition' => 'Gruppo di economie emergenti che coordina iniziative finanziarie e diplomatiche alternative.',
-                'importance' => 'Media',
-            ],
-        ];
+        $stored = $article->glossary;
+        if (is_array($stored) && $stored !== []) {
+            return $stored;
+        }
 
-        $normalizedContent = Str::lower($content);
+        $generated = $glossaryService->build(
+            (string) $article->title,
+            (string) $article->content
+        );
 
-        return collect($terms)
-            ->filter(fn (array $entry, string $term) => str_contains($normalizedContent, Str::lower($term)))
-            ->take(8)
-            ->all();
+        if ($generated !== []) {
+            $article->update(['glossary' => $generated]);
+        }
+
+        return $generated;
     }
 }
