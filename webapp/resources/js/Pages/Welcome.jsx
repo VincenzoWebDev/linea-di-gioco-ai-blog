@@ -27,43 +27,9 @@ import { useMemo, useState } from "react";
 import BlogLayout from "@/Layouts/BlogLayout";
 import ArticleCoverImage from "@/Components/blog/articles/ArticleCoverImage";
 import ArticleIntelligenceCard from "@/Components/blog/articles/ArticleIntelligenceCard";
+import { severityBadge, severityClasses } from "@/lib/geopoliticalSeverity";
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
-
-const severityClasses = {
-    high: {
-        label: "Rosso",
-        marker: "#EF4444",
-        border: "border-[#EF4444]/50",
-        text: "text-[#FCA5A5]",
-        bg: "bg-[#EF4444]/10",
-        fill: "#EF4444",
-    },
-    elevated: {
-        label: "Arancione",
-        marker: "#F97316",
-        border: "border-[#F97316]/50",
-        text: "text-[#FDBA74]",
-        bg: "bg-[#F97316]/10",
-        fill: "#F97316",
-    },
-    guarded: {
-        label: "Giallo",
-        marker: "#D7B56D",
-        border: "border-[#D7B56D]/50",
-        text: "text-[#FDE68A]",
-        bg: "bg-[#D7B56D]/10",
-        fill: "#D7B56D",
-    },
-    low: {
-        label: "Verde",
-        marker: "#22C55E",
-        border: "border-[#22C55E]/50",
-        text: "text-[#86EFAC]",
-        bg: "bg-[#22C55E]/10",
-        fill: "#22C55E",
-    },
-};
 
 const trendCopy = {
     rising: { label: "Escalation", icon: TrendingUp },
@@ -128,14 +94,14 @@ function GlobalMap({ operations }) {
     return (
         <section className="relative overflow-hidden border border-[#202A3D] bg-[#080B10] shadow-[0_32px_90px_rgba(0,0,0,0.32)]">
             <div className="absolute inset-0 bg-[linear-gradient(rgba(215,181,109,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(215,181,109,0.04)_1px,transparent_1px)] bg-[size:44px_44px]" />
-            <div className="relative grid gap-6 p-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:p-7">
+            <div className="relative grid gap-6 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_minmax(260px,320px)] lg:p-7">
                 <div className="min-w-0">
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <div>
                             <p className="font-mono text-xs uppercase tracking-[0.34em] text-[#7E8796]">
                                 Global Situation Room
                             </p>
-                            <h1 className="mt-3 font-serif text-4xl leading-tight text-[#F3F4F6] md:text-6xl">
+                            <h1 className="mt-3 font-serif text-3xl leading-tight text-[#F3F4F6] sm:text-4xl md:text-6xl">
                                 The Command Hub
                             </h1>
                         </div>
@@ -145,7 +111,7 @@ function GlobalMap({ operations }) {
                         </div>
                     </div>
 
-                    <div className="mt-7 aspect-[1.72] w-full overflow-hidden border border-[#182234] bg-[#0B0F15]/80 [&_svg]:origin-center [&_svg]:scale-[1.1]">
+                    <div className="mt-5 sm:mt-7 aspect-[1.55] sm:aspect-[1.72] w-full max-w-full overflow-hidden border border-[#182234] bg-[#0B0F15]/80 [&_svg]:max-w-full [&_svg]:origin-center [&_svg]:scale-[1.02] sm:[&_svg]:scale-[1.1]">
                         <ComposableMap
                             projectionConfig={{ rotate: [-10, 0, 0], scale: 178 }}
                             className="h-full w-full"
@@ -194,11 +160,11 @@ function GlobalMap({ operations }) {
                     </div>
                 </div>
 
-                <aside className="border border-[#202A3D] bg-[#101620]/95 p-5">
+                <aside className="min-w-0 border border-[#202A3D] bg-[#101620]/95 p-4 sm:p-5">
                     {active ? (
                         <>
-                            <div className="flex items-center justify-between gap-4">
-                                <div>
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                                <div className="min-w-0">
                                     <p className="font-mono text-[11px] uppercase tracking-[0.26em] text-[#7E8796]">
                                         Hotspot selected
                                     </p>
@@ -206,7 +172,7 @@ function GlobalMap({ operations }) {
                                         {active.region_name}
                                     </h2>
                                 </div>
-                                <span className={`border px-3 py-1 font-mono text-xs uppercase tracking-[0.2em] ${severityClasses[active.severity]?.border} ${severityClasses[active.severity]?.bg} ${severityClasses[active.severity]?.text}`}>
+                                <span className={`shrink-0 border px-3 py-1 font-mono text-xs uppercase tracking-[0.2em] ${severityClasses[active.severity]?.border} ${severityClasses[active.severity]?.bg} ${severityClasses[active.severity]?.text}`}>
                                     {severityClasses[active.severity]?.label}
                                 </span>
                             </div>
@@ -277,7 +243,6 @@ function TacticalTicker({ items }) {
 }
 
 function IntelligenceCard({ item, index }) {
-    const severity = severityClasses[item.severity] || severityClasses.guarded;
     const TrendIcon = trendCopy[item.trend_direction]?.icon || Activity;
 
     return (
@@ -294,7 +259,7 @@ function IntelligenceCard({ item, index }) {
             index={index}
             href={item.url || route("blog.articles.index")}
             ctaLabel="Analizza file"
-            statusBadge={severity}
+            statusBadge={severityBadge(item.severity)}
             chips={[
                 { icon: MapPin, value: item.region_name || "Hotspot" },
                 {
@@ -338,7 +303,7 @@ export default function Welcome({
 
                 <TacticalTicker items={operations.length > 0 ? operations : []} />
 
-                <section className="mt-12 grid gap-4 md:grid-cols-3">
+                <section className="mt-8 sm:mt-12 grid gap-4 md:grid-cols-3">
                     {statItems.map((item) => (
                         <div key={item.label} className="border border-[#202A3D] bg-[#101620] p-5">
                             <div className="flex items-center justify-between gap-4">
@@ -354,13 +319,13 @@ export default function Welcome({
                     ))}
                 </section>
 
-                <section className="mt-14">
+                <section className="mt-10 sm:mt-14">
                     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-                        <div>
+                        <div className="min-w-0">
                             <p className="font-mono text-xs uppercase tracking-[0.3em] text-[#7E8796]">
                                 Intelligence Feed
                             </p>
-                            <h2 className="mt-2 font-serif text-4xl leading-tight text-[#F3F4F6]">
+                            <h2 className="mt-2 font-serif text-3xl leading-tight text-[#F3F4F6] sm:text-4xl">
                                 File declassificati
                             </h2>
                         </div>
@@ -374,7 +339,7 @@ export default function Welcome({
                     </div>
 
                     {feedItems.length > 0 ? (
-                        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                        <div className="grid gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
                             {feedItems.slice(0, 9).map((item, index) => (
                                 <IntelligenceCard key={`${item.id}-${item.operation_code}`} item={item} index={index} />
                             ))}
@@ -384,7 +349,7 @@ export default function Welcome({
                     )}
                 </section>
 
-                <section className="mt-14 grid gap-6 border border-[#202A3D] bg-[#101620] p-6 lg:grid-cols-[0.75fr_1.25fr]">
+                <section className="mt-10 sm:mt-14 grid gap-6 border border-[#202A3D] bg-[#101620] p-4 sm:p-6 lg:grid-cols-[0.75fr_1.25fr]">
                     <div>
                         <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#D7B56D]/40 bg-[#D7B56D]/10 text-[#D7B56D]">
                             <Radar className="h-5 w-5" />
@@ -402,7 +367,7 @@ export default function Welcome({
                             <Link
                                 key={article.id}
                                 href={route("blog.articles.show", { id: article.id, slug: article.slug })}
-                                className="grid grid-cols-[76px_1fr_auto] items-center gap-4 border border-[#202A3D] bg-[#0B0F15] p-3 transition hover:border-[#D7B56D]/50"
+                                className="grid grid-cols-[64px_minmax(0,1fr)] items-center gap-3 border border-[#202A3D] bg-[#0B0F15] p-3 transition hover:border-[#D7B56D]/50 sm:grid-cols-[76px_minmax(0,1fr)_auto] sm:gap-4"
                             >
                                 <ArticleCoverImage item={article} compact className="h-14 border border-[#182234]" />
                                 <span className="min-w-0 truncate text-sm text-[#D7DEE8]">{article.title}</span>

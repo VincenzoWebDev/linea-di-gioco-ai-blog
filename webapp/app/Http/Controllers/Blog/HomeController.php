@@ -7,6 +7,7 @@ use App\Models\Article;
 use App\Models\Category;
 use App\Models\GeopoliticalTension;
 use App\Services\RegionCoordinateResolver;
+use App\Support\GeopoliticalSeverity;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -120,7 +121,7 @@ class HomeController extends Controller
                     'lat' => $coordinates['lat'],
                     'long' => $coordinates['long'],
                     'risk_score' => $tension->risk_score,
-                    'severity' => $this->severityFromRisk($tension->risk_score),
+                    'severity' => GeopoliticalSeverity::fromRiskScore((int) $tension->risk_score),
                     'trend_direction' => $tension->trend_direction,
                     'status_label' => $tension->status_label,
                     'updated_at' => optional($tension->updated_at)->toISOString(),
@@ -167,13 +168,4 @@ class HomeController extends Controller
         return $this->coordinateResolver->resolve($tension->region_name, $context);
     }
 
-    private function severityFromRisk(int $score): string
-    {
-        return match (true) {
-            $score >= (int) config('ai_news.risk.severity_high', 80) => 'high',
-            $score >= (int) config('ai_news.risk.severity_elevated', 60) => 'elevated',
-            $score >= (int) config('ai_news.risk.severity_guarded', 40) => 'guarded',
-            default => 'low',
-        };
-    }
 }

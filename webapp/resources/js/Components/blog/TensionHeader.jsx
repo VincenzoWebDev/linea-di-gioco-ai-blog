@@ -69,7 +69,7 @@ export default function TensionHeader({ tensions = [] }) {
             className="border-t border-[#1C2333] bg-[#111722]/95"
             aria-label="Top tensioni geopolitiche"
         >
-            <div className="mx-auto flex max-w-6xl items-center gap-3 overflow-x-auto px-6 py-3 text-xs">
+            <div className="mx-auto flex w-full max-w-6xl items-center gap-3 overflow-x-auto px-4 py-3 text-xs sm:px-6">
                 <span className="shrink-0 uppercase tracking-[0.22em] text-[#6B7280]">
                     Tensioni
                 </span>

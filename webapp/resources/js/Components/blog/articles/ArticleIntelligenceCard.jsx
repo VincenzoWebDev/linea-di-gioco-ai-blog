@@ -57,7 +57,7 @@ export default function ArticleIntelligenceCard({
 
     return (
         <article
-            className="group opacity-0 animate-card-reveal border border-[#202A3D] bg-[#101620] transition-[border-color,box-shadow] duration-300 hover:border-[#D7B56D]/50 hover:shadow-[0_16px_48px_rgba(0,0,0,0.35)] motion-reduce:animate-none motion-reduce:opacity-100"
+            className="group min-w-0 max-w-full opacity-0 animate-card-reveal overflow-hidden border border-[#202A3D] bg-[#101620] transition-[border-color,box-shadow] duration-300 hover:border-[#D7B56D]/50 hover:shadow-[0_16px_48px_rgba(0,0,0,0.35)] motion-reduce:animate-none motion-reduce:opacity-100"
             style={{ animationDelay: `${revealDelay}ms` }}
         >
             <div className="transition-transform duration-300 ease-out will-change-transform group-hover:-translate-y-1">
@@ -67,13 +67,13 @@ export default function ArticleIntelligenceCard({
                             item={article}
                             className="h-48 border-b border-[#202A3D]"
                         />
-                        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-3">
-                            <span className="border border-[#D7B56D]/40 bg-[#080B10]/82 px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.22em] text-[#FDE68A] backdrop-blur">
+                        <div className="absolute bottom-3 left-3 right-3 flex min-w-0 items-center justify-between gap-2">
+                            <span className="min-w-0 truncate border border-[#D7B56D]/40 bg-[#080B10]/82 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-[#FDE68A] backdrop-blur sm:text-[11px] sm:tracking-[0.22em]">
                                 {operationCode}
                             </span>
                             {statusBadge ? (
                                 <span
-                                    className={`shrink-0 border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] backdrop-blur ${statusBadge.border} ${statusBadge.bg} ${statusBadge.text}`}
+                                    className={`shrink-0 border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.16em] backdrop-blur sm:tracking-[0.18em] ${statusBadge.border} ${statusBadge.bg} ${statusBadge.text}`}
                                 >
                                     {statusBadge.label}
                                 </span>
@@ -81,8 +81,8 @@ export default function ArticleIntelligenceCard({
                         </div>
                     </div>
 
-                    <div className="p-5">
-                        <h3 className="text-xl font-semibold leading-tight text-[#F3F4F6]">
+                    <div className="p-4 sm:p-5">
+                        <h3 className="text-lg font-semibold leading-tight text-[#F3F4F6] sm:text-xl">
                             {article.title}
                         </h3>
 

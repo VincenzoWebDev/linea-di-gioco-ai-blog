@@ -6,22 +6,26 @@ use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\GeopoliticalTension;
 use App\Services\ArticleGlossaryService;
+use App\Support\GeopoliticalSeverity;
 use App\Services\NewsArticleSchemaService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ArticleController extends Controller
 {
     public function index(): Response
     {
-        $articles = Article::query()
+
+        /** @var LengthAwarePaginator $published */
+        $published = Article::query()
             ->where('status', 'published')
             ->with('categories:id,name')
             ->latest('published_at')
-            ->get([
+            ->paginate(9, [
                 'id',
                 'title',
                 'slug',
@@ -30,9 +34,23 @@ class ArticleController extends Controller
                 'published_at',
                 'cover_path',
                 'thumb_path',
+            ]);
+
+        $tensions = GeopoliticalTension::query()
+            ->whereIn('featured_article_id', $published->pluck('id'))
+            ->get([
+                'featured_article_id',
+                'risk_score',
+                'trend_direction',
+                'region_name',
             ])
-            ->map(function (Article $article) {
+            ->keyBy('featured_article_id');
+
+        $articles = $published->getCollection()
+            ->map(function (Article $article) use ($tensions) {
                 $categoryNames = $article->categories->pluck('name')->values();
+                $tension = $tensions->get($article->id);
+                $riskScore = $tension?->risk_score;
 
                 return [
                     'id' => $article->id,
@@ -43,17 +61,28 @@ class ArticleController extends Controller
                     'topic' => $categoryNames->first() ?: null,
                     'categories' => $categoryNames,
                     'published_at' => optional($article->published_at)->toISOString(),
-                    'cover_url' => $article->cover_path ? Storage::url($article->cover_path) : null,
-                    'thumb_url' => $article->thumb_path ? Storage::url($article->thumb_path) : null,
+                    'cover_url' => $article->cover_path
+                        ? Storage::url($article->cover_path)
+                        : null,
+                    'thumb_url' => $article->thumb_path
+                        ? Storage::url($article->thumb_path)
+                        : null,
                     'operation_code' => sprintf('OP-%04d', $article->id),
+                    'severity' => $riskScore !== null
+                        ? GeopoliticalSeverity::fromRiskScore((int) $riskScore)
+                        : 'low',
+                    'risk_score' => $riskScore,
+                    'trend_direction' => $tension?->trend_direction ?? 'stable',
+                    'region_name' => $tension?->region_name,
                 ];
-            })
-            ->values();
+            });
+
+        $published->setCollection($articles);
 
         return Inertia::render('Blog/Articles/Index', [
-            'articles' => $articles,
+            'articles' => $published,
             'stats' => [
-                'total' => $articles->count(),
+                'total' => $published->total(),
             ],
         ]);
     }
@@ -63,8 +92,7 @@ class ArticleController extends Controller
         string $slug,
         NewsArticleSchemaService $newsArticleSchemaService,
         ArticleGlossaryService $glossaryService
-    ): Response|RedirectResponse
-    {
+    ): Response|RedirectResponse {
         $article = Article::query()
             ->where('status', 'published')
             ->with('categories:id,name')

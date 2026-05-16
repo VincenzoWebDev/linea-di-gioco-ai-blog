@@ -47,9 +47,9 @@ function RelatedItem({ article }) {
                 id: article.id,
                 slug: article.slug,
             })}
-            className="group grid grid-cols-[88px_1fr] gap-4 rounded-lg border border-[#202A3D] bg-[#121722] p-3 transition hover:border-[#D7B56D]/50"
+            className="group grid grid-cols-1 gap-3 rounded-lg border border-[#202A3D] bg-[#121722] p-3 transition hover:border-[#D7B56D]/50 sm:grid-cols-[88px_1fr] sm:gap-4"
         >
-            <div className="h-20 w-[88px] overflow-hidden rounded-md bg-[#0B0F15]">
+            <div className="h-36 w-full overflow-hidden rounded-md bg-[#0B0F15] sm:h-20 sm:w-[88px]">
                 {article.thumb_url ? (
                     <img
                         src={article.thumb_url}
@@ -411,7 +411,7 @@ function GlossaryTooltip({ term, entry }) {
 
 function DataPill({ icon: Icon, label, value }) {
     return (
-        <div className="min-w-0 border-l border-[#2A354D] px-4 py-2 first:border-l-0">
+        <div className="min-w-0 border-t border-[#2A354D] px-4 py-3 first:border-t-0 sm:border-l sm:border-t-0 sm:py-2 sm:first:border-l-0">
             <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-[#7E8796]">
                 <Icon className="h-3.5 w-3.5" />
                 {label}
@@ -428,12 +428,12 @@ function IntelligenceSidebar({ article, intelligence }) {
     const TrendIcon = trend.icon;
 
     return (
-        <aside className="lg:sticky lg:top-8 lg:self-start">
+        <aside className="min-w-0 max-w-full lg:sticky lg:top-8 lg:self-start">
             <motion.div
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.45 }}
-                className="border border-[#202A3D] bg-[#0B0F15]/90 p-5 shadow-2xl shadow-black/20"
+                className="border border-[#202A3D] bg-[#0B0F15]/90 p-4 shadow-2xl shadow-black/20 sm:p-5"
             >
                 <div className="flex items-center justify-between gap-4">
                     <div>
@@ -449,16 +449,16 @@ function IntelligenceSidebar({ article, intelligence }) {
                     </div>
                 </div>
 
-                <div className="mt-5 h-80 border border-[#182234] bg-[#0E1116] px-2 py-3">
+                <div className="mt-5 h-64 border border-[#182234] bg-[#0E1116] px-1 py-2 sm:h-80 sm:px-2 sm:py-3">
                     <ResponsiveContainer width="100%" height="100%">
                         <RadarChart
                             data={intelligence.metrics}
-                            outerRadius="64%"
+                            outerRadius="58%"
                             margin={{
-                                top: 18,
-                                right: 34,
-                                bottom: 18,
-                                left: 34,
+                                top: 12,
+                                right: 20,
+                                bottom: 12,
+                                left: 20,
                             }}
                         >
                             <PolarGrid stroke="#2A354D" radialLines />
@@ -618,17 +618,17 @@ export default function ArticlesShow({
                                 />
                             </div>
 
-                            <h1 className="mt-5 max-w-5xl font-serif text-4xl leading-tight text-[#F3F4F6] md:text-6xl">
+                            <h1 className="mt-5 max-w-5xl font-serif text-3xl leading-tight text-[#F3F4F6] sm:text-4xl md:text-6xl">
                                 {article.title}
                             </h1>
 
                             {article.summary && (
-                                <p className="mt-6 max-w-3xl text-xl leading-8 text-[#AAB3C2]">
+                                <p className="mt-4 max-w-3xl text-lg leading-8 text-[#AAB3C2] sm:mt-6 sm:text-xl">
                                     {article.summary}
                                 </p>
                             )}
 
-                            <div className="mt-8 grid overflow-hidden border border-[#202A3D] bg-[#101620] md:grid-cols-3">
+                            <div className="mt-6 grid overflow-hidden border border-[#202A3D] bg-[#101620] sm:mt-8 sm:grid-cols-3">
                                 <DataPill
                                     icon={MapPin}
                                     label="Coordinate"
@@ -656,19 +656,19 @@ export default function ArticlesShow({
                                 <img
                                     src={article.cover_url}
                                     alt={article.title}
-                                    className="h-[460px] w-full object-cover"
+                                    className="h-52 w-full object-cover sm:h-72 md:h-[460px]"
                                 />
                             </div>
                         )}
 
-                        <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_400px] xl:grid-cols-[minmax(0,1fr)_430px]">
+                        <div className="mt-8 grid gap-8 lg:mt-10 lg:grid-cols-[minmax(0,1fr)_minmax(280px,400px)] lg:gap-10 xl:grid-cols-[minmax(0,1fr)_430px]">
                             <main className="min-w-0">
-                                <div className="border-l border-[#2A354D] pl-5">
+                                <div className="border-l border-[#2A354D] pl-4 sm:pl-5">
                                     <p className="font-mono text-xs uppercase tracking-[0.3em] text-[#7E8796]">
                                         Briefing report
                                     </p>
                                 </div>
-                                <div className="mt-2 text-lg">
+                                <div className="mt-2 break-words text-base sm:text-lg">
                                     {renderContent(article.content, glossary)}
                                 </div>
 
@@ -692,7 +692,7 @@ export default function ArticlesShow({
                         </div>
                     </article>
 
-                    <section className="mt-16 border border-[#202A3D] bg-[#101620] p-6">
+                    <section className="mt-12 border border-[#202A3D] bg-[#101620] p-4 sm:mt-16 sm:p-6">
                         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                             <div>
                                 <p className="font-mono text-xs uppercase tracking-[0.28em] text-[#7E8796]">
