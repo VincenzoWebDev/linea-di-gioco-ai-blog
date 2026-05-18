@@ -112,5 +112,9 @@ return [
         'retry_attempts' => env('AI_NEWS_IMAGES_RETRY_ATTEMPTS', 1),
         'retry_sleep_ms' => env('AI_NEWS_IMAGES_RETRY_SLEEP_MS', 1500),
         'style' => env('AI_NEWS_IMAGES_STYLE', 'editoriale realistico, geopolitica, nessun logo o testo leggibile'),
+        'cover_width' => env('AI_NEWS_IMAGES_COVER_WIDTH', 1200),
+        'cover_height' => env('AI_NEWS_IMAGES_COVER_HEIGHT', 630),
+        'thumb_size' => env('AI_NEWS_IMAGES_THUMB_SIZE', 512),
+        'webp_quality' => env('AI_NEWS_IMAGES_WEBP_QUALITY', 82),
     ],
 ];

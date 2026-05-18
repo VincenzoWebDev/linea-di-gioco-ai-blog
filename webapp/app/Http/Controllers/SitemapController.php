@@ -23,7 +23,7 @@ class SitemapController extends Controller
             ],
             [
                 'loc' => route('blog.articles.index'),
-                'lastmod' => optional($latestArchiveArticle?->updated_at)->toAtomString(),
+                'lastmod' => $latestArchiveArticle?->updated_at?->toAtomString(),
                 'changefreq' => 'hourly',
                 'priority' => '0.9',
             ],
@@ -44,7 +44,7 @@ class SitemapController extends Controller
                     'id' => $article->id,
                     'slug' => $article->slug,
                 ]),
-                'lastmod' => optional($article->updated_at ?? $article->published_at)?->toAtomString(),
+                'lastmod' => ($article->updated_at ?? $article->published_at)?->toAtomString(),
                 'changefreq' => 'daily',
                 'priority' => '0.8',
             ]);

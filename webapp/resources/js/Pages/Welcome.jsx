@@ -183,7 +183,15 @@ function GlobalMap({ operations }) {
                                 <SignalBox icon={MapPin} label="Coordinate" value={`${formatCoordinate(active.lat, "lat")} / ${formatCoordinate(active.long, "long")}`} />
                             </div>
 
-                            <ArticleCoverImage item={active} className="mt-5 h-40 border border-[#202A3D]" />
+                            <ArticleCoverImage
+                                item={active}
+                                className="mt-5 h-40 border border-[#202A3D]"
+                                loading="eager"
+                                fetchPriority="high"
+                                sizes="(min-width: 1024px) 320px, 100vw"
+                                width={1200}
+                                height={630}
+                            />
 
                             <p className="mt-5 font-mono text-sm leading-7 text-[#B8C2D2]">
                                 {active.title}
@@ -261,6 +269,8 @@ function IntelligenceCard({ item, index }) {
             href={item.url || route("blog.articles.index")}
             ctaLabel="Analizza dossier"
             statusBadge={severityBadge(item.severity)}
+            imageLoading={index === 0 ? "eager" : "lazy"}
+            imageFetchPriority={index === 0 ? "high" : "auto"}
             chips={[
                 { icon: MapPin, value: item.region_name || "Hotspot" },
                 {
@@ -392,7 +402,14 @@ export default function Welcome({
                                 href={route("blog.articles.show", { id: article.id, slug: article.slug })}
                                 className="grid grid-cols-[64px_minmax(0,1fr)] items-center gap-3 border border-[#202A3D] bg-[#0B0F15] p-3 transition hover:border-[#D7B56D]/50 sm:grid-cols-[76px_minmax(0,1fr)_auto] sm:gap-4"
                             >
-                                <ArticleCoverImage item={article} compact className="h-14 border border-[#182234]" />
+                                <ArticleCoverImage
+                                    item={article}
+                                    compact
+                                    className="h-14 border border-[#182234]"
+                                    sizes="76px"
+                                    width={512}
+                                    height={512}
+                                />
                                 <span className="min-w-0 truncate text-sm text-[#D7DEE8]">{article.title}</span>
                                 <ShieldAlert className="h-4 w-4 shrink-0 text-[#D7B56D]" />
                             </Link>

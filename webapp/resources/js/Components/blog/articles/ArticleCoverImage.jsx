@@ -5,6 +5,12 @@ export default function ArticleCoverImage({
     className = "",
     compact = false,
     alt,
+    loading = "lazy",
+    fetchPriority = "auto",
+    sizes,
+    width = 1200,
+    height = 630,
+    decoding = "async",
 }) {
     const imageUrl =
         item?.cover_url ||
@@ -19,7 +25,12 @@ export default function ArticleCoverImage({
                     src={imageUrl}
                     alt={alt || item?.title || "Articolo"}
                     className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                    loading="lazy"
+                    loading={loading}
+                    fetchpriority={fetchPriority}
+                    sizes={sizes}
+                    width={width}
+                    height={height}
+                    decoding={decoding}
                 />
             ) : (
                 <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,rgba(215,181,109,0.16),transparent_32%),linear-gradient(135deg,rgba(31,58,95,0.5),rgba(11,15,21,0.96)_58%,rgba(158,42,43,0.24))]">

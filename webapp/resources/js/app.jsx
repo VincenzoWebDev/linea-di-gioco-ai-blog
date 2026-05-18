@@ -1,18 +1,23 @@
 import './bootstrap';
 import '../css/app.css';
 
-import { createRoot } from 'react-dom/client';
+import { createRoot, hydrateRoot } from 'react-dom/client';
 import { createInertiaApp } from '@inertiajs/react';
-import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-
-const appName = import.meta.env.VITE_APP_NAME || 'Linea di gioco';
+import { installRoute, resolvePage, titleCallback } from './inertiaShared';
 
 createInertiaApp({
-    title: (title) => `${title} - ${appName}`,
-    resolve: (name) => resolvePageComponent(`./Pages/${name}.jsx`, import.meta.glob('./Pages/**/*.jsx')),
+    title: titleCallback,
+    resolve: resolvePage,
     setup({ el, App, props }) {
-        const root = createRoot(el);
+        installRoute(props.initialPage.props);
 
+        if (el.hasChildNodes()) {
+            hydrateRoot(el, <App {...props} />);
+
+            return;
+        }
+
+        const root = createRoot(el);
         root.render(<App {...props} />);
     },
     progress: {

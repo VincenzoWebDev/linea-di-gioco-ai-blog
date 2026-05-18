@@ -1,17 +1,29 @@
 import { Head, usePage } from "@inertiajs/react";
 
+function safeText(value) {
+    if (typeof value === "symbol") {
+        return value.description || "";
+    }
+
+    if (value == null) {
+        return "";
+    }
+
+    return String(value);
+}
+
 function trimText(value, maxLength) {
     if (!value) {
         return "";
     }
 
-    const normalized = String(value).replace(/\s+/g, " ").trim();
+    const normalized = safeText(value).replace(/\s+/g, " ").trim();
 
     if (normalized.length <= maxLength) {
         return normalized;
     }
 
-    return `${normalized.slice(0, maxLength - 1).trim()}…`;
+    return `${normalized.slice(0, maxLength - 1).trim()}...`;
 }
 
 function normalizeKeywords(keywords) {
@@ -21,7 +33,7 @@ function normalizeKeywords(keywords) {
 
     return [...new Set(
         keywords
-            .map((value) => String(value || "").trim())
+            .map((value) => safeText(value).trim())
             .filter(Boolean),
     )];
 }
@@ -32,9 +44,27 @@ function toAbsoluteUrl(value, baseUrl) {
     }
 
     try {
-        return new URL(value, baseUrl).toString();
+        return new URL(safeText(value), safeText(baseUrl)).toString();
     } catch {
-        return value;
+        return safeText(value);
+    }
+}
+
+function safeJson(value) {
+    try {
+        return JSON.stringify(value, (_key, currentValue) => {
+            if (typeof currentValue === "symbol") {
+                return currentValue.description || "";
+            }
+
+            if (typeof currentValue === "bigint") {
+                return String(currentValue);
+            }
+
+            return currentValue;
+        });
+    } catch {
+        return "";
     }
 }
 
@@ -54,23 +84,31 @@ export default function SeoHead({
 }) {
     const { props, url } = usePage();
     const seo = props.seo || {};
-    const siteName = seo.siteName || "Linea di gioco";
-    const baseUrl = seo.baseUrl || "http://127.0.0.1:8000";
+    const siteName = trimText(seo.siteName || "Linea di gioco", 80);
+    const baseUrl = safeText(seo.baseUrl || "http://127.0.0.1:8000");
     const resolvedTitle = trimText(title || seo.defaultTitle || siteName, 60);
     const resolvedDescription = trimText(
         description || seo.defaultDescription || "",
         160,
     );
-    const resolvedType = type || seo.defaultType || "website";
+    const resolvedType = safeText(type || seo.defaultType || "website");
     const resolvedKeywords = normalizeKeywords(keywords);
-    const resolvedRobots = robots || "index,follow";
+    const resolvedRobots = safeText(robots || "index,follow");
     const resolvedCanonical = toAbsoluteUrl(canonicalUrl || url, baseUrl);
     const resolvedImage = image ? toAbsoluteUrl(image, baseUrl) : "";
-    const resolvedAuthor = author || siteName;
-    const schemaList = Array.isArray(structuredData)
-        ? structuredData.filter(Boolean)
-        : [structuredData].filter(Boolean);
-    const headProps = title ? { title: resolvedTitle } : {};
+    const resolvedAuthor = trimText(author || siteName, 80);
+    const resolvedLocale = safeText(seo.defaultLocale || "it_IT");
+    const resolvedTwitterCard = safeText(
+        resolvedImage ? (seo.twitterCard || "summary_large_image") : "summary",
+    );
+    const resolvedPublishedTime = safeText(publishedTime);
+    const resolvedModifiedTime = safeText(modifiedTime);
+    const resolvedSection = trimText(section, 80);
+    const schemaList = (Array.isArray(structuredData)
+        ? structuredData
+        : [structuredData]
+    ).filter(Boolean);
+    const headProps = resolvedTitle ? { title: resolvedTitle } : {};
 
     return (
         <Head {...headProps}>
@@ -82,8 +120,8 @@ export default function SeoHead({
             <meta head-key="og:description" property="og:description" content={resolvedDescription} />
             <meta head-key="og:url" property="og:url" content={resolvedCanonical} />
             <meta head-key="og:site_name" property="og:site_name" content={siteName} />
-            <meta head-key="og:locale" property="og:locale" content={seo.defaultLocale || "it_IT"} />
-            <meta head-key="twitter:card" name="twitter:card" content={resolvedImage ? (seo.twitterCard || "summary_large_image") : "summary"} />
+            <meta head-key="og:locale" property="og:locale" content={resolvedLocale} />
+            <meta head-key="twitter:card" name="twitter:card" content={resolvedTwitterCard} />
             <meta head-key="twitter:title" name="twitter:title" content={resolvedTitle} />
             <meta head-key="twitter:description" name="twitter:description" content={resolvedDescription} />
             <link head-key="canonical" rel="canonical" href={resolvedCanonical} />
@@ -97,42 +135,55 @@ export default function SeoHead({
             )}
 
             {resolvedImage && (
-                <>
-                    <meta head-key="og:image" property="og:image" content={resolvedImage} />
-                    <meta head-key="twitter:image" name="twitter:image" content={resolvedImage} />
-                </>
+                <meta head-key="og:image" property="og:image" content={resolvedImage} />
             )}
 
-            {publishedTime && (
+            {resolvedImage && (
+                <meta head-key="twitter:image" name="twitter:image" content={resolvedImage} />
+            )}
+
+            {resolvedPublishedTime && (
                 <meta
                     head-key="article:published_time"
                     property="article:published_time"
-                    content={publishedTime}
+                    content={resolvedPublishedTime}
                 />
             )}
 
-            {modifiedTime && (
+            {resolvedModifiedTime && (
                 <meta
                     head-key="article:modified_time"
                     property="article:modified_time"
-                    content={modifiedTime}
+                    content={resolvedModifiedTime}
                 />
             )}
 
-            {section && (
-                <meta head-key="article:section" property="article:section" content={section} />
+            {resolvedSection && (
+                <meta
+                    head-key="article:section"
+                    property="article:section"
+                    content={resolvedSection}
+                />
             )}
 
-            {schemaList.map((item, index) => (
-                <script
-                    key={`schema-${index}`}
-                    head-key={`schema-${index}`}
-                    type="application/ld+json"
-                    dangerouslySetInnerHTML={{
-                        __html: JSON.stringify(item),
-                    }}
-                />
-            ))}
+            {schemaList.map((item, index) => {
+                const json = safeJson(item);
+
+                if (!json) {
+                    return null;
+                }
+
+                return (
+                    <script
+                        key={`schema-${index}`}
+                        head-key={`schema-${index}`}
+                        type="application/ld+json"
+                        dangerouslySetInnerHTML={{
+                            __html: json,
+                        }}
+                    />
+                );
+            })}
         </Head>
     );
 }

@@ -213,6 +213,8 @@ export default function ArticlesIndex({
                                             article.severity,
                                         )}
                                         ctaLabel="Apri dossier"
+                                        imageLoading={index === 0 ? "eager" : "lazy"}
+                                        imageFetchPriority={index === 0 ? "high" : "auto"}
                                     />
                                 ))}
                             </div>

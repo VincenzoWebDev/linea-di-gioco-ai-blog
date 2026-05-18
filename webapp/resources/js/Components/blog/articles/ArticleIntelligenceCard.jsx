@@ -39,6 +39,9 @@ export default function ArticleIntelligenceCard({
     ctaLabel = "Leggi dossier",
     chips = [],
     statusBadge = null,
+    imageLoading = "lazy",
+    imageFetchPriority = "auto",
+    imageSizes = "(min-width: 1280px) 30vw, (min-width: 768px) 45vw, 100vw",
 }) {
     const targetHref =
         href ||
@@ -66,6 +69,11 @@ export default function ArticleIntelligenceCard({
                         <ArticleCoverImage
                             item={article}
                             className="h-48 border-b border-[#202A3D]"
+                            loading={imageLoading}
+                            fetchPriority={imageFetchPriority}
+                            sizes={imageSizes}
+                            width={1200}
+                            height={630}
                         />
                         <div className="absolute bottom-3 left-3 right-3 flex min-w-0 items-center justify-between gap-2">
                             <span className="min-w-0 truncate border border-[#D7B56D]/40 bg-[#080B10]/82 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-[#FDE68A] backdrop-blur sm:text-[11px] sm:tracking-[0.22em]">

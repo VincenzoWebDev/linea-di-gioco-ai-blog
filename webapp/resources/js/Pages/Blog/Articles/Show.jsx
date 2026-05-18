@@ -56,6 +56,10 @@ function RelatedItem({ article }) {
                         src={article.thumb_url}
                         alt={article.title}
                         className="h-full w-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                        width="512"
+                        height="512"
                     />
                 ) : (
                     <div className="h-full w-full bg-[#182234]" />
@@ -78,6 +82,18 @@ function RelatedItem({ article }) {
 
 function clamp(value, min = 0, max = 100) {
     return Math.min(max, Math.max(min, Math.round(Number(value) || 0)));
+}
+
+function safeText(value) {
+    if (typeof value === "symbol") {
+        return value.description || "";
+    }
+
+    if (value == null) {
+        return "";
+    }
+
+    return String(value);
 }
 
 function formatDateTime(value) {
@@ -232,25 +248,28 @@ function glossaryRegex(glossary) {
 
 function renderGlossaryText(text, glossary) {
     const regex = glossaryRegex(glossary);
+    const normalizedText = safeText(text);
 
     if (!regex) {
-        return text;
+        return normalizedText;
     }
 
-    const parts = String(text).split(regex);
+    const parts = normalizedText.split(regex);
 
     return parts.map((part, index) => {
+        const normalizedPart = safeText(part);
         const term = Object.keys(glossary).find(
-            (item) => item.toLowerCase() === part.toLowerCase(),
+            (item) =>
+                safeText(item).toLowerCase() === normalizedPart.toLowerCase(),
         );
 
         if (!term) {
-            return part;
+            return normalizedPart;
         }
 
         return (
             <GlossaryTooltip
-                key={`${part}-${index}`}
+                key={`${normalizedPart}-${index}`}
                 term={term}
                 entry={glossary[term]}
             />
@@ -259,10 +278,10 @@ function renderGlossaryText(text, glossary) {
 }
 
 function renderContent(content, glossary) {
-    return String(content || "")
+    return safeText(content)
         .split(/\n{2,}/)
         .map((block, index) => {
-            const text = block.trim();
+            const text = safeText(block).trim();
 
             if (!text) {
                 return null;
@@ -346,13 +365,13 @@ function GlossaryTooltip({ term, entry }) {
             className="z-50 max-w-xs border border-[#D7B56D]/40 bg-[#0B0F15]/95 px-4 py-3 font-mono text-sm text-[#D7DEE8] shadow-2xl shadow-black/40 backdrop-blur"
         >
             <div className="text-[11px] uppercase tracking-[0.24em] text-[#D7B56D]">
-                {term}
+                {safeText(term)}
             </div>
-            <p className="mt-2 leading-6">{entry.definition}</p>
+            <p className="mt-2 leading-6">{safeText(entry?.definition)}</p>
             {entry.importance && (
                 <div className="mt-3 border-t border-[#202A3D] pt-2 text-[11px] uppercase tracking-[0.2em] text-[#8FA0B6]">
                     Importanza:{" "}
-                    <span className="text-[#F3F4F6]">{entry.importance}</span>
+                    <span className="text-[#F3F4F6]">{safeText(entry.importance)}</span>
                 </div>
             )}
         </motion.div>
@@ -366,7 +385,7 @@ function GlossaryTooltip({ term, entry }) {
                     <>
                         <button
                             type="button"
-                            aria-label={`Chiudi dettaglio ${term}`}
+                            aria-label={`Chiudi dettaglio ${safeText(term)}`}
                             className="fixed inset-0 z-40 bg-black/30"
                             onClick={() => setIsOpen(false)}
                         />
@@ -374,7 +393,7 @@ function GlossaryTooltip({ term, entry }) {
                             <div className="relative border border-[#D7B56D]/40 bg-[#0B0F15]/95 px-4 py-3 font-mono text-sm text-[#D7DEE8] shadow-2xl shadow-black/40 backdrop-blur">
                                 <button
                                     type="button"
-                                    aria-label={`Chiudi dettaglio ${term}`}
+                                    aria-label={`Chiudi dettaglio ${safeText(term)}`}
                                     className="absolute right-3 top-3 text-xs uppercase tracking-[0.2em] text-[#8FA0B6]"
                                     onClick={() => setIsOpen(false)}
                                 >
@@ -665,6 +684,12 @@ export default function ArticlesShow({
                                     src={article.cover_url}
                                     alt={article.title}
                                     className="h-52 w-full object-cover sm:h-72 md:h-[460px]"
+                                    loading="eager"
+                                    fetchPriority="high"
+                                    decoding="async"
+                                    sizes="(min-width: 768px) 1200px, 100vw"
+                                    width="1200"
+                                    height="630"
                                 />
                             </div>
                         )}
