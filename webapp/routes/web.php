@@ -5,6 +5,7 @@ use App\Http\Controllers\Blog\ArticleController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\CookieConsentController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -22,6 +23,13 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/newsletter', [HomeController::class, 'newsletter'])->name('newsletter');
 Route::get('/robots.txt', RobotsController::class)->name('robots');
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
+Route::get('/privacy-policy', function () {
+    return inertia('Legal/PrivacyPolicy');
+})->name('privacy-policy');
+Route::get('/cookie-policy', function () {
+    return inertia('Legal/CookiePolicy');
+})->name('cookie-policy');
+Route::post('/cookie-consent', [CookieConsentController::class, 'store'])->name('cookie-consent');
 
 Route::prefix('articoli')->name('blog.articles.')->group(function () {
     Route::get('/', [ArticleController::class, 'index'])->name('index');

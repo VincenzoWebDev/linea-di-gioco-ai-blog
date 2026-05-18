@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Services\GeopoliticalTensionService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
 
@@ -35,8 +36,9 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
+                'isLogged' => fn() => Auth::check(),
             ],
-            'ziggy' => fn () => [
+            'ziggy' => fn() => [
                 ...(new Ziggy(null, $request->root()))->toArray(),
                 'location' => $request->fullUrl(),
             ],
@@ -49,7 +51,7 @@ class HandleInertiaRequests extends Middleware
                 'defaultType' => config('seo.default_type'),
                 'twitterCard' => config('seo.twitter_card'),
             ],
-            'geopoliticalTensions' => fn () => app(GeopoliticalTensionService::class)
+            'geopoliticalTensions' => fn() => app(GeopoliticalTensionService::class)
                 ->topForHeader()
                 ->all(),
         ];

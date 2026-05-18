@@ -1,7 +1,33 @@
+import { useEffect } from "react";
 import BlogHeader from "@/Components/blog/BlogHeader";
 import BlogFooter from "@/Components/blog/BlogFooter";
+import CookieBanner from "@/Components/ui/CookieBanner";
+import { usePage } from "@inertiajs/react";
+import useAnalytics from "@/hooks/useAnalytics";
+import { loadGA } from "@/services/analytics";
 
 export default function BlogLayout({ children }) {
+    const { auth } = usePage().props;
+
+    useAnalytics();
+
+    useEffect(() => {
+        const handler = () => {
+            const saved = JSON.parse(
+                localStorage.getItem("cookie_consent") || "null",
+            );
+
+            if (saved?.analytics) {
+                loadGA();
+            }
+        };
+
+        window.addEventListener("cookie-consent-updated", handler);
+
+        return () =>
+            window.removeEventListener("cookie-consent-updated", handler);
+    }, []);
+
     return (
         <div className="min-h-screen overflow-hidden bg-[#0E1116] text-[#E5E7EB] font-sans">
             <div className="relative overflow-hidden">
@@ -12,6 +38,7 @@ export default function BlogLayout({ children }) {
 
                 <main className="mx-auto w-full max-w-6xl px-4 pb-16 pt-8 text-base leading-[1.7] sm:px-6 sm:pb-20 sm:pt-12 sm:text-[17px]">
                     {children}
+                    {auth?.isLogged ? null : <CookieBanner />}
                 </main>
 
                 <BlogFooter />

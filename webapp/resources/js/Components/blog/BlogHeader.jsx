@@ -2,31 +2,17 @@ import { useState } from "react";
 import { Link, usePage } from "@inertiajs/react";
 import { Menu, X } from "lucide-react";
 import TensionHeader from "@/Components/blog/TensionHeader";
-import logo from "@/../assets/linea-di-gioco-logo.png";
+import logo from "@/assets/linea-di-gioco-logo.png";
 
 export default function BlogHeader() {
     const [isOpen, setIsOpen] = useState(false);
     const page = usePage();
     const { geopoliticalTensions = [] } = page.props;
     const currentPath = normalizePath(page.url);
-    const contactRouteName = firstAvailableRouteName([
-        "contact",
-        "contacts",
-        "contatti",
-        "blog.contact",
-        "blog.contacts",
-    ]);
 
     const isHomeActive = currentPath === "/";
     const isArticlesActive =
         currentPath === "/articoli" || currentPath.startsWith("/articoli/");
-    const isContactsActive =
-        currentPath === "/contatti" ||
-        currentPath.startsWith("/contatti/") ||
-        currentPath === "/contact" ||
-        currentPath.startsWith("/contact/") ||
-        currentPath === "/contacts" ||
-        currentPath.startsWith("/contacts/");
 
     const menuItems = [
         {
@@ -39,15 +25,6 @@ export default function BlogHeader() {
             href: route("blog.articles.index"),
             active: isArticlesActive,
         },
-        ...(contactRouteName
-            ? [
-                  {
-                      label: "Contatti",
-                      href: route(contactRouteName),
-                      active: isContactsActive,
-                  },
-              ]
-            : []),
     ];
 
     return (
@@ -57,9 +34,6 @@ export default function BlogHeader() {
                     href="/"
                     className="flex min-w-0 items-center gap-2 sm:gap-3"
                 >
-                    {/* <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#1C2333] bg-[#131823] text-[#E5E7EB]">
-                        <span className="text-sm font-bold">LG</span>
-                    </div> */}
                     <div className="flex h-14 w-14 shrink-0 items-center justify-center sm:h-14 sm:w-14">
                         <img
                             src={logo}
