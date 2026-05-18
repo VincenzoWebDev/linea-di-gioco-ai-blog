@@ -35,6 +35,15 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'seo' => [
+                'siteName' => config('seo.site_name'),
+                'baseUrl' => rtrim(config('app.url'), '/'),
+                'defaultTitle' => config('seo.default_title'),
+                'defaultDescription' => config('seo.default_description'),
+                'defaultLocale' => config('seo.default_locale'),
+                'defaultType' => config('seo.default_type'),
+                'twitterCard' => config('seo.twitter_card'),
+            ],
             'geopoliticalTensions' => fn () => app(GeopoliticalTensionService::class)
                 ->topForHeader()
                 ->all(),

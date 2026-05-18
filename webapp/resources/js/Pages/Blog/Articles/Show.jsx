@@ -1,4 +1,4 @@
-import { Head, Link } from "@inertiajs/react";
+import { Link } from "@inertiajs/react";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { motion } from "framer-motion";
 import {
@@ -26,6 +26,7 @@ import {
 import { useEffect, useState } from "react";
 import BlogLayout from "@/Layouts/BlogLayout";
 import ArticleMeta from "@/Components/blog/articles/ArticleMeta";
+import SeoHead from "@/Components/Seo/SeoHead";
 
 const regionCoordinates = [
     { match: "medio oriente", label: "31.7683 N / 35.2137 E" },
@@ -438,7 +439,7 @@ function IntelligenceSidebar({ article, intelligence }) {
                 <div className="flex items-center justify-between gap-4">
                     <div>
                         <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[#7E8796]">
-                            Intelligence Matrix
+                            Matrice operativa
                         </p>
                         <h2 className="mt-2 text-xl font-semibold text-[#F3F4F6]">
                             Impatto operativo
@@ -504,7 +505,7 @@ function IntelligenceSidebar({ article, intelligence }) {
                     <div className="flex items-center justify-between border border-[#202A3D] bg-[#121722] px-4 py-3">
                         <div>
                             <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#7E8796]">
-                                Trend
+                                Tendenza
                             </p>
                             <p className="mt-1 text-sm text-[#D7DEE8]">
                                 {trend.label}
@@ -572,28 +573,35 @@ export default function ArticlesShow({
         article.tension?.updated_at ||
         article.updated_at ||
         article.published_at;
+    const canonicalUrl = route("blog.articles.show", {
+        id: article.id,
+        slug: article.slug,
+    });
+    const metaDescription =
+        article.summary ||
+        (() => {
+            const excerpt = String(article.content || "")
+                .replace(/\s+/g, " ")
+                .trim()
+                .slice(0, 157);
+
+            return excerpt ? `${excerpt}...` : "";
+        })();
 
     return (
         <>
-            <Head title={`${article.title} | Linea di gioco`}>
-                {article.summary && (
-                    <meta name="description" content={article.summary} />
-                )}
-                {article.categories?.length > 0 && (
-                    <meta
-                        name="keywords"
-                        content={article.categories.join(", ")}
-                    />
-                )}
-                {newsArticleSchema && (
-                    <script
-                        type="application/ld+json"
-                        dangerouslySetInnerHTML={{
-                            __html: JSON.stringify(newsArticleSchema),
-                        }}
-                    />
-                )}
-            </Head>
+            <SeoHead
+                title={article.title}
+                description={metaDescription}
+                canonicalUrl={canonicalUrl}
+                image={article.cover_url || article.thumb_url}
+                type="article"
+                keywords={article.categories || []}
+                publishedTime={article.published_at}
+                modifiedTime={article.updated_at || article.published_at}
+                section={article.topic || article.categories?.[0] || "Geopolitica"}
+                structuredData={newsArticleSchema}
+            />
             <BlogLayout>
                 <Tooltip.Provider>
                     <article>
@@ -636,7 +644,7 @@ export default function ArticlesShow({
                                 />
                                 <DataPill
                                     icon={Clock3}
-                                    label="Ultimo update"
+                                    label="Ultimo aggiornamento"
                                     value={formatDateTime(timestamp)}
                                 />
                                 <DataPill
@@ -665,7 +673,7 @@ export default function ArticlesShow({
                             <main className="min-w-0">
                                 <div className="border-l border-[#2A354D] pl-4 sm:pl-5">
                                     <p className="font-mono text-xs uppercase tracking-[0.3em] text-[#7E8796]">
-                                        Briefing report
+                                        Rapporto sintetico
                                     </p>
                                 </div>
                                 <div className="mt-2 break-words text-base sm:text-lg">
@@ -696,7 +704,7 @@ export default function ArticlesShow({
                         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                             <div>
                                 <p className="font-mono text-xs uppercase tracking-[0.28em] text-[#7E8796]">
-                                    Next actions
+                                    Prossimi passaggi
                                 </p>
                                 <h2 className="mt-2 font-serif text-3xl text-[#F3F4F6]">
                                     Prossimi step consigliati

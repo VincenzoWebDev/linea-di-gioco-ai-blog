@@ -1,4 +1,4 @@
-import { Head, Link } from "@inertiajs/react";
+import { Link } from "@inertiajs/react";
 import {
     Activity,
     ArrowLeft,
@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import BlogLayout from "@/Layouts/BlogLayout";
+import SeoHead from "@/Components/Seo/SeoHead";
 
 import ArticleIntelligenceCard, {
     formatPublishedAt,
@@ -129,10 +130,36 @@ export default function ArticlesIndex({
     const items = articles.data ?? [];
 
     const total = stats.total ?? articles.total ?? items.length;
+    const page = articles.current_page || 1;
+    const canonicalUrl = page > 1
+        ? `${route("blog.articles.index")}?page=${page}`
+        : route("blog.articles.index");
+    const description =
+        "Archivio completo dei dossier di Linea di gioco: analisi geopolitiche su crisi, sicurezza, energia, conflitti e scenari internazionali.";
+    const structuredData = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: "Archivio dossier di Linea di gioco",
+        url: canonicalUrl,
+        inLanguage: "it-IT",
+        description,
+    };
 
     return (
         <>
-            <Head title="Archivio dossier | Linea di gioco" />
+            <SeoHead
+                title={page > 1 ? `Archivio dossier pagina ${page}` : "Archivio dossier geopolitici"}
+                description={description}
+                canonicalUrl={canonicalUrl}
+                keywords={[
+                    "archivio geopolitica",
+                    "dossier geopolitici",
+                    "analisi internazionali",
+                    "sicurezza internazionale",
+                    "conflitti globali",
+                ]}
+                structuredData={structuredData}
+            />
 
             <BlogLayout>
                 <section className="relative overflow-hidden border border-[#202A3D] bg-[#080B10] shadow-[0_32px_90px_rgba(0,0,0,0.32)]">
@@ -144,13 +171,13 @@ export default function ArticlesIndex({
                             className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-[#9CA3AF] transition hover:text-[#D7B56D]"
                         >
                             <ArrowLeft className="h-4 w-4" />
-                            Command Hub
+                            Sala operativa
                         </Link>
 
                         <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
                             <div>
                                 <p className="font-mono text-xs uppercase tracking-[0.34em] text-[#7E8796]">
-                                    Intelligence Archive
+                                    Archivio analisi
                                 </p>
 
                                 <h1 className="mt-3 font-serif text-3xl leading-tight text-[#F3F4F6] sm:text-4xl md:text-5xl">

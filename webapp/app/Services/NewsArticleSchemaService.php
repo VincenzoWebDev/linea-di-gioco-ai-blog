@@ -42,6 +42,11 @@ class NewsArticleSchemaService
             'publisher' => [
                 '@type' => 'Organization',
                 'name' => config('app.name', 'Linea di gioco'),
+                'url' => config('app.url'),
+                'logo' => [
+                    '@type' => 'ImageObject',
+                    'url' => url('/favicon.ico'),
+                ],
             ],
             'articleSection' => $categories->first() ?: 'Geopolitica',
             'keywords' => $categories->implode(', '),

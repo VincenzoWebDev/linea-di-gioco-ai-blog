@@ -1,4 +1,4 @@
-import { Head, Link } from "@inertiajs/react";
+import { Link } from "@inertiajs/react";
 import { motion } from "framer-motion";
 import {
     Activity,
@@ -27,6 +27,7 @@ import { useMemo, useState } from "react";
 import BlogLayout from "@/Layouts/BlogLayout";
 import ArticleCoverImage from "@/Components/blog/articles/ArticleCoverImage";
 import ArticleIntelligenceCard from "@/Components/blog/articles/ArticleIntelligenceCard";
+import SeoHead from "@/Components/Seo/SeoHead";
 import { severityBadge, severityClasses } from "@/lib/geopoliticalSeverity";
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
@@ -99,15 +100,15 @@ function GlobalMap({ operations }) {
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <div>
                             <p className="font-mono text-xs uppercase tracking-[0.34em] text-[#7E8796]">
-                                Global Situation Room
+                                Scenario globale
                             </p>
                             <h1 className="mt-3 font-serif text-3xl leading-tight text-[#F3F4F6] sm:text-4xl md:text-6xl">
-                                The Command Hub
+                                Centro di comando
                             </h1>
                         </div>
                         <div className="flex items-center gap-3 border border-[#2A354D] bg-[#101620]/90 px-4 py-3 font-mono text-xs uppercase tracking-[0.18em] text-[#AAB3C2]">
                             <Satellite className="h-4 w-4 text-[#D7B56D]" />
-                            AI watch active
+                            Monitoraggio AI attivo
                         </div>
                     </div>
 
@@ -166,7 +167,7 @@ function GlobalMap({ operations }) {
                             <div className="flex flex-wrap items-start justify-between gap-3">
                                 <div className="min-w-0">
                                     <p className="font-mono text-[11px] uppercase tracking-[0.26em] text-[#7E8796]">
-                                        Hotspot selected
+                                        Hotspot selezionato
                                     </p>
                                     <h2 className="mt-2 text-2xl font-semibold leading-tight text-[#F3F4F6]">
                                         {active.region_name}
@@ -178,8 +179,8 @@ function GlobalMap({ operations }) {
                             </div>
 
                             <div className="mt-5 grid grid-cols-2 gap-3">
-                                <SignalBox icon={Crosshair} label="Risk" value={active.risk_score} />
-                                <SignalBox icon={MapPin} label="Coord" value={`${formatCoordinate(active.lat, "lat")} / ${formatCoordinate(active.long, "long")}`} />
+                                <SignalBox icon={Crosshair} label="Rischio" value={active.risk_score} />
+                                <SignalBox icon={MapPin} label="Coordinate" value={`${formatCoordinate(active.lat, "lat")} / ${formatCoordinate(active.long, "long")}`} />
                             </div>
 
                             <ArticleCoverImage item={active} className="mt-5 h-40 border border-[#202A3D]" />
@@ -258,7 +259,7 @@ function IntelligenceCard({ item, index }) {
             }}
             index={index}
             href={item.url || route("blog.articles.index")}
-            ctaLabel="Analizza file"
+            ctaLabel="Analizza dossier"
             statusBadge={severityBadge(item.severity)}
             chips={[
                 { icon: MapPin, value: item.region_name || "Hotspot" },
@@ -274,7 +275,7 @@ function IntelligenceCard({ item, index }) {
 function EmptyState() {
     return (
         <div className="border border-dashed border-[#2A354D] bg-[#101620] p-8 text-[#9CA3AF]">
-            La situation room si popolera automaticamente con le prime analisi pubblicate.
+            La sala operativa si popolera automaticamente con le prime analisi pubblicate.
         </div>
     );
 }
@@ -292,12 +293,34 @@ export default function Welcome({
     const statItems = [
         { label: "Dossier", value: stats.articlesCount || 0, icon: FileSearch },
         { label: "Hotspot", value: stats.hotspotsCount || operations.length, icon: Target },
-        { label: "Sync", value: formatDate(stats.latestPublishedAt), icon: Binary },
+        { label: "Agg.", value: formatDate(stats.latestPublishedAt), icon: Binary },
     ];
+    const description =
+        "Analisi geopolitiche, dossier internazionali e briefing AI su crisi, sicurezza, energia e hotspot globali monitorati in tempo reale.";
+    const structuredData = {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: "Linea di gioco",
+        url: route("home"),
+        inLanguage: "it-IT",
+        description,
+    };
 
     return (
         <>
-            <Head title="Global Situation Room | Linea di gioco" />
+            <SeoHead
+                title="Analisi geopolitiche e dossier internazionali"
+                description={description}
+                canonicalUrl={route("home")}
+                keywords={[
+                    "geopolitica",
+                    "analisi geopolitica",
+                    "dossier internazionali",
+                    "crisi internazionali",
+                    "intelligence open source",
+                ]}
+                structuredData={structuredData}
+            />
             <BlogLayout>
                 <GlobalMap operations={operations} />
 
@@ -323,7 +346,7 @@ export default function Welcome({
                     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
                         <div className="min-w-0">
                             <p className="font-mono text-xs uppercase tracking-[0.3em] text-[#7E8796]">
-                                Intelligence Feed
+                                Flusso analisi
                             </p>
                             <h2 className="mt-2 font-serif text-3xl leading-tight text-[#F3F4F6] sm:text-4xl">
                                 File declassificati

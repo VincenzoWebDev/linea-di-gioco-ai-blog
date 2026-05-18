@@ -20,15 +20,18 @@ export default function BlogHeader() {
     return (
         <header className="border-b border-[#1C2333]">
             <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-4 sm:px-5 sm:py-5">
-                <Link href="/" className="flex min-w-0 items-center gap-2 sm:gap-3">
+                <Link
+                    href="/"
+                    className="flex min-w-0 items-center gap-2 sm:gap-3"
+                >
                     {/* <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#1C2333] bg-[#131823] text-[#E5E7EB]">
                         <span className="text-sm font-bold">LG</span>
                     </div> */}
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center sm:h-20 sm:w-20">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center sm:h-14 sm:w-14">
                         <img
                             src={logo}
                             alt="Logo Linea di gioco"
-                            className="h-14 w-auto sm:h-20"
+                            className="h-14 w-auto sm:h-14"
                         />
                     </div>
                     <div>

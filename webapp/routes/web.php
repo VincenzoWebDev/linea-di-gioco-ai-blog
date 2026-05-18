@@ -3,6 +3,7 @@
 use App\Http\Controllers\Blog\HomeController;
 use App\Http\Controllers\Blog\ArticleController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/newsletter', [HomeController::class, 'newsletter'])->name('newsletter');
+Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 
 Route::prefix('articoli')->name('blog.articles.')->group(function () {
     Route::get('/', [ArticleController::class, 'index'])->name('index');

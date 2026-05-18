@@ -1,6 +1,7 @@
-import { Head, Link } from "@inertiajs/react";
+import { Link } from "@inertiajs/react";
 import { ArrowRight, Mail, Newspaper, ShieldCheck } from "lucide-react";
 import BlogLayout from "@/Layouts/BlogLayout";
+import SeoHead from "@/Components/Seo/SeoHead";
 
 export default function Newsletter({ stats = {} }) {
     const items = [
@@ -20,10 +21,30 @@ export default function Newsletter({ stats = {} }) {
             description: "Un unico punto di accesso, piu ordinato rispetto a una CTA dentro la home.",
         },
     ];
+    const description =
+        "Iscriviti alla newsletter di Linea di gioco per ricevere analisi geopolitiche, briefing strategici e selezioni editoriali sui dossier più rilevanti.";
 
     return (
         <>
-            <Head title="Newsletter | Linea di gioco" />
+            <SeoHead
+                title="Newsletter geopolitica"
+                description={description}
+                canonicalUrl={route("newsletter")}
+                keywords={[
+                    "newsletter geopolitica",
+                    "newsletter analisi internazionale",
+                    "briefing geopolitico",
+                    "newsletter sicurezza internazionale",
+                ]}
+                structuredData={{
+                    "@context": "https://schema.org",
+                    "@type": "WebPage",
+                    name: "Newsletter Linea di gioco",
+                    url: route("newsletter"),
+                    inLanguage: "it-IT",
+                    description,
+                }}
+            />
             <BlogLayout>
                 <section className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
                     <div>
