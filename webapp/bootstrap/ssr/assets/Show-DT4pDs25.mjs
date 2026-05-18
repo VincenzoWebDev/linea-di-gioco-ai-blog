@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, MapPin, Clock3, RadioTower, ExternalLink, FileSearch, Crosshair, Target, Shield, TrendingUp, TrendingDown, Activity, Info } from "lucide-react";
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from "recharts";
 import { useState, useEffect } from "react";
-import { B as BlogLayout } from "./BlogLayout-DZ2SoYAz.mjs";
+import { B as BlogLayout } from "./BlogLayout-dHfOtNNK.mjs";
 import { S as SeoHead } from "./SeoHead-Bfgu-MHE.mjs";
 function ArticleMeta({ topic, publishedAt }) {
   const dateLabel = publishedAt ? new Date(publishedAt).toLocaleDateString("it-IT") : null;

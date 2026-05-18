@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Jobs\News\GenerateArticleImagesJob;
 use App\Models\Article;
+use App\Services\ArticleImageVariantService;
 use Illuminate\Console\Command;
 
 class ReprocessArticleImagesCommand extends Command
@@ -12,10 +13,17 @@ class ReprocessArticleImagesCommand extends Command
 
     protected $description = 'Rigenera cover e thumb delle news in formato ottimizzato webp';
 
-    public function handle(): int
+    public function handle(ArticleImageVariantService $articleImageVariantService): int
     {
         $articleId = (int) $this->option('article-id');
         $limit = max(0, (int) $this->option('limit'));
+        $diagnostics = $articleImageVariantService->diagnostics();
+
+        $this->line('Driver immagini: '.json_encode($diagnostics, JSON_UNESCAPED_SLASHES));
+
+        if (! $articleImageVariantService->supportsWebpConversion()) {
+            $this->warn('WebP non supportato da GD o Imagick in questo ambiente: i file resteranno nel formato originale.');
+        }
 
         $query = Article::query()
             ->where('status', 'published')

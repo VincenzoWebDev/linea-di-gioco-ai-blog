@@ -1,7 +1,7 @@
 import { jsxs, Fragment, jsx } from "react/jsx-runtime";
 import { Link } from "@inertiajs/react";
 import { ArrowLeft, FileSearch, MapPin, Activity, TrendingDown, TrendingUp, Clock3, ChevronLeft, ChevronRight } from "lucide-react";
-import { B as BlogLayout } from "./BlogLayout-DZ2SoYAz.mjs";
+import { B as BlogLayout } from "./BlogLayout-dHfOtNNK.mjs";
 import { S as SeoHead } from "./SeoHead-Bfgu-MHE.mjs";
 import { a as ArticleIntelligenceCard, s as severityBadge, f as formatPublishedAt } from "./geopoliticalSeverity-C_GoMzyn.mjs";
 import "react";

@@ -66,14 +66,37 @@ function TensionHeader({ tensions = [] }) {
 const logo = "/build/assets/linea-di-gioco-logo-BNppRqB3.png";
 function BlogHeader() {
   const [isOpen, setIsOpen] = useState(false);
-  const { geopoliticalTensions = [] } = usePage().props;
+  const page = usePage();
+  const { geopoliticalTensions = [] } = page.props;
+  const currentPath = normalizePath(page.url);
+  const contactRouteName = firstAvailableRouteName([
+    "contact",
+    "contacts",
+    "contatti",
+    "blog.contact",
+    "blog.contacts"
+  ]);
+  const isHomeActive = currentPath === "/";
+  const isArticlesActive = currentPath === "/articoli" || currentPath.startsWith("/articoli/");
+  const isContactsActive = currentPath === "/contatti" || currentPath.startsWith("/contatti/") || currentPath === "/contact" || currentPath.startsWith("/contact/") || currentPath === "/contacts" || currentPath.startsWith("/contacts/");
   const menuItems = [
-    { label: "Home", href: route("home"), active: route().current("home") },
+    {
+      label: "Home",
+      href: route("home"),
+      active: isHomeActive
+    },
     {
       label: "Articoli",
       href: route("blog.articles.index"),
-      active: route().current("blog.articles.*")
-    }
+      active: isArticlesActive
+    },
+    ...contactRouteName ? [
+      {
+        label: "Contatti",
+        href: route(contactRouteName),
+        active: isContactsActive
+      }
+    ] : []
   ];
   return /* @__PURE__ */ jsxs("header", { className: "border-b border-[#1C2333]", children: [
     /* @__PURE__ */ jsxs("div", { className: "mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-4 sm:px-5 sm:py-5", children: [
@@ -155,6 +178,24 @@ function BlogHeader() {
       }
     )
   ] });
+}
+function firstAvailableRouteName(routeNames) {
+  if (typeof route !== "function") {
+    return null;
+  }
+  const ziggyRouter = route();
+  if (typeof ziggyRouter?.has !== "function") {
+    return null;
+  }
+  return routeNames.find((routeName) => ziggyRouter.has(routeName)) || null;
+}
+function normalizePath(url) {
+  if (typeof url !== "string" || url.trim() === "") {
+    return "/";
+  }
+  const [path] = url.split("?");
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return normalized.length > 1 ? normalized.replace(/\/+$/, "") : normalized;
 }
 function BlogFooter() {
   return /* @__PURE__ */ jsx("footer", { className: "border-t border-[#1C2333]", children: /* @__PURE__ */ jsxs("div", { className: "mx-auto flex max-w-6xl flex-col gap-6 px-6 py-10 text-sm text-[#6B7280] md:flex-row md:items-center md:justify-between", children: [

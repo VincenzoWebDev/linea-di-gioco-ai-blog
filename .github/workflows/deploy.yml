@@ -31,8 +31,11 @@ jobs:
             npm ci
             npm run build
             php artisan migrate --force
+            php artisan storage:link || true
             php artisan optimize:clear
             php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
             php artisan queue:restart
 
             cd /var/www/lineadigioco/ai
@@ -48,4 +51,8 @@ jobs:
 
             if systemctl list-unit-files | grep -q '^laravel-queue\.service'; then
               sudo systemctl restart laravel-queue.service
+            fi
+
+            if systemctl list-unit-files | grep -q '^inertia-ssr\.service'; then
+              sudo systemctl restart inertia-ssr.service
             fi

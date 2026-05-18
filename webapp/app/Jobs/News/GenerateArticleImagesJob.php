@@ -55,6 +55,13 @@ class GenerateArticleImagesJob implements ShouldQueue
         $provider = (string) config('ai_news.images.provider', 'gemini');
         $aiImagesEnabled = (bool) config('ai_news.images.enabled', false);
 
+        if (! $articleImageVariantService->supportsWebpConversion()) {
+            Log::warning('article_image_webp_unavailable_for_job', [
+                'article_id' => $article->id,
+                ...$articleImageVariantService->diagnostics(),
+            ]);
+        }
+
         try {
             $generatedImage = null;
             $sourceBytes = null;

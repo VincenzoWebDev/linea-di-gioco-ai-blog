@@ -5,7 +5,7 @@ import { FileSearch, Target, Binary, ArrowRight, Radar, ShieldAlert, Satellite, 
 import Marquee from "react-fast-marquee";
 import { ComposableMap, Graticule, Geographies, Geography, Marker } from "react-simple-maps";
 import { useMemo, useState } from "react";
-import { B as BlogLayout } from "./BlogLayout-DZ2SoYAz.mjs";
+import { B as BlogLayout } from "./BlogLayout-dHfOtNNK.mjs";
 import { A as ArticleCoverImage, b as severityClasses, a as ArticleIntelligenceCard, s as severityBadge } from "./geopoliticalSeverity-C_GoMzyn.mjs";
 import { S as SeoHead } from "./SeoHead-Bfgu-MHE.mjs";
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";

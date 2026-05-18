@@ -6,15 +6,48 @@ import logo from "@/../assets/linea-di-gioco-logo.png";
 
 export default function BlogHeader() {
     const [isOpen, setIsOpen] = useState(false);
-    const { geopoliticalTensions = [] } = usePage().props;
+    const page = usePage();
+    const { geopoliticalTensions = [] } = page.props;
+    const currentPath = normalizePath(page.url);
+    const contactRouteName = firstAvailableRouteName([
+        "contact",
+        "contacts",
+        "contatti",
+        "blog.contact",
+        "blog.contacts",
+    ]);
+
+    const isHomeActive = currentPath === "/";
+    const isArticlesActive =
+        currentPath === "/articoli" || currentPath.startsWith("/articoli/");
+    const isContactsActive =
+        currentPath === "/contatti" ||
+        currentPath.startsWith("/contatti/") ||
+        currentPath === "/contact" ||
+        currentPath.startsWith("/contact/") ||
+        currentPath === "/contacts" ||
+        currentPath.startsWith("/contacts/");
 
     const menuItems = [
-        { label: "Home", href: route("home"), active: route().current("home") },
+        {
+            label: "Home",
+            href: route("home"),
+            active: isHomeActive,
+        },
         {
             label: "Articoli",
             href: route("blog.articles.index"),
-            active: route().current("blog.articles.*"),
+            active: isArticlesActive,
         },
+        ...(contactRouteName
+            ? [
+                  {
+                      label: "Contatti",
+                      href: route(contactRouteName),
+                      active: isContactsActive,
+                  },
+              ]
+            : []),
     ];
 
     return (
@@ -111,4 +144,29 @@ export default function BlogHeader() {
             </div>
         </header>
     );
+}
+
+function firstAvailableRouteName(routeNames) {
+    if (typeof route !== "function") {
+        return null;
+    }
+
+    const ziggyRouter = route();
+
+    if (typeof ziggyRouter?.has !== "function") {
+        return null;
+    }
+
+    return routeNames.find((routeName) => ziggyRouter.has(routeName)) || null;
+}
+
+function normalizePath(url) {
+    if (typeof url !== "string" || url.trim() === "") {
+        return "/";
+    }
+
+    const [path] = url.split("?");
+    const normalized = path.startsWith("/") ? path : `/${path}`;
+
+    return normalized.length > 1 ? normalized.replace(/\/+$/, "") : normalized;
 }

@@ -1,7 +1,7 @@
 {
   "node_modules/laravel-vite-plugin/inertia-helpers/index.js": [],
   "resources/assets/linea-di-gioco-logo.png": [
-    "/build/assets/BlogLayout-DZ2SoYAz.mjs",
+    "/build/assets/BlogLayout-dHfOtNNK.mjs",
     "/build/assets/linea-di-gioco-logo-BNppRqB3.png"
   ],
   "resources/js/Components/ApplicationLogo.jsx": [
@@ -47,15 +47,15 @@
     "/build/assets/TextInput-Dmygz_uX.mjs"
   ],
   "resources/js/Components/blog/BlogFooter.jsx": [
-    "/build/assets/BlogLayout-DZ2SoYAz.mjs",
+    "/build/assets/BlogLayout-dHfOtNNK.mjs",
     "/build/assets/linea-di-gioco-logo-BNppRqB3.png"
   ],
   "resources/js/Components/blog/BlogHeader.jsx": [
-    "/build/assets/BlogLayout-DZ2SoYAz.mjs",
+    "/build/assets/BlogLayout-dHfOtNNK.mjs",
     "/build/assets/linea-di-gioco-logo-BNppRqB3.png"
   ],
   "resources/js/Components/blog/TensionHeader.jsx": [
-    "/build/assets/BlogLayout-DZ2SoYAz.mjs",
+    "/build/assets/BlogLayout-dHfOtNNK.mjs",
     "/build/assets/linea-di-gioco-logo-BNppRqB3.png"
   ],
   "resources/js/Components/blog/articles/ArticleCoverImage.jsx": [
@@ -65,7 +65,7 @@
     "/build/assets/geopoliticalSeverity-C_GoMzyn.mjs"
   ],
   "resources/js/Components/blog/articles/ArticleMeta.jsx": [
-    "/build/assets/Show-jym798qT.mjs"
+    "/build/assets/Show-DT4pDs25.mjs"
   ],
   "resources/js/Components/ui/card.jsx": [
     "/build/assets/card-DRB3Bbat.mjs"
@@ -74,7 +74,7 @@
     "/build/assets/AuthenticatedLayout-DuqH5o4I.mjs"
   ],
   "resources/js/Layouts/BlogLayout.jsx": [
-    "/build/assets/BlogLayout-DZ2SoYAz.mjs",
+    "/build/assets/BlogLayout-dHfOtNNK.mjs",
     "/build/assets/linea-di-gioco-logo-BNppRqB3.png"
   ],
   "resources/js/Layouts/GuestLayout.jsx": [
@@ -120,13 +120,13 @@
     "/build/assets/VerifyEmail-DrapjIul.mjs"
   ],
   "resources/js/Pages/Blog/Articles/Index.jsx": [
-    "/build/assets/Index-B02WvTpQ.mjs"
+    "/build/assets/Index-B-9wU43I.mjs"
   ],
   "resources/js/Pages/Blog/Articles/Show.jsx": [
-    "/build/assets/Show-jym798qT.mjs"
+    "/build/assets/Show-DT4pDs25.mjs"
   ],
   "resources/js/Pages/Blog/Newsletter.jsx": [
-    "/build/assets/Newsletter-CVCtf7pl.mjs"
+    "/build/assets/Newsletter-RLIOJRtc.mjs"
   ],
   "resources/js/Pages/Profile/Edit.jsx": [
     "/build/assets/Edit-tz-B16JO.mjs"
@@ -141,7 +141,7 @@
     "/build/assets/UpdateProfileInformationForm-DwngIx5O.mjs"
   ],
   "resources/js/Pages/Welcome.jsx": [
-    "/build/assets/Welcome-DFEbbwjy.mjs"
+    "/build/assets/Welcome-D4QFWwuf.mjs"
   ],
   "resources/js/inertiaShared.js": [],
   "resources/js/lib/geopoliticalSeverity.js": [
