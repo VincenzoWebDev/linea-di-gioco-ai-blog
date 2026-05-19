@@ -16,13 +16,32 @@ class AiNewsDiagnoseCommand extends Command
     {
         $this->info('AI news diagnose');
         $this->line('Queue connection: '.config('queue.default'));
+        $this->line('Auto publish: '.($this->boolLabel((bool) config('ai_news.auto_publish', false))));
         $this->line('Schedule every minutes: '.config('ai_news.schedule_every_minutes'));
+        $this->line('');
+        $this->info('AI services');
+        $this->line('  ai enabled: '.$this->boolLabel((bool) config('ai_news.ai.enabled', false)));
+        $this->line('  ai provider: '.(string) config('ai_news.ai.provider', 'n/a'));
+        $this->line('  crewai enabled: '.$this->boolLabel((bool) config('ai_news.crewai.enabled', false)));
+        $this->line('  crewai base url: '.(string) config('ai_news.crewai.base_url', 'n/a'));
+        $this->line('  images enabled: '.$this->boolLabel((bool) config('ai_news.images.enabled', false)));
+        $this->line('  images base url: '.(string) config('ai_news.images.base_url', 'n/a'));
+        $this->line('  images model: '.(string) config('ai_news.images.model', 'n/a'));
+        $this->line('  images api key: '.$this->secretLabel((string) config('ai_news.images.api_key', '')));
+        $this->line('  images cover: '.(int) config('ai_news.images.cover_width', 1200).'x'.(int) config('ai_news.images.cover_height', 630));
+        $this->line('  images thumb: '.(int) config('ai_news.images.thumb_size', 512).'x'.(int) config('ai_news.images.thumb_size', 512));
         $this->line('Queues:');
         $this->line('  ingest: '.config('ai_news.queues.ingest', 'news-ingest'));
         $this->line('  extract: '.config('ai_news.queues.extract', 'news-extract'));
         $this->line('  sanitize: '.config('ai_news.queues.sanitize', 'news-sanitize'));
         $this->line('  publish: '.config('ai_news.queues.publish', 'news-publish'));
         $this->line('  images: '.config('ai_news.queues.images', 'news-images'));
+        $this->line('  glossary: '.config('ai_news.queues.glossary', 'news-sanitize'));
+
+        $this->line('');
+        $this->info('Checks');
+        $this->line('  images configured: '.$this->boolLabel($this->imagesConfigured()));
+        $this->line('  crewai configured: '.$this->boolLabel($this->crewaiConfigured()));
 
         $sources = NewsSource::query()
             ->orderBy('is_active', 'desc')
@@ -72,5 +91,33 @@ class AiNewsDiagnoseCommand extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    private function imagesConfigured(): bool
+    {
+        return (bool) config('ai_news.images.enabled', false)
+            && trim((string) config('ai_news.images.base_url', '')) !== ''
+            && trim((string) config('ai_news.images.api_key', '')) !== ''
+            && trim((string) config('ai_news.images.model', '')) !== '';
+    }
+
+    private function crewaiConfigured(): bool
+    {
+        return ! (bool) config('ai_news.crewai.enabled', false)
+            || trim((string) config('ai_news.crewai.base_url', '')) !== '';
+    }
+
+    private function boolLabel(bool $value): string
+    {
+        return $value ? 'yes' : 'no';
+    }
+
+    private function secretLabel(string $value): string
+    {
+        if (trim($value) === '') {
+            return 'missing';
+        }
+
+        return 'present';
     }
 }

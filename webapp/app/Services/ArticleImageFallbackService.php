@@ -137,7 +137,7 @@ SVG;
 
         $scheme = $base['scheme'];
         $host = $base['host'];
-        $port = isset($base['port']) ? ':'.$base['port'] : '';
+        $port = isset($base['port']) ? ':' . $base['port'] : '';
 
         if (str_starts_with($candidate, '//')) {
             return "{$scheme}:{$candidate}";
@@ -154,4 +154,3 @@ SVG;
         return "{$scheme}://{$host}{$port}/{$prefix}{$candidate}";
     }
 }
-

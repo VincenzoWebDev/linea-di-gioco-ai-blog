@@ -20,9 +20,7 @@ class FetchNewsJob implements ShouldQueue
 
     public array $backoff = [30, 120, 300];
 
-    public function __construct(private readonly bool $forcePoll = false)
-    {
-    }
+    public function __construct(private readonly bool $forcePoll = false) {}
 
     public function handle(NewsScoutAgent $newsScoutAgent): void
     {
@@ -103,6 +101,6 @@ class FetchNewsJob implements ShouldQueue
 
     private function pollCacheKey(int $sourceId): string
     {
-        return 'ai_news:last_polled:'.$sourceId;
+        return 'ai_news:last_polled:' . $sourceId;
     }
 }
