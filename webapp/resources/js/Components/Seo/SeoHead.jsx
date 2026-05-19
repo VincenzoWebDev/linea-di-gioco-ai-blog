@@ -73,6 +73,7 @@ export default function SeoHead({
     description,
     canonicalUrl,
     image,
+    imageAlt,
     type,
     keywords = [],
     robots,
@@ -93,14 +94,21 @@ export default function SeoHead({
     );
     const resolvedType = safeText(type || seo.defaultType || "website");
     const resolvedKeywords = normalizeKeywords(keywords);
-    const resolvedRobots = safeText(robots || "index,follow");
+    const resolvedRobots = safeText(
+        robots || "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1",
+    );
     const resolvedCanonical = toAbsoluteUrl(canonicalUrl || url, baseUrl);
-    const resolvedImage = image ? toAbsoluteUrl(image, baseUrl) : "";
-    const resolvedAuthor = trimText(author || siteName, 80);
+    const resolvedImage = toAbsoluteUrl(image || seo.defaultImage || "", baseUrl);
+    const resolvedImageAlt = trimText(
+        imageAlt || seo.defaultImageAlt || resolvedTitle || siteName,
+        160,
+    );
+    const resolvedAuthor = trimText(author || seo.defaultAuthor || siteName, 80);
     const resolvedLocale = safeText(seo.defaultLocale || "it_IT");
     const resolvedTwitterCard = safeText(
         resolvedImage ? (seo.twitterCard || "summary_large_image") : "summary",
     );
+    const resolvedTwitterSite = safeText(seo.twitterSite || "");
     const resolvedPublishedTime = safeText(publishedTime);
     const resolvedModifiedTime = safeText(modifiedTime);
     const resolvedSection = trimText(section, 80);
@@ -124,6 +132,7 @@ export default function SeoHead({
             <meta head-key="twitter:card" name="twitter:card" content={resolvedTwitterCard} />
             <meta head-key="twitter:title" name="twitter:title" content={resolvedTitle} />
             <meta head-key="twitter:description" name="twitter:description" content={resolvedDescription} />
+            <meta head-key="format-detection" name="format-detection" content="telephone=no,address=no,email=no" />
             <link head-key="canonical" rel="canonical" href={resolvedCanonical} />
 
             {resolvedKeywords.length > 0 && (
@@ -140,6 +149,26 @@ export default function SeoHead({
 
             {resolvedImage && (
                 <meta head-key="twitter:image" name="twitter:image" content={resolvedImage} />
+            )}
+
+            {resolvedImage && (
+                <meta head-key="og:image:alt" property="og:image:alt" content={resolvedImageAlt} />
+            )}
+
+            {resolvedImage && (
+                <meta head-key="twitter:image:alt" name="twitter:image:alt" content={resolvedImageAlt} />
+            )}
+
+            {resolvedImage && (
+                <meta head-key="og:image:width" property="og:image:width" content="1200" />
+            )}
+
+            {resolvedImage && (
+                <meta head-key="og:image:height" property="og:image:height" content="630" />
+            )}
+
+            {resolvedTwitterSite && (
+                <meta head-key="twitter:site" name="twitter:site" content={resolvedTwitterSite} />
             )}
 
             {resolvedPublishedTime && (

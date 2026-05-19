@@ -13,6 +13,7 @@ class NewsArticleSchemaService
      */
     public function make(Article $article): array
     {
+        $organizationName = (string) config('seo.organization_name', config('seo.site_name', 'Linea di gioco'));
         $categories = $article->categories
             ->pluck('name')
             ->map(fn ($value) => trim((string) $value))
@@ -37,11 +38,11 @@ class NewsArticleSchemaService
             'dateModified' => optional($article->updated_at)->toIso8601String(),
             'author' => [
                 '@type' => 'Organization',
-                'name' => config('app.name', 'Linea di gioco'),
+                'name' => $organizationName,
             ],
             'publisher' => [
                 '@type' => 'Organization',
-                'name' => config('app.name', 'Linea di gioco'),
+                'name' => $organizationName,
                 'url' => config('app.url'),
                 'logo' => [
                     '@type' => 'ImageObject',

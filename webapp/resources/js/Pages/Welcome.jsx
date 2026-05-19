@@ -307,21 +307,45 @@ export default function Welcome({
     ];
     const description =
         "Analisi geopolitiche, dossier internazionali e briefing AI su crisi, sicurezza, energia e hotspot globali monitorati in tempo reale.";
-    const structuredData = {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        name: "Linea di gioco",
-        url: route("home"),
-        inLanguage: "it-IT",
-        description,
-    };
+    const canonicalUrl = route("home");
+    const organizationName = "Linea di gioco";
+    const structuredData = [
+        {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: organizationName,
+            url: canonicalUrl,
+            inLanguage: "it-IT",
+            description,
+        },
+        {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: organizationName,
+            url: canonicalUrl,
+            logo: `${route("home").replace(/\/$/, "")}/favicon.ico`,
+        },
+        {
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            name: "Analisi geopolitiche e dossier internazionali",
+            url: canonicalUrl,
+            inLanguage: "it-IT",
+            description,
+            isPartOf: {
+                "@type": "WebSite",
+                name: organizationName,
+                url: canonicalUrl,
+            },
+        },
+    ];
 
     return (
         <>
             <SeoHead
                 title="Analisi geopolitiche e dossier internazionali"
                 description={description}
-                canonicalUrl={route("home")}
+                canonicalUrl={canonicalUrl}
                 keywords={[
                     "geopolitica",
                     "analisi geopolitica",

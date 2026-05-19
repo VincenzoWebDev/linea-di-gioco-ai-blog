@@ -136,14 +136,34 @@ export default function ArticlesIndex({
         : route("blog.articles.index");
     const description =
         "Archivio completo dei dossier di Linea di gioco: analisi geopolitiche su crisi, sicurezza, energia, conflitti e scenari internazionali.";
-    const structuredData = {
-        "@context": "https://schema.org",
-        "@type": "CollectionPage",
-        name: "Archivio dossier di Linea di gioco",
-        url: canonicalUrl,
-        inLanguage: "it-IT",
-        description,
-    };
+    const structuredData = [
+        {
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            name: "Archivio dossier di Linea di gioco",
+            url: canonicalUrl,
+            inLanguage: "it-IT",
+            description,
+        },
+        {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+                {
+                    "@type": "ListItem",
+                    position: 1,
+                    name: "Home",
+                    item: route("home"),
+                },
+                {
+                    "@type": "ListItem",
+                    position: 2,
+                    name: "Archivio dossier",
+                    item: canonicalUrl,
+                },
+            ],
+        },
+    ];
 
     return (
         <>

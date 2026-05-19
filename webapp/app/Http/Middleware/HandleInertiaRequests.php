@@ -47,9 +47,14 @@ class HandleInertiaRequests extends Middleware
                 'baseUrl' => rtrim(config('app.url'), '/'),
                 'defaultTitle' => config('seo.default_title'),
                 'defaultDescription' => config('seo.default_description'),
+                'defaultAuthor' => config('seo.default_author'),
                 'defaultLocale' => config('seo.default_locale'),
                 'defaultType' => config('seo.default_type'),
                 'twitterCard' => config('seo.twitter_card'),
+                'twitterSite' => config('seo.twitter_site'),
+                'defaultImage' => config('seo.default_image'),
+                'defaultImageAlt' => config('seo.default_image_alt'),
+                'organizationName' => config('seo.organization_name'),
             ],
             'geopoliticalTensions' => fn() => app(GeopoliticalTensionService::class)
                 ->topForHeader()
