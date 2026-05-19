@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/newsletter', [HomeController::class, 'newsletter'])->name('newsletter');
+Route::get('/contatti', [HomeController::class, 'contact'])->name('contact');
 Route::get('/robots.txt', RobotsController::class)->name('robots');
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 Route::get('/privacy-policy', function () {

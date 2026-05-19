@@ -17,8 +17,7 @@ class HomeController extends Controller
 {
     public function __construct(
         private readonly RegionCoordinateResolver $coordinateResolver
-    ) {
-    }
+    ) {}
 
     public function index(): Response
     {
@@ -38,7 +37,7 @@ class HomeController extends Controller
                 'thumb_path',
                 'quality_score',
             ])
-            ->map(fn (Article $article) => $this->toArticleCardData($article))
+            ->map(fn(Article $article) => $this->toArticleCardData($article))
             ->values();
 
         $locations = $this->commandLocations();
@@ -72,6 +71,11 @@ class HomeController extends Controller
                 'categoriesCount' => Category::query()->count(),
             ],
         ]);
+    }
+
+    public function contact(): Response
+    {
+        return Inertia::render('Blog/Contact');
     }
 
     private function toArticleCardData(Article $article): array
@@ -167,5 +171,4 @@ class HomeController extends Controller
 
         return $this->coordinateResolver->resolve($tension->region_name, $context);
     }
-
 }

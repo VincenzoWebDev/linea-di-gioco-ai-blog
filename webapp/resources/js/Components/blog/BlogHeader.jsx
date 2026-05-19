@@ -28,7 +28,7 @@ export default function BlogHeader() {
     ];
 
     return (
-        <header className="border-b border-[#1C2333]">
+        <header className="border-b border-[#1C2333] relative z-10">
             <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-4 sm:px-5 sm:py-5">
                 <Link
                     href="/"

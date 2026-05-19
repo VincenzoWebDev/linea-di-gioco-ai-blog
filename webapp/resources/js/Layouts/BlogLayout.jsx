@@ -31,8 +31,8 @@ export default function BlogLayout({ children }) {
     return (
         <div className="min-h-screen overflow-hidden bg-[#0E1116] text-[#E5E7EB] font-sans">
             <div className="relative overflow-hidden">
-                <div className="pointer-events-none absolute -top-40 right-0 h-[420px] w-[420px] rounded-full bg-[#1F3A5F]/40 blur-[120px]" />
-                <div className="pointer-events-none absolute -bottom-48 left-10 h-[420px] w-[420px] rounded-full bg-[#9E2A2B]/30 blur-[140px]" />
+                <div className="pointer-events-none absolute z-0 -top-40 right-0 h-[420px] w-[420px] rounded-full bg-[#1F3A5F]/40 blur-[120px]" />
+                <div className="pointer-events-none absolute z-0 -bottom-48 left-10 h-[420px] w-[420px] rounded-full bg-[#9E2A2B]/30 blur-[140px]" />
 
                 <BlogHeader />
 
