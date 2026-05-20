@@ -1,8 +1,8 @@
-import { jsxs, Fragment, jsx } from "react/jsx-runtime";
+import { jsxs, jsx, Fragment } from "react/jsx-runtime";
 import { Link } from "@inertiajs/react";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { Info, ExternalLink, MapPin, Clock3, RadioTower, Crosshair, Target, Shield, FileSearch, ArrowLeft } from "lucide-react";
-import { B as BlogLayout } from "./BlogLayout-BFsNo22r.mjs";
+import { B as BlogLayout } from "./BlogLayout-CWUdKTO5.mjs";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { f as formatDateTime, g as getTrendConfig, r as resolveSeverityThresholds, a as alertFromRiskScore } from "./geopoliticalSeverity-C2gWXSd5.mjs";
@@ -41,9 +41,11 @@ function TooltipPanel({ term, entry }) {
   );
 }
 function GlossaryTooltip({ term, entry }) {
+  const [isMounted, setIsMounted] = useState(false);
   const [usePopover, setUsePopover] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   useEffect(() => {
+    setIsMounted(true);
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
       return void 0;
     }
@@ -59,6 +61,19 @@ function GlossaryTooltip({ term, entry }) {
     mediaQuery.addListener(syncMode);
     return () => mediaQuery.removeListener(syncMode);
   }, []);
+  const triggerClassName = "group inline-flex cursor-help items-baseline gap-1 border-b border-dotted border-[#D7B56D]/80 text-left text-[#F3F4F6] decoration-transparent transition hover:text-[#FDE68A]";
+  if (!isMounted) {
+    return /* @__PURE__ */ jsxs("span", { className: triggerClassName, children: [
+      /* @__PURE__ */ jsx("span", { children: term }),
+      /* @__PURE__ */ jsx(
+        Info,
+        {
+          className: "h-3 w-3 translate-y-[1px] opacity-70",
+          "aria-hidden": "true"
+        }
+      )
+    ] });
+  }
   const trigger = /* @__PURE__ */ jsxs(
     "button",
     {
@@ -68,7 +83,7 @@ function GlossaryTooltip({ term, entry }) {
           setIsOpen((current) => !current);
         }
       },
-      className: "group inline-flex cursor-help items-baseline gap-1 border-b border-dotted border-[#D7B56D]/80 text-left text-[#F3F4F6] decoration-transparent transition hover:text-[#FDE68A]",
+      className: triggerClassName,
       children: [
         /* @__PURE__ */ jsx("span", { children: term }),
         /* @__PURE__ */ jsx(Info, { className: "h-3 w-3 translate-y-[1px] opacity-70 transition group-hover:opacity-100" })

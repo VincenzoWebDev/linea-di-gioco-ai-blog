@@ -4,8 +4,7 @@
         "dev": "vite",
         "build": "vite build && vite build --ssr",
         "build:client": "vite build",
-        "build:ssr": "vite build --ssr",
-        "preview": "vite preview"
+        "build:ssr": "vite build --ssr"
     },
     "devDependencies": {
         "@headlessui/react": "^1.4.2",

@@ -29,10 +29,13 @@ function TooltipPanel({ term, entry }) {
 }
 
 export default function GlossaryTooltip({ term, entry }) {
+    const [isMounted, setIsMounted] = useState(false);
     const [usePopover, setUsePopover] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
 
     useEffect(() => {
+        setIsMounted(true);
+
         if (
             typeof window === "undefined" ||
             typeof window.matchMedia !== "function"
@@ -58,6 +61,21 @@ export default function GlossaryTooltip({ term, entry }) {
         return () => mediaQuery.removeListener(syncMode);
     }, []);
 
+    const triggerClassName =
+        "group inline-flex cursor-help items-baseline gap-1 border-b border-dotted border-[#D7B56D]/80 text-left text-[#F3F4F6] decoration-transparent transition hover:text-[#FDE68A]";
+
+    if (!isMounted) {
+        return (
+            <span className={triggerClassName}>
+                <span>{term}</span>
+                <Info
+                    className="h-3 w-3 translate-y-[1px] opacity-70"
+                    aria-hidden="true"
+                />
+            </span>
+        );
+    }
+
     const trigger = (
         <button
             type="button"
@@ -66,7 +84,7 @@ export default function GlossaryTooltip({ term, entry }) {
                     setIsOpen((current) => !current);
                 }
             }}
-            className="group inline-flex cursor-help items-baseline gap-1 border-b border-dotted border-[#D7B56D]/80 text-left text-[#F3F4F6] decoration-transparent transition hover:text-[#FDE68A]"
+            className={triggerClassName}
         >
             <span>{term}</span>
             <Info className="h-3 w-3 translate-y-[1px] opacity-70 transition group-hover:opacity-100" />

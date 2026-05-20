@@ -45,28 +45,28 @@
     "/build/assets/TextInput-Dmygz_uX.mjs"
   ],
   "resources/js/Components/blog/BlogFooter.jsx": [
-    "/build/assets/BlogLayout-BFsNo22r.mjs",
+    "/build/assets/BlogLayout-CWUdKTO5.mjs",
     "/build/assets/linea-di-gioco-logo-CWRVHu89.webp"
   ],
   "resources/js/Components/blog/BlogHeader.jsx": [
-    "/build/assets/BlogLayout-BFsNo22r.mjs",
+    "/build/assets/BlogLayout-CWUdKTO5.mjs",
     "/build/assets/linea-di-gioco-logo-CWRVHu89.webp"
   ],
   "resources/js/Components/blog/TensionHeader.jsx": [
-    "/build/assets/BlogLayout-BFsNo22r.mjs",
+    "/build/assets/BlogLayout-CWUdKTO5.mjs",
     "/build/assets/linea-di-gioco-logo-CWRVHu89.webp"
   ],
   "resources/js/Components/blog/archive/ArchiveEmptyState.jsx": [
-    "/build/assets/Index-C10U6OKq.mjs"
+    "/build/assets/Index-ByNuD6Pe.mjs"
   ],
   "resources/js/Components/blog/archive/ArchiveGrid.jsx": [
-    "/build/assets/Index-C10U6OKq.mjs"
+    "/build/assets/Index-ByNuD6Pe.mjs"
   ],
   "resources/js/Components/blog/archive/ArchiveHero.jsx": [
-    "/build/assets/Index-C10U6OKq.mjs"
+    "/build/assets/Index-ByNuD6Pe.mjs"
   ],
   "resources/js/Components/blog/archive/ArchivePagination.jsx": [
-    "/build/assets/Index-C10U6OKq.mjs"
+    "/build/assets/Index-ByNuD6Pe.mjs"
   ],
   "resources/js/Components/blog/articles/ArticleCoverImage.jsx": [
     "/build/assets/ArticleIntelligenceCard-C-tTT0ik.mjs"
@@ -75,70 +75,71 @@
     "/build/assets/ArticleIntelligenceCard-C-tTT0ik.mjs"
   ],
   "resources/js/Components/blog/articles/ArticleMeta.jsx": [
-    "/build/assets/Show-DqAzeOfo.mjs"
+    "/build/assets/Show-CkRIzHc4.mjs"
   ],
   "resources/js/Components/blog/articles/show/ArticleDataPill.jsx": [
-    "/build/assets/Show-DqAzeOfo.mjs"
+    "/build/assets/Show-CkRIzHc4.mjs"
   ],
   "resources/js/Components/blog/articles/show/ArticleGlossaryContent.jsx": [
-    "/build/assets/Show-DqAzeOfo.mjs"
+    "/build/assets/Show-CkRIzHc4.mjs"
   ],
   "resources/js/Components/blog/articles/show/ArticleRelatedCard.jsx": [
-    "/build/assets/Show-DqAzeOfo.mjs"
+    "/build/assets/Show-CkRIzHc4.mjs"
   ],
   "resources/js/Components/blog/articles/show/ArticleShowBody.jsx": [
-    "/build/assets/Show-DqAzeOfo.mjs"
+    "/build/assets/Show-CkRIzHc4.mjs"
   ],
   "resources/js/Components/blog/articles/show/ArticleShowCover.jsx": [
-    "/build/assets/Show-DqAzeOfo.mjs"
+    "/build/assets/Show-CkRIzHc4.mjs"
   ],
   "resources/js/Components/blog/articles/show/ArticleShowHeader.jsx": [
-    "/build/assets/Show-DqAzeOfo.mjs"
+    "/build/assets/Show-CkRIzHc4.mjs"
   ],
   "resources/js/Components/blog/articles/show/ArticleShowIntelligenceSidebar.jsx": [
-    "/build/assets/Show-DqAzeOfo.mjs"
+    "/build/assets/Show-CkRIzHc4.mjs"
   ],
   "resources/js/Components/blog/articles/show/ArticleShowRelatedSection.jsx": [
-    "/build/assets/Show-DqAzeOfo.mjs"
+    "/build/assets/Show-CkRIzHc4.mjs"
   ],
   "resources/js/Components/blog/articles/show/GlossaryTooltip.jsx": [
-    "/build/assets/Show-DqAzeOfo.mjs"
+    "/build/assets/Show-CkRIzHc4.mjs"
   ],
   "resources/js/Components/blog/articles/show/IntelligenceMetricBlock.jsx": [
-    "/build/assets/Show-DqAzeOfo.mjs"
+    "/build/assets/Show-CkRIzHc4.mjs"
   ],
   "resources/js/Components/blog/articles/show/IntelligenceRadarChart.jsx": [
-    "/build/assets/Show-DqAzeOfo.mjs"
+    "/build/assets/Show-CkRIzHc4.mjs"
   ],
   "resources/js/Components/blog/articles/show/IntelligenceRadarIcon.jsx": [
-    "/build/assets/Show-DqAzeOfo.mjs"
+    "/build/assets/Show-CkRIzHc4.mjs"
   ],
   "resources/js/Components/blog/home/GlobalMap.jsx": [
-    "/build/assets/GlobalMap-9JUnDGRU.mjs"
+    "/build/assets/Welcome-Cv4KQ0W5.mjs"
   ],
   "resources/js/Components/blog/home/GlobalMapPlaceholder.jsx": [
-    "/build/assets/Welcome-Bj6IUTrZ.mjs"
+    "/build/assets/Welcome-Cv4KQ0W5.mjs"
   ],
   "resources/js/Components/blog/home/HomeBriefingSection.jsx": [
-    "/build/assets/Welcome-Bj6IUTrZ.mjs"
+    "/build/assets/Welcome-Cv4KQ0W5.mjs"
   ],
   "resources/js/Components/blog/home/HomeCommandCenter.jsx": [
-    "/build/assets/Welcome-Bj6IUTrZ.mjs"
+    "/build/assets/Welcome-Cv4KQ0W5.mjs"
   ],
   "resources/js/Components/blog/home/HomeFeedSection.jsx": [
-    "/build/assets/Welcome-Bj6IUTrZ.mjs"
+    "/build/assets/Welcome-Cv4KQ0W5.mjs"
   ],
   "resources/js/Components/blog/home/HomeStatsSection.jsx": [
-    "/build/assets/Welcome-Bj6IUTrZ.mjs"
+    "/build/assets/Welcome-Cv4KQ0W5.mjs"
   ],
   "resources/js/Components/blog/home/OperationIntelligenceCard.jsx": [
-    "/build/assets/Welcome-Bj6IUTrZ.mjs"
+    "/build/assets/Welcome-Cv4KQ0W5.mjs"
   ],
   "resources/js/Components/blog/home/TacticalTicker.jsx": [
-    "/build/assets/TacticalTicker-DvTmL8Wl.mjs"
+    "/build/assets/Welcome-Cv4KQ0W5.mjs"
   ],
   "resources/js/Components/ui/CookieBanner.jsx": [
-    "/build/assets/CookieBanner-CMSI6aoR.mjs"
+    "/build/assets/BlogLayout-CWUdKTO5.mjs",
+    "/build/assets/linea-di-gioco-logo-CWRVHu89.webp"
   ],
   "resources/js/Components/ui/card.jsx": [
     "/build/assets/card-DRB3Bbat.mjs"
@@ -147,7 +148,7 @@
     "/build/assets/AuthenticatedLayout-APLMBOY6.mjs"
   ],
   "resources/js/Layouts/BlogLayout.jsx": [
-    "/build/assets/BlogLayout-BFsNo22r.mjs",
+    "/build/assets/BlogLayout-CWUdKTO5.mjs",
     "/build/assets/linea-di-gioco-logo-CWRVHu89.webp"
   ],
   "resources/js/Layouts/GuestLayout.jsx": [
@@ -193,22 +194,22 @@
     "/build/assets/VerifyEmail-ChTwwVN1.mjs"
   ],
   "resources/js/Pages/Blog/Articles/Index.jsx": [
-    "/build/assets/Index-C10U6OKq.mjs"
+    "/build/assets/Index-ByNuD6Pe.mjs"
   ],
   "resources/js/Pages/Blog/Articles/Show.jsx": [
-    "/build/assets/Show-DqAzeOfo.mjs"
+    "/build/assets/Show-CkRIzHc4.mjs"
   ],
   "resources/js/Pages/Blog/Contact.jsx": [
-    "/build/assets/Contact-Befl8EuV.mjs"
+    "/build/assets/Contact-CxrGjyEV.mjs"
   ],
   "resources/js/Pages/Blog/Newsletter.jsx": [
-    "/build/assets/Newsletter-SDuE4NHq.mjs"
+    "/build/assets/Newsletter-ByqSBw4L.mjs"
   ],
   "resources/js/Pages/Legal/CookiePolicy.jsx": [
-    "/build/assets/CookiePolicy-L5ptJcDp.mjs"
+    "/build/assets/CookiePolicy-pdKRL-gi.mjs"
   ],
   "resources/js/Pages/Legal/PrivacyPolicy.jsx": [
-    "/build/assets/PrivacyPolicy-BLcKBqqV.mjs"
+    "/build/assets/PrivacyPolicy-DIgxqcCd.mjs"
   ],
   "resources/js/Pages/Profile/Edit.jsx": [
     "/build/assets/Edit-D8SypxL6.mjs"
@@ -223,43 +224,43 @@
     "/build/assets/UpdateProfileInformationForm-DwngIx5O.mjs"
   ],
   "resources/js/Pages/Welcome.jsx": [
-    "/build/assets/Welcome-Bj6IUTrZ.mjs"
+    "/build/assets/Welcome-Cv4KQ0W5.mjs"
   ],
   "resources/js/assets/linea-di-gioco-logo.webp": [
-    "/build/assets/BlogLayout-BFsNo22r.mjs",
+    "/build/assets/BlogLayout-CWUdKTO5.mjs",
     "/build/assets/linea-di-gioco-logo-CWRVHu89.webp"
   ],
   "resources/js/hooks/useAnalytics.js": [
-    "/build/assets/BlogLayout-BFsNo22r.mjs",
+    "/build/assets/BlogLayout-CWUdKTO5.mjs",
     "/build/assets/linea-di-gioco-logo-CWRVHu89.webp"
   ],
   "resources/js/inertiaShared.js": [],
   "resources/js/lib/blog/archiveSeo.js": [
-    "/build/assets/Index-C10U6OKq.mjs"
+    "/build/assets/Index-ByNuD6Pe.mjs"
   ],
   "resources/js/lib/blog/articleChips.js": [
-    "/build/assets/Index-C10U6OKq.mjs"
+    "/build/assets/Index-ByNuD6Pe.mjs"
   ],
   "resources/js/lib/blog/formatters.js": [
     "/build/assets/geopoliticalSeverity-C2gWXSd5.mjs"
   ],
   "resources/js/lib/blog/glossary.js": [
-    "/build/assets/Show-DqAzeOfo.mjs"
+    "/build/assets/Show-CkRIzHc4.mjs"
   ],
   "resources/js/lib/blog/homeSeo.js": [
-    "/build/assets/Welcome-Bj6IUTrZ.mjs"
+    "/build/assets/Welcome-Cv4KQ0W5.mjs"
   ],
   "resources/js/lib/blog/intelligence.js": [
-    "/build/assets/Show-DqAzeOfo.mjs"
+    "/build/assets/Show-CkRIzHc4.mjs"
   ],
   "resources/js/lib/blog/operations.js": [
-    "/build/assets/Welcome-Bj6IUTrZ.mjs"
+    "/build/assets/Welcome-Cv4KQ0W5.mjs"
   ],
   "resources/js/lib/blog/regionCoordinates.js": [
-    "/build/assets/Show-DqAzeOfo.mjs"
+    "/build/assets/Show-CkRIzHc4.mjs"
   ],
   "resources/js/lib/blog/text.js": [
-    "/build/assets/Show-DqAzeOfo.mjs"
+    "/build/assets/Show-CkRIzHc4.mjs"
   ],
   "resources/js/lib/blog/trendCopy.js": [
     "/build/assets/geopoliticalSeverity-C2gWXSd5.mjs"
@@ -271,12 +272,12 @@
     "/build/assets/card-DRB3Bbat.mjs"
   ],
   "resources/js/services/analytics.js": [
-    "/build/assets/BlogLayout-BFsNo22r.mjs",
+    "/build/assets/BlogLayout-CWUdKTO5.mjs",
     "/build/assets/linea-di-gioco-logo-CWRVHu89.webp"
   ],
   "resources/js/ssr.jsx": [],
   "resources/js/utils/consent.js": [
-    "/build/assets/BlogLayout-BFsNo22r.mjs",
+    "/build/assets/BlogLayout-CWUdKTO5.mjs",
     "/build/assets/linea-di-gioco-logo-CWRVHu89.webp"
   ],
   "vendor/tightenco/ziggy/dist/index.esm.js": []
