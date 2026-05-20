@@ -12,7 +12,7 @@ class RecalibrateGeopoliticalRiskCommand extends Command
 {
     protected $signature = 'geopolitical:recalibrate-risk';
 
-    protected $description = 'Ricalibra i risk_score delle tensioni geopolitiche esistenti';
+    protected $description = 'Ricalibra risk_score e coordinate mappa delle tensioni geopolitiche';
 
     public function handle(
         RiskScoreCalibrationService $calibration,
@@ -47,9 +47,11 @@ class RecalibrateGeopoliticalRiskCommand extends Command
                 }
             });
 
+        $coordinatesUpdated = $tensionService->backfillMapCoordinates();
         $tensionService->clearHeaderCache();
 
-        $this->info("Aggiornate {$updated} tensioni.");
+        $this->info("Risk score aggiornati: {$updated}.");
+        $this->info("Coordinate mappa aggiornate: {$coordinatesUpdated}.");
 
         return self::SUCCESS;
     }

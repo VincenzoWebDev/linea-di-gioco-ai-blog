@@ -6,7 +6,6 @@ import {
     Marker,
 } from "react-simple-maps";
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { severityClasses } from "@/lib/geopoliticalSeverity";
 import { ArrowRight, Crosshair, MapPin, Satellite } from "lucide-react";
 import { Link } from "@inertiajs/react";
@@ -78,10 +77,16 @@ export default function GlobalMap({ operations }) {
                                 }
                             </Geographies>
 
-                            {operations.map((item) => {
+                            {operations
+                                .filter(
+                                    (item) =>
+                                        Number.isFinite(Number(item.lat)) &&
+                                        Number.isFinite(Number(item.long)),
+                                )
+                                .map((item) => {
                                 const severity =
                                     severityClasses[item.severity] ||
-                                    severityClasses.guarded;
+                                    severityClasses.low;
 
                                 return (
                                     <Marker
@@ -95,15 +100,7 @@ export default function GlobalMap({ operations }) {
                                         }
                                         onFocus={() => setActiveId(item.id)}
                                     >
-                                        <motion.g
-                                            animate={{ scale: [1, 1.28, 1] }}
-                                            transition={{
-                                                duration: 1.8,
-                                                repeat: Infinity,
-                                                ease: "easeInOut",
-                                            }}
-                                            className="cursor-pointer"
-                                        >
+                                        <g className="map-marker-pulse cursor-pointer">
                                             <circle
                                                 r={12}
                                                 fill={severity.marker}
@@ -118,7 +115,7 @@ export default function GlobalMap({ operations }) {
                                                 r={2.6}
                                                 fill={severity.marker}
                                             />
-                                        </motion.g>
+                                        </g>
                                     </Marker>
                                 );
                             })}
@@ -139,9 +136,9 @@ export default function GlobalMap({ operations }) {
                                     </h2>
                                 </div>
                                 <span
-                                    className={`shrink-0 border px-3 py-1 font-mono text-xs uppercase tracking-[0.2em] ${severityClasses[active.severity]?.border} ${severityClasses[active.severity]?.bg} ${severityClasses[active.severity]?.text}`}
+                                    className={`shrink-0 border px-3 py-1 font-mono text-xs uppercase tracking-[0.2em] ${(severityClasses[active.severity] ?? severityClasses.low).border} ${(severityClasses[active.severity] ?? severityClasses.low).bg} ${(severityClasses[active.severity] ?? severityClasses.low).text}`}
                                 >
-                                    {severityClasses[active.severity]?.label}
+                                    {(severityClasses[active.severity] ?? severityClasses.low).label}
                                 </span>
                             </div>
 
@@ -160,12 +157,11 @@ export default function GlobalMap({ operations }) {
 
                             <ArticleCoverImage
                                 item={active}
+                                variant="thumb"
                                 className="mt-5 h-40 border border-[#202A3D]"
                                 loading="eager"
                                 fetchPriority="high"
                                 sizes="(min-width: 1024px) 320px, 100vw"
-                                width={1200}
-                                height={630}
                             />
 
                             <p className="mt-5 font-mono text-sm leading-7 text-[#B8C2D2]">

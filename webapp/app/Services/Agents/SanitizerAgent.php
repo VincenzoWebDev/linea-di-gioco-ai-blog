@@ -46,7 +46,7 @@ class SanitizerAgent
             'source_url' => $sourceUrl,
         ]);
 
-        if (is_array($crewOutput)) {
+        if (is_array($crewOutput) && ! $this->articleValidationService->isTranslationFailurePayload($crewOutput)) {
             $crewTitle = (string) ($crewOutput['title'] ?? $safeTitle);
             $crewContent = ArticleContentNormalizer::stripSourceFooter((string) ($crewOutput['content'] ?? $body));
             $crewScore = (float) ($crewOutput['quality_score'] ?? 0);

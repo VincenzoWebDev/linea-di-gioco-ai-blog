@@ -11,17 +11,7 @@ function DataChip({ icon: Icon, value }) {
     );
 }
 
-export function formatPublishedAt(value) {
-    if (!value) {
-        return "Data n.d.";
-    }
-
-    return new Intl.DateTimeFormat("it-IT", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-    }).format(new Date(value));
-}
+export { formatPublishedAt } from "@/lib/blog/formatters";
 
 /**
  * @param {object} props
@@ -41,6 +31,7 @@ export default function ArticleIntelligenceCard({
     statusBadge = null,
     imageLoading = "lazy",
     imageFetchPriority = "auto",
+    imageVariant = "thumb",
     imageSizes = "(min-width: 1280px) 30vw, (min-width: 768px) 45vw, 100vw",
 }) {
     const targetHref =
@@ -68,12 +59,11 @@ export default function ArticleIntelligenceCard({
                     <div className="relative">
                         <ArticleCoverImage
                             item={article}
+                            variant={imageVariant}
                             className="h-48 border-b border-[#202A3D]"
                             loading={imageLoading}
                             fetchPriority={imageFetchPriority}
                             sizes={imageSizes}
-                            width={1200}
-                            height={630}
                         />
                         <div className="absolute bottom-3 left-3 right-3 flex min-w-0 items-center justify-between gap-2">
                             <span className="min-w-0 truncate border border-[#D7B56D]/40 bg-[#080B10]/82 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-[#FDE68A] backdrop-blur sm:text-[11px] sm:tracking-[0.22em]">

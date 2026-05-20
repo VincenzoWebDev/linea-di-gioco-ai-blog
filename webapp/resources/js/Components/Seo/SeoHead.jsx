@@ -78,6 +78,7 @@ export default function SeoHead({
     keywords = [],
     robots,
     structuredData = [],
+    preloadImages = [],
     publishedTime,
     modifiedTime,
     section,
@@ -134,6 +135,25 @@ export default function SeoHead({
             <meta head-key="twitter:description" name="twitter:description" content={resolvedDescription} />
             <meta head-key="format-detection" name="format-detection" content="telephone=no,address=no,email=no" />
             <link head-key="canonical" rel="canonical" href={resolvedCanonical} />
+
+            {preloadImages.map((item, index) => {
+                const href = toAbsoluteUrl(item?.href, baseUrl);
+
+                if (!href) {
+                    return null;
+                }
+
+                return (
+                    <link
+                        key={`preload-image-${index}`}
+                        head-key={`preload-image-${index}`}
+                        rel="preload"
+                        as="image"
+                        href={href}
+                        fetchpriority={item.fetchPriority || "high"}
+                    />
+                );
+            })}
 
             {resolvedKeywords.length > 0 && (
                 <meta

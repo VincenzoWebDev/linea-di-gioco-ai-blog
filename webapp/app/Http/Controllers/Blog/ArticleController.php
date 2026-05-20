@@ -170,9 +170,9 @@ class ArticleController extends Controller
             'related' => $related,
             'glossary' => $this->resolveGlossary($article, $glossaryService),
             'riskThresholds' => [
-                'alertHigh' => (int) config('ai_news.risk.alert_high', 82),
-                'alertElevated' => (int) config('ai_news.risk.alert_elevated', 62),
-                'alertGuarded' => (int) config('ai_news.risk.alert_guarded', 42),
+                'severityHigh' => (int) config('ai_news.risk.severity_high', 80),
+                'severityElevated' => (int) config('ai_news.risk.severity_elevated', 60),
+                'severityGuarded' => (int) config('ai_news.risk.severity_guarded', 40),
                 'scenarioHigh' => 78,
             ],
             'newsArticleSchema' => $newsArticleSchemaService->make($article),

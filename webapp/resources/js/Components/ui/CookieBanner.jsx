@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "@inertiajs/react";
 
 export default function CookieBanner() {
@@ -59,165 +58,149 @@ export default function CookieBanner() {
         setOpen(false);
     };
 
+    if (!open) {
+        return null;
+    }
+
     return (
-        <AnimatePresence>
-            {open && (
-                <>
-                    {/* overlay */}
-                    <motion.div
-                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998]"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                    />
+        <>
+            <div
+                className="cookie-banner-overlay fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm"
+                aria-hidden
+            />
 
-                    {/* banner */}
-                    <motion.div
-                        className="fixed inset-x-0 bottom-6 z-[9999] flex justify-center px-4"
-                        initial={{ opacity: 0, y: 40, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 40, scale: 0.98 }}
-                        transition={{ duration: 0.25, ease: "easeOut" }}
-                    >
-                        <div className="bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden">
-                            {/* header */}
-                            <div className="p-5 border-b border-zinc-800">
-                                <h2 className="text-lg font-semibold text-zinc-100">
-                                    Cookie & Privacy
-                                </h2>
+            <div className="cookie-banner-panel fixed inset-x-0 bottom-6 z-[9999] flex justify-center px-4">
+                <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 shadow-2xl">
+                    <div className="border-b border-zinc-800 p-5">
+                        <h2 className="text-lg font-semibold text-zinc-100">
+                            Cookie & Privacy
+                        </h2>
 
-                                <p className="text-sm text-zinc-400 mt-1 leading-relaxed">
-                                    Utilizziamo cookie tecnici e opzionali per
-                                    migliorare la lettura delle notizie e
-                                    analizzare il traffico.
-                                </p>
+                        <p className="mt-1 text-sm leading-relaxed text-zinc-400">
+                            Utilizziamo cookie tecnici e opzionali per
+                            migliorare la lettura delle notizie e analizzare il
+                            traffico.
+                        </p>
 
-                                {/* policy links */}
-                                <div className="flex gap-4 mt-3 text-xs">
-                                    <Link
-                                        href={route("privacy-policy")}
-                                        className="text-zinc-400 hover:text-zinc-200 underline"
-                                    >
-                                        Privacy Policy
-                                    </Link>
+                        <div className="mt-3 flex gap-4 text-xs">
+                            <Link
+                                href={route("privacy-policy")}
+                                className="text-zinc-400 underline hover:text-zinc-200"
+                            >
+                                Privacy Policy
+                            </Link>
 
-                                    <Link
-                                        href={route("cookie-policy")}
-                                        className="text-zinc-400 hover:text-zinc-200 underline"
-                                    >
-                                        Cookie Policy
-                                    </Link>
-                                </div>
-                            </div>
-
-                            {/* options */}
-                            <div className="p-5 space-y-3">
-                                {/* necessary */}
-                                <div className="flex justify-between items-center p-3 rounded-xl bg-zinc-900/60 border border-zinc-800">
-                                    <div>
-                                        <p className="text-sm font-medium text-zinc-200">
-                                            Necessari
-                                        </p>
-                                        <p className="text-xs text-zinc-500">
-                                            Sempre attivi per il funzionamento
-                                            del sito
-                                        </p>
-                                    </div>
-                                    <span className="text-xs text-zinc-500">
-                                        Sempre attivi
-                                    </span>
-                                </div>
-
-                                {/* analytics */}
-                                <div className="flex justify-between items-center p-3 rounded-xl bg-zinc-900/40 border border-zinc-800">
-                                    <div>
-                                        <p className="text-sm font-medium text-zinc-200">
-                                            Analytics
-                                        </p>
-                                        <p className="text-xs text-zinc-500">
-                                            Ci aiutano a capire come vengono
-                                            letti gli articoli
-                                        </p>
-                                    </div>
-
-                                    <input
-                                        type="checkbox"
-                                        className="w-4 h-4 accent-zinc-300"
-                                        checked={analytics}
-                                        onChange={(e) =>
-                                            setAnalytics(e.target.checked)
-                                        }
-                                    />
-                                </div>
-
-                                {/* marketing */}
-                                <div className="flex justify-between items-center p-3 rounded-xl bg-zinc-900/40 border border-zinc-800">
-                                    <div>
-                                        <p className="text-sm font-medium text-zinc-200">
-                                            Personalizzazione
-                                        </p>
-                                        <p className="text-xs text-zinc-500">
-                                            Contenuti consigliati in base alla
-                                            lettura
-                                        </p>
-                                    </div>
-
-                                    <input
-                                        type="checkbox"
-                                        className="w-4 h-4 accent-zinc-300"
-                                        checked={marketing}
-                                        onChange={(e) =>
-                                            setMarketing(e.target.checked)
-                                        }
-                                    />
-                                </div>
-                            </div>
-
-                            {/* actions */}
-                            <div className="p-5 border-t border-zinc-800 flex flex-col sm:flex-row gap-2 sm:justify-end">
-                                <button
-                                    onClick={() =>
-                                        save({
-                                            necessary: true,
-                                            analytics: false,
-                                            marketing: false,
-                                        })
-                                    }
-                                    className="px-4 py-2 text-sm rounded-lg border border-zinc-700 text-zinc-300 hover:bg-zinc-900 transition"
-                                >
-                                    Rifiuta
-                                </button>
-
-                                <button
-                                    onClick={() =>
-                                        save({
-                                            necessary: true,
-                                            analytics,
-                                            marketing,
-                                        })
-                                    }
-                                    className="px-4 py-2 text-sm rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-100 transition"
-                                >
-                                    Salva scelte
-                                </button>
-
-                                <button
-                                    onClick={() =>
-                                        save({
-                                            necessary: true,
-                                            analytics: true,
-                                            marketing: true,
-                                        })
-                                    }
-                                    className="px-4 py-2 text-sm rounded-lg bg-white text-black hover:bg-zinc-200 transition font-medium"
-                                >
-                                    Accetta tutto
-                                </button>
-                            </div>
+                            <Link
+                                href={route("cookie-policy")}
+                                className="text-zinc-400 underline hover:text-zinc-200"
+                            >
+                                Cookie Policy
+                            </Link>
                         </div>
-                    </motion.div>
-                </>
-            )}
-        </AnimatePresence>
+                    </div>
+
+                    <div className="space-y-3 p-5">
+                        <div className="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900/60 p-3">
+                            <div>
+                                <p className="text-sm font-medium text-zinc-200">
+                                    Necessari
+                                </p>
+                                <p className="text-xs text-zinc-500">
+                                    Sempre attivi per il funzionamento del sito
+                                </p>
+                            </div>
+                            <span className="text-xs text-zinc-500">
+                                Sempre attivi
+                            </span>
+                        </div>
+
+                        <div className="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900/40 p-3">
+                            <div>
+                                <p className="text-sm font-medium text-zinc-200">
+                                    Analytics
+                                </p>
+                                <p className="text-xs text-zinc-500">
+                                    Ci aiutano a capire come vengono letti gli
+                                    articoli
+                                </p>
+                            </div>
+
+                            <input
+                                type="checkbox"
+                                className="h-4 w-4 accent-zinc-300"
+                                checked={analytics}
+                                onChange={(e) =>
+                                    setAnalytics(e.target.checked)
+                                }
+                            />
+                        </div>
+
+                        <div className="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900/40 p-3">
+                            <div>
+                                <p className="text-sm font-medium text-zinc-200">
+                                    Personalizzazione
+                                </p>
+                                <p className="text-xs text-zinc-500">
+                                    Contenuti consigliati in base alla lettura
+                                </p>
+                            </div>
+
+                            <input
+                                type="checkbox"
+                                className="h-4 w-4 accent-zinc-300"
+                                checked={marketing}
+                                onChange={(e) =>
+                                    setMarketing(e.target.checked)
+                                }
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2 border-t border-zinc-800 p-5 sm:flex-row sm:justify-end">
+                        <button
+                            type="button"
+                            onClick={() =>
+                                save({
+                                    necessary: true,
+                                    analytics: false,
+                                    marketing: false,
+                                })
+                            }
+                            className="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 transition hover:bg-zinc-900"
+                        >
+                            Rifiuta
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                save({
+                                    necessary: true,
+                                    analytics,
+                                    marketing,
+                                })
+                            }
+                            className="rounded-lg bg-zinc-800 px-4 py-2 text-sm text-zinc-100 transition hover:bg-zinc-700"
+                        >
+                            Salva scelte
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                save({
+                                    necessary: true,
+                                    analytics: true,
+                                    marketing: true,
+                                })
+                            }
+                            className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:bg-zinc-200"
+                        >
+                            Accetta tutto
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </>
     );
 }

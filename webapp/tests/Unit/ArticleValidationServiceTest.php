@@ -28,6 +28,27 @@ class ArticleValidationServiceTest extends TestCase
         $this->assertContains('Contenuto fuori scope editoriale', $result['errors']);
     }
 
+    public function test_rejects_crewai_translation_failure_placeholder(): void
+    {
+        config()->set('ai_news.min_quality_score', 70);
+
+        $service = new ArticleValidationService();
+
+        $result = $service->validateSanitizedPayload([
+            'title' => 'Notizia non traducibile automaticamente',
+            'summary' => 'Contenuto scartato: traduzione italiana non affidabile.',
+            'content' => 'Impossibile ottenere una riscrittura italiana affidabile.',
+            'topic' => 'geopolitica',
+            'categories' => ['geopolitica'],
+            'quality_score' => 0,
+            'rewrite_mode' => 'crewai',
+            'language' => 'it',
+        ]);
+
+        $this->assertFalse($result['valid']);
+        $this->assertContains('Traduzione non riuscita dal servizio AI', $result['errors']);
+    }
+
     public function test_accepts_in_scope_non_italian_content_for_rewrite_or_publication(): void
     {
         config()->set('ai_news.min_quality_score', 70);

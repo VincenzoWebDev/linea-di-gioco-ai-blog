@@ -12,13 +12,35 @@ class RegionCoordinateResolver
     public function resolve(string $regionName, string $context = ''): ?array
     {
         $regionName = trim($regionName);
-        if ($regionName === '') {
+        $context = trim($context);
+
+        if ($regionName === '' && $context === '') {
             return null;
         }
 
-        $haystack = $this->normalize($regionName.' '.$context);
+        if ($regionName !== '' && $this->isGenericRegion($this->normalize($regionName))) {
+            return $context !== ''
+                ? $this->matchHaystack($this->normalize($context))
+                : null;
+        }
+
+        $haystack = $this->normalize(trim($regionName.' '.$context));
 
         if ($this->isGenericRegion($haystack)) {
+            return $context !== ''
+                ? $this->matchHaystack($this->normalize($context))
+                : null;
+        }
+
+        return $this->matchHaystack($haystack);
+    }
+
+    /**
+     * @return array{lat: float, long: float}|null
+     */
+    private function matchHaystack(string $haystack): ?array
+    {
+        if ($haystack === '' || $this->isGenericRegion($haystack)) {
             return null;
         }
 
@@ -32,7 +54,7 @@ class RegionCoordinateResolver
                     continue;
                 }
 
-                if (! str_contains($haystack, $normalizedAlias)) {
+                if (! $this->aliasMatchesHaystack($haystack, $normalizedAlias)) {
                     continue;
                 }
 
@@ -81,6 +103,17 @@ class RegionCoordinateResolver
         }
 
         return false;
+    }
+
+    private function aliasMatchesHaystack(string $haystack, string $alias): bool
+    {
+        if ($alias === '') {
+            return false;
+        }
+
+        $pattern = '/(?:^|\s)'.preg_quote($alias, '/').'(?:\s|$)/u';
+
+        return preg_match($pattern, $haystack) === 1;
     }
 
     private function normalize(string $value): string

@@ -9,6 +9,42 @@ export default defineConfig({
             'ziggy-js': path.resolve(__dirname, 'vendor/tightenco/ziggy/dist/index.esm.js'),
         },
     },
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (!id.includes('node_modules')) {
+                        return;
+                    }
+
+                    if (id.includes('react-simple-maps') || id.includes('d3-')) {
+                        return 'vendor-maps';
+                    }
+
+                    if (id.includes('framer-motion')) {
+                        return 'vendor-motion';
+                    }
+
+                    if (id.includes('recharts')) {
+                        return 'vendor-charts';
+                    }
+
+                    if (id.includes('react-fast-marquee')) {
+                        return 'vendor-marquee';
+                    }
+
+                    if (
+                        id.includes('@inertiajs') ||
+                        id.includes('/react-dom/') ||
+                        id.includes('/react/') ||
+                        id.includes('scheduler')
+                    ) {
+                        return 'vendor-react';
+                    }
+                },
+            },
+        },
+    },
     plugins: [
         laravel({
             input: 'resources/js/app.jsx',

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, usePage } from "@inertiajs/react";
 import { Menu, X } from "lucide-react";
 import TensionHeader from "@/Components/blog/TensionHeader";
-import logo from "@/assets/linea-di-gioco-logo.png";
+import logo from "@/assets/linea-di-gioco-logo.webp";
 
 export default function BlogHeader() {
     const [isOpen, setIsOpen] = useState(false);
@@ -34,11 +34,14 @@ export default function BlogHeader() {
                     href="/"
                     className="flex min-w-0 items-center gap-2 sm:gap-3"
                 >
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center sm:h-14 sm:w-14">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center">
                         <img
                             src={logo}
                             alt="Logo Linea di gioco"
-                            className="h-14 w-auto sm:h-14"
+                            className="block h-14 w-14 object-contain"
+                            width={56}
+                            height={56}
+                            decoding="async"
                         />
                     </div>
                     <div>

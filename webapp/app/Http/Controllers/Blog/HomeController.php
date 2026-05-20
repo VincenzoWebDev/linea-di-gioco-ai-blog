@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\Category;
 use App\Models\GeopoliticalTension;
-use App\Services\RegionCoordinateResolver;
+use App\Services\GeopoliticalTensionService;
 use App\Support\GeopoliticalSeverity;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -16,7 +16,7 @@ use Inertia\Response;
 class HomeController extends Controller
 {
     public function __construct(
-        private readonly RegionCoordinateResolver $coordinateResolver
+        private readonly GeopoliticalTensionService $geopoliticalTensionService,
     ) {}
 
     public function index(): Response
@@ -105,8 +105,6 @@ class HomeController extends Controller
     {
         return GeopoliticalTension::query()
             ->with('featuredArticle:id,title,slug,status,published_at,summary,content,quality_score,thumb_path,cover_path')
-            ->whereNotNull('latitude')
-            ->whereNotNull('longitude')
             ->orderByDesc('risk_score')
             ->orderBy('region_name')
             ->limit(12)
@@ -162,13 +160,9 @@ class HomeController extends Controller
             ];
         }
 
-        $article = $tension->featuredArticle;
-        $context = trim(implode(' ', array_filter([
-            $article?->title,
-            $article?->summary,
-            $article?->content ? Str::limit(strip_tags($article->content), 500, '') : null,
-        ])));
-
-        return $this->coordinateResolver->resolve($tension->region_name, $context);
+        return $this->geopoliticalTensionService->resolveCoordinates(
+            (string) $tension->region_name,
+            $tension->featuredArticle
+        );
     }
 }

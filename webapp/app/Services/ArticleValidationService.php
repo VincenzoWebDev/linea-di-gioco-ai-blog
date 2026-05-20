@@ -22,6 +22,10 @@ class ArticleValidationService
             $errors[] = 'Contenuto troppo corto';
         }
 
+        if ($this->isTranslationFailurePayload($payload)) {
+            $errors[] = 'Traduzione non riuscita dal servizio AI';
+        }
+
         $minScore = (float) config('ai_news.min_quality_score', 70);
         if ((float) ($payload['quality_score'] ?? 0) < $minScore) {
             $errors[] = 'Quality score sotto soglia';
@@ -63,6 +67,36 @@ class ArticleValidationService
             'valid' => $errors === [],
             'errors' => $errors,
         ];
+    }
+
+    /**
+     * Segnale di fallimento da CrewAI Python (_fallback_article con quality 0).
+     *
+     * @param array<string, mixed> $payload
+     */
+    public function isTranslationFailurePayload(array $payload): bool
+    {
+        $title = Str::lower(trim((string) ($payload['title'] ?? '')));
+        $summary = Str::lower(trim((string) ($payload['summary'] ?? '')));
+        $content = Str::lower(trim((string) ($payload['content'] ?? '')));
+
+        if (str_contains($title, 'non traducibile')) {
+            return true;
+        }
+
+        if (str_contains($summary, 'traduzione italiana non affidabile')) {
+            return true;
+        }
+
+        if (str_contains($content, 'impossibile ottenere una riscrittura italiana')) {
+            return true;
+        }
+
+        $crewQuality = (float) ($payload['quality_score'] ?? -1);
+
+        return ($payload['rewrite_mode'] ?? '') === 'crewai'
+            && array_key_exists('quality_score', $payload)
+            && $crewQuality <= 0;
     }
 
     /**

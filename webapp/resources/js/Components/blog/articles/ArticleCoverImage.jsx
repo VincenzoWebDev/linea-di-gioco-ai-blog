@@ -1,22 +1,43 @@
 import { Image as ImageIcon } from "lucide-react";
 
+const THUMB_DIMENSIONS = { width: 384, height: 384 };
+const COVER_DIMENSIONS = { width: 1200, height: 630 };
+
+function resolveImageUrl(item, variant) {
+    const thumb =
+        item?.thumb_url ||
+        item?.article?.thumb_url ||
+        null;
+    const cover =
+        item?.cover_url ||
+        item?.article?.cover_url ||
+        null;
+
+    if (variant === "cover") {
+        return cover || thumb;
+    }
+
+    return thumb || cover;
+}
+
 export default function ArticleCoverImage({
     item,
     className = "",
     compact = false,
     alt,
+    variant = "thumb",
     loading = "lazy",
     fetchPriority = "auto",
     sizes,
-    width = 1200,
-    height = 630,
+    width,
+    height,
     decoding = "async",
 }) {
-    const imageUrl =
-        item?.cover_url ||
-        item?.thumb_url ||
-        item?.article?.cover_url ||
-        item?.article?.thumb_url;
+    const imageUrl = resolveImageUrl(item, variant);
+    const defaults =
+        variant === "cover" ? COVER_DIMENSIONS : THUMB_DIMENSIONS;
+    const resolvedWidth = width ?? defaults.width;
+    const resolvedHeight = height ?? defaults.height;
 
     return (
         <div className={`relative overflow-hidden bg-[#0B0F15] ${className}`}>
@@ -28,8 +49,8 @@ export default function ArticleCoverImage({
                     loading={loading}
                     fetchpriority={fetchPriority}
                     sizes={sizes}
-                    width={width}
-                    height={height}
+                    width={resolvedWidth}
+                    height={resolvedHeight}
                     decoding={decoding}
                 />
             ) : (

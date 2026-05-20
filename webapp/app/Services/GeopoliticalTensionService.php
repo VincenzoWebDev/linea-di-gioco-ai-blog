@@ -43,7 +43,7 @@ class GeopoliticalTensionService
         $rawRisk = $this->normalizeRiskScore($payload['risk_score'] ?? 0);
         $riskScore = $this->riskScoreCalibration->calibrate($rawRisk, $context, $statusLabel);
         $trendDirection = $this->normalizeTrendDirection($payload['trend_direction'] ?? 'stable');
-        $coordinates = $this->coordinateResolver->resolve($regionName, $context);
+        $coordinates = $this->resolveCoordinates($regionName, $featuredArticle);
 
         $attributes = [
             'risk_score' => $riskScore,
@@ -88,6 +88,50 @@ class GeopoliticalTensionService
     public function clearHeaderCache(): void
     {
         Cache::forget(self::HEADER_CACHE_KEY);
+    }
+
+    /**
+     * Risolve e salva coordinate mancanti (es. regione generica + titolo articolo con "turca").
+     */
+    public function backfillMapCoordinates(): int
+    {
+        if (! Schema::hasTable('geopolitical_tensions')) {
+            return 0;
+        }
+
+        $updated = 0;
+
+        GeopoliticalTension::query()
+            ->with('featuredArticle:id,title,summary,content')
+            ->orderBy('id')
+            ->chunkById(50, function ($tensions) use (&$updated): void {
+                foreach ($tensions as $tension) {
+                    if ($tension->hasMapCoordinates()) {
+                        continue;
+                    }
+
+                    $coordinates = $this->resolveCoordinates(
+                        (string) $tension->region_name,
+                        $tension->featuredArticle
+                    );
+
+                    if ($coordinates === null) {
+                        continue;
+                    }
+
+                    $tension->update([
+                        'latitude' => $coordinates['lat'],
+                        'longitude' => $coordinates['long'],
+                    ]);
+                    $updated++;
+                }
+            });
+
+        if ($updated > 0) {
+            $this->clearHeaderCache();
+        }
+
+        return $updated;
     }
 
     /**
@@ -148,6 +192,48 @@ class GeopoliticalTensionService
             $article->summary,
             $article->content ? Str::limit(strip_tags($article->content), 600, '') : null,
         ])));
+    }
+
+    private function articleHeadlineContext(?Article $article): string
+    {
+        if (! $article) {
+            return '';
+        }
+
+        return trim(implode(' ', array_filter([
+            $article->title,
+            $article->summary,
+        ])));
+    }
+
+    /**
+     * @return array{lat: float, long: float}|null
+     */
+    public function resolveCoordinates(string $regionName, ?Article $article): ?array
+    {
+        if ($article) {
+            $title = trim((string) $article->title);
+            if ($title !== '') {
+                $fromTitle = $this->coordinateResolver->resolve($regionName, $title);
+                if ($fromTitle !== null) {
+                    return $fromTitle;
+                }
+            }
+        }
+
+        $headlineContext = $this->articleHeadlineContext($article);
+        $fromHeadline = $headlineContext !== ''
+            ? $this->coordinateResolver->resolve($regionName, $headlineContext)
+            : null;
+        if ($fromHeadline !== null) {
+            return $fromHeadline;
+        }
+
+        $fullContext = $this->articleContext($article);
+
+        return $fullContext !== '' && $fullContext !== $headlineContext
+            ? $this->coordinateResolver->resolve($regionName, $fullContext)
+            : null;
     }
 
     private function articleUrl(GeopoliticalTension $tension): ?string

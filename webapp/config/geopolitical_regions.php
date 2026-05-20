@@ -52,7 +52,7 @@ return [
         ['aliases' => ['iran', 'tehran', 'teheran'], 'lat' => 35.6892, 'long' => 51.389],
         ['aliases' => ['saudi arabia', 'arabia saudita', 'riyadh', 'riyad'], 'lat' => 24.7136, 'long' => 46.6753],
         ['aliases' => ['yemen', 'yemen', 'sanaa', 'sana'], 'lat' => 15.3694, 'long' => 44.191],
-        ['aliases' => ['turkey', 'turchia', 'ankara', 'istanbul'], 'lat' => 39.9334, 'long' => 32.8597],
+        ['aliases' => ['turkey', 'turchia', 'turca', 'turco', 'turchese', 'ankara', 'istanbul'], 'lat' => 39.9334, 'long' => 32.8597],
         ['aliases' => ['armenia', 'armenia', 'yerevan'], 'lat' => 40.1792, 'long' => 44.4991],
         ['aliases' => ['azerbaijan', 'azerbaigian', 'baku'], 'lat' => 40.4093, 'long' => 49.8671],
         ['aliases' => ['georgia', 'georgia', 'tbilisi'], 'lat' => 41.7151, 'long' => 44.8271],

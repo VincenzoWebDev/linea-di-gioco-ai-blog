@@ -8,6 +8,22 @@ export default {
         './storage/framework/views/*.php',
         './resources/views/**/*.blade.php',
         './resources/js/**/*.jsx',
+        './resources/js/**/*.js',
+    ],
+
+    safelist: [
+        'border-[#EF4444]/50',
+        'bg-[#EF4444]/10',
+        'text-[#FCA5A5]',
+        'border-[#F97316]/50',
+        'bg-[#F97316]/10',
+        'text-[#FDBA74]',
+        'border-[#D7B56D]/50',
+        'bg-[#D7B56D]/10',
+        'text-[#FDE68A]',
+        'border-[#22C55E]/50',
+        'bg-[#22C55E]/10',
+        'text-[#86EFAC]',
     ],
 
     theme: {

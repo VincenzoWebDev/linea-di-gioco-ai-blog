@@ -33,13 +33,24 @@ export const severityClasses = {
     },
 };
 
-const DEFAULT_THRESHOLDS = {
+/** Etichette femminili per "Allerta Rossa", ecc. */
+export const alertLabels = {
+    high: "Rossa",
+    elevated: "Arancione",
+    guarded: "Gialla",
+    low: "Verde",
+};
+
+export const DEFAULT_SEVERITY_THRESHOLDS = {
     high: 80,
     elevated: 60,
     guarded: 40,
 };
 
-export function severityFromRiskScore(score, thresholds = DEFAULT_THRESHOLDS) {
+export function severityFromRiskScore(
+    score,
+    thresholds = DEFAULT_SEVERITY_THRESHOLDS,
+) {
     const value = Number(score) || 0;
 
     if (value >= thresholds.high) {
@@ -63,5 +74,45 @@ export function severityBadge(severityKey) {
         border: severity.border,
         bg: severity.bg,
         text: severity.text,
+    };
+}
+
+export function severityAlertClassName(severityKey) {
+    const badge = severityBadge(severityKey);
+
+    return `${badge.border} ${badge.bg} ${badge.text}`;
+}
+
+/**
+ * Allerta articolo: stesse soglie e palette dei badge home/archivio.
+ */
+export function alertFromRiskScore(
+    score,
+    thresholds = DEFAULT_SEVERITY_THRESHOLDS,
+) {
+    const key = severityFromRiskScore(score, thresholds);
+
+    return {
+        key,
+        label: alertLabels[key],
+        className: severityAlertClassName(key),
+        badge: severityBadge(key),
+    };
+}
+
+export function resolveSeverityThresholds(riskThresholds = {}) {
+    return {
+        high:
+            riskThresholds.severityHigh ??
+            riskThresholds.alertHigh ??
+            DEFAULT_SEVERITY_THRESHOLDS.high,
+        elevated:
+            riskThresholds.severityElevated ??
+            riskThresholds.alertElevated ??
+            DEFAULT_SEVERITY_THRESHOLDS.elevated,
+        guarded:
+            riskThresholds.severityGuarded ??
+            riskThresholds.alertGuarded ??
+            DEFAULT_SEVERITY_THRESHOLDS.guarded,
     };
 }
