@@ -1,7 +1,7 @@
 import { jsxs, jsx } from "react/jsx-runtime";
 import { A as ApplicationLogo } from "./ApplicationLogo-VXSMMN2A.mjs";
 import { Link } from "@inertiajs/react";
-import { S as SeoHead } from "./SeoHead-Bfgu-MHE.mjs";
+import { S as SeoHead } from "./SeoHead-9Gv-Y1Y7.mjs";
 function Guest({ children }) {
   return /* @__PURE__ */ jsxs("div", { className: "min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100", children: [
     /* @__PURE__ */ jsx(SeoHead, { robots: "noindex,nofollow" }),

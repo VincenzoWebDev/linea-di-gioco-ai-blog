@@ -1,13 +1,13 @@
 import { jsxs, jsx } from "react/jsx-runtime";
 import { useEffect } from "react";
-import { G as Guest } from "./GuestLayout-Pqsih9tc.mjs";
+import { G as Guest } from "./GuestLayout-DW9rU1Jy.mjs";
 import { I as InputError } from "./InputError-cRVTeK4i.mjs";
 import { I as InputLabel } from "./InputLabel-uXgJWz9w.mjs";
 import { P as PrimaryButton } from "./PrimaryButton-C-TDjBGq.mjs";
 import { T as TextInput } from "./TextInput-Dmygz_uX.mjs";
 import { useForm, Head } from "@inertiajs/react";
 import "./ApplicationLogo-VXSMMN2A.mjs";
-import "./SeoHead-Bfgu-MHE.mjs";
+import "./SeoHead-9Gv-Y1Y7.mjs";
 function ConfirmPassword() {
   const { data, setData, post, processing, errors, reset } = useForm({
     password: ""

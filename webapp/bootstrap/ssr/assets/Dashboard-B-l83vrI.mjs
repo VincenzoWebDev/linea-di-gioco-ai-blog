@@ -1,12 +1,12 @@
 import { jsxs, jsx } from "react/jsx-runtime";
-import { A as Authenticated } from "./AuthenticatedLayout-DuqH5o4I.mjs";
+import { A as Authenticated } from "./AuthenticatedLayout-APLMBOY6.mjs";
 import { Head } from "@inertiajs/react";
 import { C as Card, c as CardHeader, b as CardDescription, d as CardTitle, a as CardContent } from "./card-DRB3Bbat.mjs";
 import "react";
 import "./ApplicationLogo-VXSMMN2A.mjs";
 import "@headlessui/react";
 import "lucide-react";
-import "./SeoHead-Bfgu-MHE.mjs";
+import "./SeoHead-9Gv-Y1Y7.mjs";
 function StatGrid({ stats = [] }) {
   return /* @__PURE__ */ jsx("div", { className: "grid gap-6 sm:grid-cols-2 xl:grid-cols-4", children: stats.map((stat) => /* @__PURE__ */ jsxs(Card, { className: "overflow-hidden", children: [
     /* @__PURE__ */ jsx(

@@ -1,12 +1,12 @@
 import { jsxs, jsx } from "react/jsx-runtime";
-import { A as Authenticated } from "./AuthenticatedLayout-DuqH5o4I.mjs";
+import { A as Authenticated } from "./AuthenticatedLayout-APLMBOY6.mjs";
 import { Head } from "@inertiajs/react";
 import { C as Card, c as CardHeader, d as CardTitle, b as CardDescription, a as CardContent } from "./card-DRB3Bbat.mjs";
 import "react";
 import "./ApplicationLogo-VXSMMN2A.mjs";
 import "@headlessui/react";
 import "lucide-react";
-import "./SeoHead-Bfgu-MHE.mjs";
+import "./SeoHead-9Gv-Y1Y7.mjs";
 function Media({ auth }) {
   return /* @__PURE__ */ jsxs(
     Authenticated,

@@ -4,7 +4,7 @@ import { A as ApplicationLogo } from "./ApplicationLogo-VXSMMN2A.mjs";
 import { Link } from "@inertiajs/react";
 import { Transition } from "@headlessui/react";
 import { LayoutDashboard, FileText, Newspaper, Tags, Settings, Image, Users } from "lucide-react";
-import { S as SeoHead } from "./SeoHead-Bfgu-MHE.mjs";
+import { S as SeoHead } from "./SeoHead-9Gv-Y1Y7.mjs";
 const DropDownContext = createContext();
 const Dropdown = ({ children }) => {
   const [open, setOpen] = useState(false);

@@ -1,5 +1,5 @@
 import { jsxs, jsx } from "react/jsx-runtime";
-import { A as Authenticated } from "./AuthenticatedLayout-DuqH5o4I.mjs";
+import { A as Authenticated } from "./AuthenticatedLayout-APLMBOY6.mjs";
 import DeleteUserForm from "./DeleteUserForm-Uhkww5qD.mjs";
 import UpdatePasswordForm from "./UpdatePasswordForm-DrpJAyAX.mjs";
 import UpdateProfileInformation from "./UpdateProfileInformationForm-DwngIx5O.mjs";
@@ -8,7 +8,7 @@ import "react";
 import "./ApplicationLogo-VXSMMN2A.mjs";
 import "@headlessui/react";
 import "lucide-react";
-import "./SeoHead-Bfgu-MHE.mjs";
+import "./SeoHead-9Gv-Y1Y7.mjs";
 import "./InputError-cRVTeK4i.mjs";
 import "./InputLabel-uXgJWz9w.mjs";
 import "./Modal-BnFbDATV.mjs";

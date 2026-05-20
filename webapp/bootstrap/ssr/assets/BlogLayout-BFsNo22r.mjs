@@ -1,5 +1,5 @@
 import { jsx, jsxs, Fragment } from "react/jsx-runtime";
-import { useState } from "react";
+import { useState, useEffect, Suspense, lazy } from "react";
 import { Link, usePage } from "@inertiajs/react";
 import { Minus, TrendingDown, TrendingUp, X, Menu } from "lucide-react";
 const trendIcon = {
@@ -63,22 +63,14 @@ function TensionHeader({ tensions = [] }) {
     }
   );
 }
-const logo = "/build/assets/linea-di-gioco-logo-BNppRqB3.png";
+const logo = "/build/assets/linea-di-gioco-logo-CWRVHu89.webp";
 function BlogHeader() {
   const [isOpen, setIsOpen] = useState(false);
   const page = usePage();
   const { geopoliticalTensions = [] } = page.props;
   const currentPath = normalizePath(page.url);
-  const contactRouteName = firstAvailableRouteName([
-    "contact",
-    "contacts",
-    "contatti",
-    "blog.contact",
-    "blog.contacts"
-  ]);
   const isHomeActive = currentPath === "/";
   const isArticlesActive = currentPath === "/articoli" || currentPath.startsWith("/articoli/");
-  const isContactsActive = currentPath === "/contatti" || currentPath.startsWith("/contatti/") || currentPath === "/contact" || currentPath.startsWith("/contact/") || currentPath === "/contacts" || currentPath.startsWith("/contacts/");
   const menuItems = [
     {
       label: "Home",
@@ -89,16 +81,9 @@ function BlogHeader() {
       label: "Articoli",
       href: route("blog.articles.index"),
       active: isArticlesActive
-    },
-    ...contactRouteName ? [
-      {
-        label: "Contatti",
-        href: route(contactRouteName),
-        active: isContactsActive
-      }
-    ] : []
+    }
   ];
-  return /* @__PURE__ */ jsxs("header", { className: "border-b border-[#1C2333]", children: [
+  return /* @__PURE__ */ jsxs("header", { className: "border-b border-[#1C2333] relative z-10", children: [
     /* @__PURE__ */ jsxs("div", { className: "mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-4 sm:px-5 sm:py-5", children: [
       /* @__PURE__ */ jsxs(
         Link,
@@ -106,12 +91,15 @@ function BlogHeader() {
           href: "/",
           className: "flex min-w-0 items-center gap-2 sm:gap-3",
           children: [
-            /* @__PURE__ */ jsx("div", { className: "flex h-14 w-14 shrink-0 items-center justify-center sm:h-14 sm:w-14", children: /* @__PURE__ */ jsx(
+            /* @__PURE__ */ jsx("div", { className: "flex h-14 w-14 shrink-0 items-center justify-center", children: /* @__PURE__ */ jsx(
               "img",
               {
                 src: logo,
                 alt: "Logo Linea di gioco",
-                className: "h-14 w-auto sm:h-14"
+                className: "block h-14 w-14 object-contain",
+                width: 56,
+                height: 56,
+                decoding: "async"
               }
             ) }),
             /* @__PURE__ */ jsxs("div", { children: [
@@ -179,16 +167,6 @@ function BlogHeader() {
     )
   ] });
 }
-function firstAvailableRouteName(routeNames) {
-  if (typeof route !== "function") {
-    return null;
-  }
-  const ziggyRouter = route();
-  if (typeof ziggyRouter?.has !== "function") {
-    return null;
-  }
-  return routeNames.find((routeName) => ziggyRouter.has(routeName)) || null;
-}
 function normalizePath(url) {
   if (typeof url !== "string" || url.trim() === "") {
     return "/";
@@ -198,24 +176,131 @@ function normalizePath(url) {
   return normalized.length > 1 ? normalized.replace(/\/+$/, "") : normalized;
 }
 function BlogFooter() {
-  return /* @__PURE__ */ jsx("footer", { className: "border-t border-[#1C2333]", children: /* @__PURE__ */ jsxs("div", { className: "mx-auto flex max-w-6xl flex-col gap-6 px-6 py-10 text-sm text-[#6B7280] md:flex-row md:items-center md:justify-between", children: [
-    /* @__PURE__ */ jsxs("div", { children: [
+  return /* @__PURE__ */ jsx("footer", { className: "border-t border-[#1C2333]", children: /* @__PURE__ */ jsxs("div", { className: "mx-auto z-10 relative flex max-w-6xl flex-col gap-8 px-6 py-10 text-sm text-[#6B7280] md:flex-row md:items-center md:justify-between", children: [
+    /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
       /* @__PURE__ */ jsx("div", { className: "font-serif text-base text-[#E5E7EB]", children: "Linea di gioco" }),
-      /* @__PURE__ */ jsx("div", { children: "Osservatorio geopolitico e strategico." })
+      /* @__PURE__ */ jsx("div", { children: "Osservatorio geopolitico e strategico." }),
+      /* @__PURE__ */ jsx("div", { className: "max-w-md text-xs leading-relaxed text-[#4B5563]", children: "Le notizie riportate sono rielaborazioni e sintesi basate su fonti pubbliche e testate giornalistiche esterne." }),
+      /* @__PURE__ */ jsxs("div", { className: "pt-2 text-xs text-[#4B5563]", children: [
+        "Â© ",
+        (/* @__PURE__ */ new Date()).getFullYear(),
+        " Linea di Gioco. Tutti i diritti riservati."
+      ] })
     ] }),
-    /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-4 text-xs uppercase tracking-[0.2em]", children: [
-      /* @__PURE__ */ jsx(Link, { href: route("home"), className: "transition hover:text-[#E5E7EB]", children: "Home" }),
-      /* @__PURE__ */ jsx(Link, { href: route("blog.articles.index"), className: "transition hover:text-[#E5E7EB]", children: "Articoli" }),
-      /* @__PURE__ */ jsx(Link, { href: route("newsletter"), className: "transition hover:text-[#E5E7EB]", children: "Newsletter" })
+    /* @__PURE__ */ jsxs("div", { className: "flex flex-wrap items-center gap-4 text-xs uppercase tracking-[0.2em]", children: [
+      /* @__PURE__ */ jsx(
+        Link,
+        {
+          href: route("home"),
+          className: "transition hover:text-[#E5E7EB]",
+          children: "Home"
+        }
+      ),
+      /* @__PURE__ */ jsx(
+        Link,
+        {
+          href: route("blog.articles.index"),
+          className: "transition hover:text-[#E5E7EB]",
+          children: "Articoli"
+        }
+      ),
+      /* @__PURE__ */ jsx(
+        Link,
+        {
+          href: route("contact"),
+          className: "transition hover:text-[#E5E7EB]",
+          children: "Contatti"
+        }
+      ),
+      /* @__PURE__ */ jsx(
+        Link,
+        {
+          href: route("newsletter"),
+          className: "transition hover:text-[#E5E7EB]",
+          children: "Newsletter"
+        }
+      ),
+      /* @__PURE__ */ jsx(
+        Link,
+        {
+          href: route("privacy-policy"),
+          className: "transition hover:text-[#E5E7EB]",
+          children: "Privacy"
+        }
+      ),
+      /* @__PURE__ */ jsx(
+        Link,
+        {
+          href: route("cookie-policy"),
+          className: "transition hover:text-[#E5E7EB]",
+          children: "Cookie"
+        }
+      )
     ] })
   ] }) });
 }
+function getConsent() {
+  const raw = document.cookie.split("; ").find((row) => row.startsWith("cookie_consent="));
+  if (!raw) return null;
+  try {
+    return JSON.parse(decodeURIComponent(raw.split("=")[1]));
+  } catch {
+    return null;
+  }
+}
+function hasAnalyticsConsent() {
+  const consent = getConsent();
+  return consent?.analytics === true;
+}
+let gaLoaded = false;
+function loadGA() {
+  if (gaLoaded) return;
+  gaLoaded = true;
+  const script = document.createElement("script");
+  script.src = "https://www.googletagmanager.com/gtag/js?id=G-KQWY6P94WJ";
+  script.async = true;
+  script.onload = () => {
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      window.dataLayer.push(arguments);
+    }
+    window.gtag = gtag;
+    gtag("js", /* @__PURE__ */ new Date());
+    gtag("config", "G-KQWY6P94WJ");
+  };
+  document.head.appendChild(script);
+}
+function useAnalytics() {
+  useEffect(() => {
+    if (hasAnalyticsConsent()) {
+      loadGA();
+    }
+  }, []);
+}
+const CookieBanner = lazy(() => import("./CookieBanner-CMSI6aoR.mjs"));
 function BlogLayout({ children }) {
+  const { auth } = usePage().props;
+  useAnalytics();
+  useEffect(() => {
+    const handler = () => {
+      const saved = JSON.parse(
+        localStorage.getItem("cookie_consent") || "null"
+      );
+      if (saved?.analytics) {
+        loadGA();
+      }
+    };
+    window.addEventListener("cookie-consent-updated", handler);
+    return () => window.removeEventListener("cookie-consent-updated", handler);
+  }, []);
   return /* @__PURE__ */ jsx("div", { className: "min-h-screen overflow-hidden bg-[#0E1116] text-[#E5E7EB] font-sans", children: /* @__PURE__ */ jsxs("div", { className: "relative overflow-hidden", children: [
-    /* @__PURE__ */ jsx("div", { className: "pointer-events-none absolute -top-40 right-0 h-[420px] w-[420px] rounded-full bg-[#1F3A5F]/40 blur-[120px]" }),
-    /* @__PURE__ */ jsx("div", { className: "pointer-events-none absolute -bottom-48 left-10 h-[420px] w-[420px] rounded-full bg-[#9E2A2B]/30 blur-[140px]" }),
+    /* @__PURE__ */ jsx("div", { className: "pointer-events-none absolute z-0 -top-40 right-0 h-[420px] w-[420px] rounded-full bg-[#1F3A5F]/40 blur-[120px]" }),
+    /* @__PURE__ */ jsx("div", { className: "pointer-events-none absolute z-0 -bottom-48 left-10 h-[420px] w-[420px] rounded-full bg-[#9E2A2B]/30 blur-[140px]" }),
     /* @__PURE__ */ jsx(BlogHeader, {}),
-    /* @__PURE__ */ jsx("main", { className: "mx-auto w-full max-w-6xl px-4 pb-16 pt-8 text-base leading-[1.7] sm:px-6 sm:pb-20 sm:pt-12 sm:text-[17px]", children }),
+    /* @__PURE__ */ jsxs("main", { className: "mx-auto w-full max-w-6xl px-4 pb-16 pt-8 text-base leading-[1.7] sm:px-6 sm:pb-20 sm:pt-12 sm:text-[17px]", children: [
+      children,
+      auth?.isLogged ? null : /* @__PURE__ */ jsx(Suspense, { fallback: null, children: /* @__PURE__ */ jsx(CookieBanner, {}) })
+    ] }),
     /* @__PURE__ */ jsx(BlogFooter, {})
   ] }) });
 }

@@ -2,16 +2,7 @@ import { jsx } from "react/jsx-runtime";
 import { createInertiaApp } from "@inertiajs/react";
 import createServer from "@inertiajs/react/server";
 import { renderToString } from "react-dom/server";
-async function resolvePageComponent(path, pages) {
-  for (const p2 of Array.isArray(path) ? path : [path]) {
-    const page = pages[p2];
-    if (typeof page === "undefined") {
-      continue;
-    }
-    return typeof page === "function" ? page() : page;
-  }
-  throw new Error(`Page not found: ${path}`);
-}
+import { r as resolvePageComponent } from "./assets/vendor-koWuargk.mjs";
 function t(t3, e2) {
   for (var n2 = 0; n2 < e2.length; n2++) {
     var r2 = e2[n2];
@@ -483,7 +474,7 @@ function titleCallback(title) {
 function resolvePage(name) {
   return resolvePageComponent(
     `./Pages/${name}.jsx`,
-    /* @__PURE__ */ Object.assign({ "./Pages/Admin/Categories.jsx": () => import("./assets/Categories-BhbzZ-V2.mjs"), "./Pages/Admin/Dashboard.jsx": () => import("./assets/Dashboard-BjlVNbIM.mjs"), "./Pages/Admin/Media.jsx": () => import("./assets/Media-BqZDLyyi.mjs"), "./Pages/Admin/Pages.jsx": () => import("./assets/Pages-DTZAiUvq.mjs"), "./Pages/Admin/Posts.jsx": () => import("./assets/Posts-DcyNW1wo.mjs"), "./Pages/Admin/Settings.jsx": () => import("./assets/Settings-M-1rOnxG.mjs"), "./Pages/Admin/Users.jsx": () => import("./assets/Users-gZnrc8Ai.mjs"), "./Pages/Auth/ConfirmPassword.jsx": () => import("./assets/ConfirmPassword-BXjs5PTi.mjs"), "./Pages/Auth/ForgotPassword.jsx": () => import("./assets/ForgotPassword-B1gPgUhh.mjs"), "./Pages/Auth/Login.jsx": () => import("./assets/Login-DF--JFie.mjs"), "./Pages/Auth/Register.jsx": () => import("./assets/Register-X4Knd3VF.mjs"), "./Pages/Auth/ResetPassword.jsx": () => import("./assets/ResetPassword-BnRDmGFz.mjs"), "./Pages/Auth/VerifyEmail.jsx": () => import("./assets/VerifyEmail-DrapjIul.mjs"), "./Pages/Blog/Articles/Index.jsx": () => import("./assets/Index-B-9wU43I.mjs"), "./Pages/Blog/Articles/Show.jsx": () => import("./assets/Show-DT4pDs25.mjs"), "./Pages/Blog/Newsletter.jsx": () => import("./assets/Newsletter-RLIOJRtc.mjs"), "./Pages/Profile/Edit.jsx": () => import("./assets/Edit-tz-B16JO.mjs"), "./Pages/Profile/Partials/DeleteUserForm.jsx": () => import("./assets/DeleteUserForm-Uhkww5qD.mjs"), "./Pages/Profile/Partials/UpdatePasswordForm.jsx": () => import("./assets/UpdatePasswordForm-DrpJAyAX.mjs"), "./Pages/Profile/Partials/UpdateProfileInformationForm.jsx": () => import("./assets/UpdateProfileInformationForm-DwngIx5O.mjs"), "./Pages/Welcome.jsx": () => import("./assets/Welcome-D4QFWwuf.mjs") })
+    /* @__PURE__ */ Object.assign({ "./Pages/Admin/Categories.jsx": () => import("./assets/Categories-CG3gItWO.mjs"), "./Pages/Admin/Dashboard.jsx": () => import("./assets/Dashboard-B-l83vrI.mjs"), "./Pages/Admin/Media.jsx": () => import("./assets/Media-ChYikmMr.mjs"), "./Pages/Admin/Pages.jsx": () => import("./assets/Pages-Bwd-nwvq.mjs"), "./Pages/Admin/Posts.jsx": () => import("./assets/Posts-Csxtokkl.mjs"), "./Pages/Admin/Settings.jsx": () => import("./assets/Settings-DU5nu7S_.mjs"), "./Pages/Admin/Users.jsx": () => import("./assets/Users-Dm_CuW97.mjs"), "./Pages/Auth/ConfirmPassword.jsx": () => import("./assets/ConfirmPassword-BmQwph0C.mjs"), "./Pages/Auth/ForgotPassword.jsx": () => import("./assets/ForgotPassword-CPd-8fXz.mjs"), "./Pages/Auth/Login.jsx": () => import("./assets/Login-DMxr9fEv.mjs"), "./Pages/Auth/Register.jsx": () => import("./assets/Register-CQ0JFRg2.mjs"), "./Pages/Auth/ResetPassword.jsx": () => import("./assets/ResetPassword-8SarpTMm.mjs"), "./Pages/Auth/VerifyEmail.jsx": () => import("./assets/VerifyEmail-ChTwwVN1.mjs"), "./Pages/Blog/Articles/Index.jsx": () => import("./assets/Index-C10U6OKq.mjs"), "./Pages/Blog/Articles/Show.jsx": () => import("./assets/Show-DqAzeOfo.mjs"), "./Pages/Blog/Contact.jsx": () => import("./assets/Contact-Befl8EuV.mjs"), "./Pages/Blog/Newsletter.jsx": () => import("./assets/Newsletter-SDuE4NHq.mjs"), "./Pages/Legal/CookiePolicy.jsx": () => import("./assets/CookiePolicy-L5ptJcDp.mjs"), "./Pages/Legal/PrivacyPolicy.jsx": () => import("./assets/PrivacyPolicy-BLcKBqqV.mjs"), "./Pages/Profile/Edit.jsx": () => import("./assets/Edit-D8SypxL6.mjs"), "./Pages/Profile/Partials/DeleteUserForm.jsx": () => import("./assets/DeleteUserForm-Uhkww5qD.mjs"), "./Pages/Profile/Partials/UpdatePasswordForm.jsx": () => import("./assets/UpdatePasswordForm-DrpJAyAX.mjs"), "./Pages/Profile/Partials/UpdateProfileInformationForm.jsx": () => import("./assets/UpdateProfileInformationForm-DwngIx5O.mjs"), "./Pages/Welcome.jsx": () => import("./assets/Welcome-Bj6IUTrZ.mjs") })
   );
 }
 function buildZiggyConfig(pageProps = {}) {

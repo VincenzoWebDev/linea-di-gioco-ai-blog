@@ -6,9 +6,13 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
     resolve: {
         alias: {
-            'ziggy-js': path.resolve(__dirname, 'vendor/tightenco/ziggy/dist/index.esm.js'),
+            'ziggy-js': path.resolve(
+                __dirname,
+                'vendor/tightenco/ziggy/dist/index.esm.js'
+            ),
         },
     },
+
     build: {
         rollupOptions: {
             output: {
@@ -17,7 +21,10 @@ export default defineConfig({
                         return;
                     }
 
-                    if (id.includes('react-simple-maps') || id.includes('d3-')) {
+                    if (
+                        id.includes('react-simple-maps') ||
+                        id.includes('d3-')
+                    ) {
                         return 'vendor-maps';
                     }
 
@@ -33,18 +40,12 @@ export default defineConfig({
                         return 'vendor-marquee';
                     }
 
-                    if (
-                        id.includes('@inertiajs') ||
-                        id.includes('/react-dom/') ||
-                        id.includes('/react/') ||
-                        id.includes('scheduler')
-                    ) {
-                        return 'vendor-react';
-                    }
+                    return 'vendor';
                 },
             },
         },
     },
+
     plugins: [
         laravel({
             input: 'resources/js/app.jsx',

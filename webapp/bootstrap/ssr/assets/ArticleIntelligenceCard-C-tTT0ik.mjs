@@ -1,19 +1,33 @@
 import { jsxs, jsx } from "react/jsx-runtime";
 import { Link } from "@inertiajs/react";
 import { Image, ArrowRight } from "lucide-react";
+const THUMB_DIMENSIONS = { width: 384, height: 384 };
+const COVER_DIMENSIONS = { width: 1200, height: 630 };
+function resolveImageUrl(item, variant) {
+  const thumb = item?.thumb_url || item?.article?.thumb_url || null;
+  const cover = item?.cover_url || item?.article?.cover_url || null;
+  if (variant === "cover") {
+    return cover || thumb;
+  }
+  return thumb || cover;
+}
 function ArticleCoverImage({
   item,
   className = "",
   compact = false,
   alt,
+  variant = "thumb",
   loading = "lazy",
   fetchPriority = "auto",
   sizes,
-  width = 1200,
-  height = 630,
+  width,
+  height,
   decoding = "async"
 }) {
-  const imageUrl = item?.cover_url || item?.thumb_url || item?.article?.cover_url || item?.article?.thumb_url;
+  const imageUrl = resolveImageUrl(item, variant);
+  const defaults = variant === "cover" ? COVER_DIMENSIONS : THUMB_DIMENSIONS;
+  const resolvedWidth = width ?? defaults.width;
+  const resolvedHeight = height ?? defaults.height;
   return /* @__PURE__ */ jsxs("div", { className: `relative overflow-hidden bg-[#0B0F15] ${className}`, children: [
     imageUrl ? /* @__PURE__ */ jsx(
       "img",
@@ -24,8 +38,8 @@ function ArticleCoverImage({
         loading,
         fetchpriority: fetchPriority,
         sizes,
-        width,
-        height,
+        width: resolvedWidth,
+        height: resolvedHeight,
         decoding
       }
     ) : /* @__PURE__ */ jsx("div", { className: "flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,rgba(215,181,109,0.16),transparent_32%),linear-gradient(135deg,rgba(31,58,95,0.5),rgba(11,15,21,0.96)_58%,rgba(158,42,43,0.24))]", children: /* @__PURE__ */ jsx(
@@ -43,16 +57,6 @@ function DataChip({ icon: Icon, value }) {
     /* @__PURE__ */ jsx("span", { className: "truncate", children: value })
   ] });
 }
-function formatPublishedAt(value) {
-  if (!value) {
-    return "Data n.d.";
-  }
-  return new Intl.DateTimeFormat("it-IT", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric"
-  }).format(new Date(value));
-}
 function ArticleIntelligenceCard({
   article,
   index = 0,
@@ -62,6 +66,7 @@ function ArticleIntelligenceCard({
   statusBadge = null,
   imageLoading = "lazy",
   imageFetchPriority = "auto",
+  imageVariant = "thumb",
   imageSizes = "(min-width: 1280px) 30vw, (min-width: 768px) 45vw, 100vw"
 }) {
   const targetHref = href || route("blog.articles.show", {
@@ -82,12 +87,11 @@ function ArticleIntelligenceCard({
             ArticleCoverImage,
             {
               item: article,
+              variant: imageVariant,
               className: "h-48 border-b border-[#202A3D]",
               loading: imageLoading,
               fetchPriority: imageFetchPriority,
-              sizes: imageSizes,
-              width: 1200,
-              height: 630
+              sizes: imageSizes
             }
           ),
           /* @__PURE__ */ jsxs("div", { className: "absolute bottom-3 left-3 right-3 flex min-w-0 items-center justify-between gap-2", children: [
@@ -123,53 +127,7 @@ function ArticleIntelligenceCard({
     }
   );
 }
-const severityClasses = {
-  high: {
-    label: "Rosso",
-    marker: "#EF4444",
-    border: "border-[#EF4444]/50",
-    text: "text-[#FCA5A5]",
-    bg: "bg-[#EF4444]/10",
-    fill: "#EF4444"
-  },
-  elevated: {
-    label: "Arancione",
-    marker: "#F97316",
-    border: "border-[#F97316]/50",
-    text: "text-[#FDBA74]",
-    bg: "bg-[#F97316]/10",
-    fill: "#F97316"
-  },
-  guarded: {
-    label: "Giallo",
-    marker: "#D7B56D",
-    border: "border-[#D7B56D]/50",
-    text: "text-[#FDE68A]",
-    bg: "bg-[#D7B56D]/10",
-    fill: "#D7B56D"
-  },
-  low: {
-    label: "Verde",
-    marker: "#22C55E",
-    border: "border-[#22C55E]/50",
-    text: "text-[#86EFAC]",
-    bg: "bg-[#22C55E]/10",
-    fill: "#22C55E"
-  }
-};
-function severityBadge(severityKey) {
-  const severity = severityClasses[severityKey] || severityClasses.low;
-  return {
-    label: severity.label,
-    border: severity.border,
-    bg: severity.bg,
-    text: severity.text
-  };
-}
 export {
   ArticleCoverImage as A,
-  ArticleIntelligenceCard as a,
-  severityClasses as b,
-  formatPublishedAt as f,
-  severityBadge as s
+  ArticleIntelligenceCard as a
 };

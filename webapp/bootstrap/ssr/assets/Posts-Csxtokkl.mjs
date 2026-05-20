@@ -1,6 +1,6 @@
 import { jsxs, jsx } from "react/jsx-runtime";
 import { useState, useRef, useMemo, useEffect } from "react";
-import { A as Authenticated } from "./AuthenticatedLayout-DuqH5o4I.mjs";
+import { A as Authenticated } from "./AuthenticatedLayout-APLMBOY6.mjs";
 import { useForm, Head, Link, router } from "@inertiajs/react";
 import { C as Card, c as CardHeader, d as CardTitle, b as CardDescription, a as CardContent } from "./card-DRB3Bbat.mjs";
 import { M as Modal } from "./Modal-BnFbDATV.mjs";
@@ -8,7 +8,7 @@ import { I as InputError } from "./InputError-cRVTeK4i.mjs";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import "./ApplicationLogo-VXSMMN2A.mjs";
 import "@headlessui/react";
-import "./SeoHead-Bfgu-MHE.mjs";
+import "./SeoHead-9Gv-Y1Y7.mjs";
 const statusStyles = {
   draft: "bg-slate-100 text-slate-700",
   review: "bg-amber-100 text-amber-700",

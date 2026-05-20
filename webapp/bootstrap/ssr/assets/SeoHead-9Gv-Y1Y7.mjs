@@ -57,10 +57,12 @@ function SeoHead({
   description,
   canonicalUrl,
   image,
+  imageAlt,
   type,
   keywords = [],
   robots,
   structuredData = [],
+  preloadImages = [],
   publishedTime,
   modifiedTime,
   section,
@@ -77,14 +79,21 @@ function SeoHead({
   );
   const resolvedType = safeText(type || seo.defaultType || "website");
   const resolvedKeywords = normalizeKeywords(keywords);
-  const resolvedRobots = safeText(robots || "index,follow");
+  const resolvedRobots = safeText(
+    robots || "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"
+  );
   const resolvedCanonical = toAbsoluteUrl(canonicalUrl || url, baseUrl);
-  const resolvedImage = image ? toAbsoluteUrl(image, baseUrl) : "";
-  const resolvedAuthor = trimText(author || siteName, 80);
+  const resolvedImage = toAbsoluteUrl(image || seo.defaultImage || "", baseUrl);
+  const resolvedImageAlt = trimText(
+    imageAlt || seo.defaultImageAlt || resolvedTitle || siteName,
+    160
+  );
+  const resolvedAuthor = trimText(author || seo.defaultAuthor || siteName, 80);
   const resolvedLocale = safeText(seo.defaultLocale || "it_IT");
   const resolvedTwitterCard = safeText(
     resolvedImage ? seo.twitterCard || "summary_large_image" : "summary"
   );
+  const resolvedTwitterSite = safeText(seo.twitterSite || "");
   const resolvedPublishedTime = safeText(publishedTime);
   const resolvedModifiedTime = safeText(modifiedTime);
   const resolvedSection = trimText(section, 80);
@@ -103,7 +112,25 @@ function SeoHead({
     /* @__PURE__ */ jsx("meta", { "head-key": "twitter:card", name: "twitter:card", content: resolvedTwitterCard }),
     /* @__PURE__ */ jsx("meta", { "head-key": "twitter:title", name: "twitter:title", content: resolvedTitle }),
     /* @__PURE__ */ jsx("meta", { "head-key": "twitter:description", name: "twitter:description", content: resolvedDescription }),
+    /* @__PURE__ */ jsx("meta", { "head-key": "format-detection", name: "format-detection", content: "telephone=no,address=no,email=no" }),
     /* @__PURE__ */ jsx("link", { "head-key": "canonical", rel: "canonical", href: resolvedCanonical }),
+    preloadImages.map((item, index) => {
+      const href = toAbsoluteUrl(item?.href, baseUrl);
+      if (!href) {
+        return null;
+      }
+      return /* @__PURE__ */ jsx(
+        "link",
+        {
+          "head-key": `preload-image-${index}`,
+          rel: "preload",
+          as: "image",
+          href,
+          fetchpriority: item.fetchPriority || "high"
+        },
+        `preload-image-${index}`
+      );
+    }),
     resolvedKeywords.length > 0 && /* @__PURE__ */ jsx(
       "meta",
       {
@@ -114,6 +141,11 @@ function SeoHead({
     ),
     resolvedImage && /* @__PURE__ */ jsx("meta", { "head-key": "og:image", property: "og:image", content: resolvedImage }),
     resolvedImage && /* @__PURE__ */ jsx("meta", { "head-key": "twitter:image", name: "twitter:image", content: resolvedImage }),
+    resolvedImage && /* @__PURE__ */ jsx("meta", { "head-key": "og:image:alt", property: "og:image:alt", content: resolvedImageAlt }),
+    resolvedImage && /* @__PURE__ */ jsx("meta", { "head-key": "twitter:image:alt", name: "twitter:image:alt", content: resolvedImageAlt }),
+    resolvedImage && /* @__PURE__ */ jsx("meta", { "head-key": "og:image:width", property: "og:image:width", content: "1200" }),
+    resolvedImage && /* @__PURE__ */ jsx("meta", { "head-key": "og:image:height", property: "og:image:height", content: "630" }),
+    resolvedTwitterSite && /* @__PURE__ */ jsx("meta", { "head-key": "twitter:site", name: "twitter:site", content: resolvedTwitterSite }),
     resolvedPublishedTime && /* @__PURE__ */ jsx(
       "meta",
       {
