@@ -52,9 +52,8 @@ function formatDate(value) {
 
 function formatCoordinate(value, axis) {
     const numeric = Number(value) || 0;
-    const direction = axis === "lat"
-        ? numeric >= 0 ? "N" : "S"
-        : numeric >= 0 ? "E" : "W";
+    const direction =
+        axis === "lat" ? (numeric >= 0 ? "N" : "S") : numeric >= 0 ? "E" : "W";
 
     return `${Math.abs(numeric).toFixed(2)} ${direction}`;
 }
@@ -67,8 +66,14 @@ function normalizeOperations(locations, articles) {
             summary: location.article?.summary || location.status_label,
             url: location.article?.url || null,
             published_at: location.article?.published_at || location.updated_at,
-            thumb_url: location.article?.thumb_url || location.article?.cover_url || null,
-            cover_url: location.article?.cover_url || location.article?.thumb_url || null,
+            thumb_url:
+                location.article?.thumb_url ||
+                location.article?.cover_url ||
+                null,
+            cover_url:
+                location.article?.cover_url ||
+                location.article?.thumb_url ||
+                null,
         }));
     }
 
@@ -76,12 +81,17 @@ function normalizeOperations(locations, articles) {
         ...article,
         title: article.title,
         summary: article.excerpt || article.summary,
-        url: route("blog.articles.show", { id: article.id, slug: article.slug }),
+        url: route("blog.articles.show", {
+            id: article.id,
+            slug: article.slug,
+        }),
         region_name: article.topic || "Dossier globale",
         risk_score: 38,
         severity: index === 0 ? "elevated" : "guarded",
         trend_direction: "stable",
-        operation_code: article.operation_code || `OP-${String(article.id).padStart(4, "0")}`,
+        operation_code:
+            article.operation_code ||
+            `OP-${String(article.id).padStart(4, "0")}`,
         article,
         thumb_url: article.thumb_url || article.cover_url || null,
         cover_url: article.cover_url || article.thumb_url || null,
@@ -90,7 +100,8 @@ function normalizeOperations(locations, articles) {
 
 function GlobalMap({ operations }) {
     const [activeId, setActiveId] = useState(operations[0]?.id || null);
-    const active = operations.find((item) => item.id === activeId) || operations[0];
+    const active =
+        operations.find((item) => item.id === activeId) || operations[0];
 
     return (
         <section className="relative overflow-hidden border border-[#202A3D] bg-[#080B10] shadow-[0_32px_90px_rgba(0,0,0,0.32)]">
@@ -114,45 +125,75 @@ function GlobalMap({ operations }) {
 
                     <div className="mt-5 sm:mt-7 aspect-[1.55] sm:aspect-[1.72] w-full max-w-full overflow-hidden border border-[#182234] bg-[#0B0F15]/80 [&_svg]:max-w-full [&_svg]:origin-center [&_svg]:scale-[1.02] sm:[&_svg]:scale-[1.1]">
                         <ComposableMap
-                            projectionConfig={{ rotate: [-10, 0, 0], scale: 178 }}
+                            projectionConfig={{
+                                rotate: [-10, 0, 0],
+                                scale: 178,
+                            }}
                             className="h-full w-full"
                         >
                             <Graticule stroke="#233047" strokeWidth={0.35} />
                             <Geographies geography={geoUrl}>
-                                {({ geographies }) => geographies.map((geo) => (
-                                    <Geography
-                                        key={geo.rsmKey}
-                                        geography={geo}
-                                        fill="#111827"
-                                        stroke="#263248"
-                                        strokeWidth={0.42}
-                                        style={{
-                                            default: { outline: "none" },
-                                            hover: { fill: "#162238", outline: "none" },
-                                            pressed: { outline: "none" },
-                                        }}
-                                    />
-                                ))}
+                                {({ geographies }) =>
+                                    geographies.map((geo) => (
+                                        <Geography
+                                            key={geo.rsmKey}
+                                            geography={geo}
+                                            fill="#111827"
+                                            stroke="#263248"
+                                            strokeWidth={0.42}
+                                            style={{
+                                                default: { outline: "none" },
+                                                hover: {
+                                                    fill: "#162238",
+                                                    outline: "none",
+                                                },
+                                                pressed: { outline: "none" },
+                                            }}
+                                        />
+                                    ))
+                                }
                             </Geographies>
 
                             {operations.map((item) => {
-                                const severity = severityClasses[item.severity] || severityClasses.guarded;
+                                const severity =
+                                    severityClasses[item.severity] ||
+                                    severityClasses.guarded;
 
                                 return (
                                     <Marker
                                         key={`${item.id}-${item.region_name}`}
-                                        coordinates={[Number(item.long), Number(item.lat)]}
-                                        onMouseEnter={() => setActiveId(item.id)}
+                                        coordinates={[
+                                            Number(item.long),
+                                            Number(item.lat),
+                                        ]}
+                                        onMouseEnter={() =>
+                                            setActiveId(item.id)
+                                        }
                                         onFocus={() => setActiveId(item.id)}
                                     >
                                         <motion.g
                                             animate={{ scale: [1, 1.28, 1] }}
-                                            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                                            transition={{
+                                                duration: 1.8,
+                                                repeat: Infinity,
+                                                ease: "easeInOut",
+                                            }}
                                             className="cursor-pointer"
                                         >
-                                            <circle r={12} fill={severity.marker} fillOpacity={0.16} />
-                                            <circle r={5.5} fill={severity.marker} fillOpacity={0.34} />
-                                            <circle r={2.6} fill={severity.marker} />
+                                            <circle
+                                                r={12}
+                                                fill={severity.marker}
+                                                fillOpacity={0.16}
+                                            />
+                                            <circle
+                                                r={5.5}
+                                                fill={severity.marker}
+                                                fillOpacity={0.34}
+                                            />
+                                            <circle
+                                                r={2.6}
+                                                fill={severity.marker}
+                                            />
                                         </motion.g>
                                     </Marker>
                                 );
@@ -173,14 +214,24 @@ function GlobalMap({ operations }) {
                                         {active.region_name}
                                     </h2>
                                 </div>
-                                <span className={`shrink-0 border px-3 py-1 font-mono text-xs uppercase tracking-[0.2em] ${severityClasses[active.severity]?.border} ${severityClasses[active.severity]?.bg} ${severityClasses[active.severity]?.text}`}>
+                                <span
+                                    className={`shrink-0 border px-3 py-1 font-mono text-xs uppercase tracking-[0.2em] ${severityClasses[active.severity]?.border} ${severityClasses[active.severity]?.bg} ${severityClasses[active.severity]?.text}`}
+                                >
                                     {severityClasses[active.severity]?.label}
                                 </span>
                             </div>
 
                             <div className="mt-5 grid grid-cols-2 gap-3">
-                                <SignalBox icon={Crosshair} label="Rischio" value={active.risk_score} />
-                                <SignalBox icon={MapPin} label="Coordinate" value={`${formatCoordinate(active.lat, "lat")} / ${formatCoordinate(active.long, "long")}`} />
+                                <SignalBox
+                                    icon={Crosshair}
+                                    label="Rischio"
+                                    value={active.risk_score}
+                                />
+                                <SignalBox
+                                    icon={MapPin}
+                                    label="Coordinate"
+                                    value={`${formatCoordinate(active.lat, "lat")} / ${formatCoordinate(active.long, "long")}`}
+                                />
                             </div>
 
                             <ArticleCoverImage
@@ -225,7 +276,9 @@ function SignalBox({ icon: Icon, label, value }) {
                 <Icon className="h-3.5 w-3.5" />
                 {label}
             </div>
-            <div className="mt-2 truncate font-mono text-sm text-[#E8EDF5]">{value}</div>
+            <div className="mt-2 truncate font-mono text-sm text-[#E8EDF5]">
+                {value}
+            </div>
         </div>
     );
 }
@@ -239,11 +292,21 @@ function TacticalTicker({ items }) {
         <section className="mt-6 overflow-hidden border-y border-[#202A3D] bg-[#0B0F15] py-3">
             <Marquee gradient={false} speed={28} pauseOnHover>
                 {items.map((item) => (
-                    <div key={`${item.id}-${item.title}`} className="mx-6 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.18em] text-[#9CA3AF]">
+                    <div
+                        key={`${item.id}-${item.title}`}
+                        className="mx-6 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.18em] text-[#9CA3AF]"
+                    >
                         <RadioTower className="h-4 w-4 text-[#D7B56D]" />
-                        <span className="text-[#D7B56D]">{item.operation_code}</span>
-                        <span>{formatCoordinate(item.lat, "lat")} / {formatCoordinate(item.long, "long")}</span>
-                        <span className="max-w-[420px] truncate text-[#E8EDF5]">{item.title}</span>
+                        <span className="text-[#D7B56D]">
+                            {item.operation_code}
+                        </span>
+                        <span>
+                            {formatCoordinate(item.lat, "lat")} /{" "}
+                            {formatCoordinate(item.long, "long")}
+                        </span>
+                        <span className="max-w-[420px] truncate text-[#E8EDF5]">
+                            {item.title}
+                        </span>
                     </div>
                 ))}
             </Marquee>
@@ -285,7 +348,8 @@ function IntelligenceCard({ item, index }) {
 function EmptyState() {
     return (
         <div className="border border-dashed border-[#2A354D] bg-[#101620] p-8 text-[#9CA3AF]">
-            La sala operativa si popolera automaticamente con le prime analisi pubblicate.
+            La sala operativa si popolera automaticamente con le prime analisi
+            pubblicate.
         </div>
     );
 }
@@ -297,13 +361,27 @@ export default function Welcome({
     tickerItems = [],
     stats = {},
 }) {
-    const operations = useMemo(() => normalizeOperations(locations, []), [locations]);
-    const feedItems = operations.length > 0 ? operations : normalizeOperations([], latestArticles);
+    const operations = useMemo(
+        () => normalizeOperations(locations, []),
+        [locations],
+    );
+    const feedItems =
+        operations.length > 0
+            ? operations
+            : normalizeOperations([], latestArticles);
 
     const statItems = [
         { label: "Dossier", value: stats.articlesCount || 0, icon: FileSearch },
-        { label: "Hotspot", value: stats.hotspotsCount || operations.length, icon: Target },
-        { label: "Agg.", value: formatDate(stats.latestPublishedAt), icon: Binary },
+        {
+            label: "Hotspot",
+            value: stats.hotspotsCount || operations.length,
+            icon: Target,
+        },
+        {
+            label: "Agg.",
+            value: formatDate(stats.latestPublishedAt),
+            icon: Binary,
+        },
     ];
     const description =
         "Analisi geopolitiche, dossier internazionali e briefing AI su crisi, sicurezza, energia e hotspot globali monitorati in tempo reale.";
@@ -358,11 +436,16 @@ export default function Welcome({
             <BlogLayout>
                 <GlobalMap operations={operations} />
 
-                <TacticalTicker items={operations.length > 0 ? operations : []} />
+                <TacticalTicker
+                    items={operations.length > 0 ? operations : []}
+                />
 
                 <section className="mt-8 sm:mt-12 grid gap-4 md:grid-cols-3">
                     {statItems.map((item) => (
-                        <div key={item.label} className="border border-[#202A3D] bg-[#101620] p-5">
+                        <div
+                            key={item.label}
+                            className="border border-[#202A3D] bg-[#101620] p-5"
+                        >
                             <div className="flex items-center justify-between gap-4">
                                 <p className="font-mono text-xs uppercase tracking-[0.24em] text-[#7E8796]">
                                     {item.label}
@@ -398,7 +481,11 @@ export default function Welcome({
                     {feedItems.length > 0 ? (
                         <div className="grid gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
                             {feedItems.slice(0, 9).map((item, index) => (
-                                <IntelligenceCard key={`${item.id}-${item.operation_code}`} item={item} index={index} />
+                                <IntelligenceCard
+                                    key={`${item.id}-${item.operation_code}`}
+                                    item={item}
+                                    index={index}
+                                />
                             ))}
                         </div>
                     ) : (
@@ -420,25 +507,34 @@ export default function Welcome({
                     </div>
 
                     <div className="grid gap-3">
-                        {briefingArticles.length > 0 ? briefingArticles.slice(0, 5).map((article) => (
-                            <Link
-                                key={article.id}
-                                href={route("blog.articles.show", { id: article.id, slug: article.slug })}
-                                className="grid grid-cols-[64px_minmax(0,1fr)] items-center gap-3 border border-[#202A3D] bg-[#0B0F15] p-3 transition hover:border-[#D7B56D]/50 sm:grid-cols-[76px_minmax(0,1fr)_auto] sm:gap-4"
-                            >
-                                <ArticleCoverImage
-                                    item={article}
-                                    compact
-                                    className="h-14 border border-[#182234]"
-                                    sizes="76px"
-                                    width={512}
-                                    height={512}
-                                />
-                                <span className="min-w-0 truncate text-sm text-[#D7DEE8]">{article.title}</span>
-                                <ShieldAlert className="h-4 w-4 shrink-0 text-[#D7B56D]" />
-                            </Link>
-                        )) : (
-                            <p className="text-sm text-[#9CA3AF]">Nessun briefing disponibile.</p>
+                        {briefingArticles.length > 0 ? (
+                            briefingArticles.slice(0, 5).map((article) => (
+                                <Link
+                                    key={article.id}
+                                    href={route("blog.articles.show", {
+                                        id: article.id,
+                                        slug: article.slug,
+                                    })}
+                                    className="grid grid-cols-[64px_minmax(0,1fr)] items-center gap-3 border border-[#202A3D] bg-[#0B0F15] p-3 transition hover:border-[#D7B56D]/50 sm:grid-cols-[76px_minmax(0,1fr)_auto] sm:gap-4"
+                                >
+                                    <ArticleCoverImage
+                                        item={article}
+                                        compact
+                                        className="h-14 border border-[#182234]"
+                                        sizes="76px"
+                                        width={512}
+                                        height={512}
+                                    />
+                                    <span className="min-w-0 truncate text-sm text-[#D7DEE8]">
+                                        {article.title}
+                                    </span>
+                                    <ShieldAlert className="h-4 w-4 shrink-0 text-[#D7B56D]" />
+                                </Link>
+                            ))
+                        ) : (
+                            <p className="text-sm text-[#9CA3AF]">
+                                Nessun briefing disponibile.
+                            </p>
                         )}
                     </div>
                 </section>
