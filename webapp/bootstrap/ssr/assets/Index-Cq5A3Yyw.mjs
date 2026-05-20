@@ -2,7 +2,7 @@ import { jsxs, jsx, Fragment } from "react/jsx-runtime";
 import { B as BlogLayout } from "./BlogLayout-CWUdKTO5.mjs";
 import { a as ArticleIntelligenceCard } from "./ArticleIntelligenceCard-C-tTT0ik.mjs";
 import { MapPin, Clock3, ChevronLeft, ChevronRight, ArrowLeft, FileSearch } from "lucide-react";
-import { t as trendCopy, b as formatPublishedAt, s as severityBadge } from "./geopoliticalSeverity-C2gWXSd5.mjs";
+import { t as trendCopy, b as formatPublishedAt, s as severityBadge } from "./geopoliticalSeverity-h9y-I_BV.mjs";
 import { Link } from "@inertiajs/react";
 import { S as SeoHead } from "./SeoHead-9Gv-Y1Y7.mjs";
 import "react";

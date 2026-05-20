@@ -5,7 +5,7 @@ import { Info, ExternalLink, MapPin, Clock3, RadioTower, Crosshair, Target, Shie
 import { B as BlogLayout } from "./BlogLayout-CWUdKTO5.mjs";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { f as formatDateTime, g as getTrendConfig, r as resolveSeverityThresholds, a as alertFromRiskScore } from "./geopoliticalSeverity-C2gWXSd5.mjs";
+import { b as formatPublishedAt, f as formatDateTime, g as getTrendConfig, r as resolveSeverityThresholds, a as alertFromRiskScore } from "./geopoliticalSeverity-h9y-I_BV.mjs";
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from "recharts";
 import { S as SeoHead } from "./SeoHead-9Gv-Y1Y7.mjs";
 function safeText(value) {
@@ -245,7 +245,7 @@ function ArticleShowCover({ article }) {
   ) });
 }
 function ArticleMeta({ topic, publishedAt }) {
-  const dateLabel = publishedAt ? new Date(publishedAt).toLocaleDateString("it-IT") : null;
+  const dateLabel = publishedAt ? formatPublishedAt(publishedAt) : null;
   return /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-[#6B7280]", children: [
     topic && /* @__PURE__ */ jsx("span", { children: topic }),
     topic && dateLabel && /* @__PURE__ */ jsx("span", { className: "h-1 w-1 rounded-full bg-[#1C2333]" }),

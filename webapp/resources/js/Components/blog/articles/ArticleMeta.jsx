@@ -1,5 +1,7 @@
+import { formatPublishedAt } from "@/lib/blog/formatters";
+
 export default function ArticleMeta({ topic, publishedAt }) {
-    const dateLabel = publishedAt ? new Date(publishedAt).toLocaleDateString("it-IT") : null;
+    const dateLabel = publishedAt ? formatPublishedAt(publishedAt) : null;
 
     return (
         <div className="flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-[#6B7280]">

@@ -5,7 +5,7 @@ import { Link } from "@inertiajs/react";
 import { Radar, ShieldAlert, Satellite, Crosshair, MapPin, ArrowRight, RadioTower, Activity, FileSearch, Target, Binary } from "lucide-react";
 import { A as ArticleCoverImage, a as ArticleIntelligenceCard } from "./ArticleIntelligenceCard-C-tTT0ik.mjs";
 import { ComposableMap, Graticule, Geographies, Geography, Marker } from "react-simple-maps";
-import { d as severityClasses, t as trendCopy, s as severityBadge, c as formatShortDate } from "./geopoliticalSeverity-C2gWXSd5.mjs";
+import { d as severityClasses, t as trendCopy, s as severityBadge, c as formatShortDate } from "./geopoliticalSeverity-h9y-I_BV.mjs";
 import Marquee from "react-fast-marquee";
 import { S as SeoHead } from "./SeoHead-9Gv-Y1Y7.mjs";
 function HomeBriefingSection({ articles = [] }) {

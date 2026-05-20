@@ -1,34 +1,66 @@
-export function formatShortDate(value) {
+const IT_MONTHS_SHORT = [
+    "gen",
+    "feb",
+    "mar",
+    "apr",
+    "mag",
+    "giu",
+    "lug",
+    "ago",
+    "set",
+    "ott",
+    "nov",
+    "dic",
+];
+
+function parseDate(value) {
     if (!value) {
+        return null;
+    }
+
+    const date = new Date(value);
+
+    return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function pad(value) {
+    return String(value).padStart(2, "0");
+}
+
+export function formatShortDate(value) {
+    const date = parseDate(value);
+
+    if (!date) {
         return "In arrivo";
     }
 
-    return new Date(value).toLocaleDateString("it-IT", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-    });
+    return `${pad(date.getUTCDate())} ${
+        IT_MONTHS_SHORT[date.getUTCMonth()]
+    } ${date.getUTCFullYear()}`;
 }
 
 export function formatPublishedAt(value) {
-    if (!value) {
+    const date = parseDate(value);
+
+    if (!date) {
         return "Data n.d.";
     }
 
-    return new Intl.DateTimeFormat("it-IT", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-    }).format(new Date(value));
+    return `${pad(date.getUTCDate())} ${
+        IT_MONTHS_SHORT[date.getUTCMonth()]
+    } ${date.getUTCFullYear()}`;
 }
 
 export function formatDateTime(value) {
-    if (!value) {
+    const date = parseDate(value);
+
+    if (!date) {
         return "Non disponibile";
     }
 
-    return new Intl.DateTimeFormat("it-IT", {
-        dateStyle: "medium",
-        timeStyle: "short",
-    }).format(new Date(value));
+    return `${pad(date.getUTCDate())} ${
+        IT_MONTHS_SHORT[date.getUTCMonth()]
+    } ${date.getUTCFullYear()}, ${pad(date.getUTCHours())}:${pad(
+        date.getUTCMinutes(),
+    )} UTC`;
 }
