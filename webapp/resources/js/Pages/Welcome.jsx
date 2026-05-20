@@ -27,6 +27,14 @@ const trendCopy = {
     stable: { label: "Stabile", icon: Activity },
 };
 
+function formatCoordinate(value, axis) {
+    const numeric = Number(value) || 0;
+    const direction =
+        axis === "lat" ? (numeric >= 0 ? "N" : "S") : numeric >= 0 ? "E" : "W";
+
+    return `${Math.abs(numeric).toFixed(2)} ${direction}`;
+}
+
 function formatDate(value) {
     if (!value) {
         return "In arrivo";
