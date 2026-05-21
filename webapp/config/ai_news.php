@@ -83,6 +83,10 @@ return [
         'severity_elevated' => env('AI_NEWS_RISK_SEVERITY_ELEVATED', 60),
         'severity_guarded' => env('AI_NEWS_RISK_SEVERITY_GUARDED', 40),
     ],
+    'thermal_decay' => [
+        'grace_hours' => env('AI_NEWS_THERMAL_DECAY_GRACE_HOURS', 24),
+        'penalty_per_day' => env('AI_NEWS_THERMAL_DECAY_PENALTY_PER_DAY', 15),
+    ],
     'ingest' => [
         'token' => env('AI_NEWS_INGEST_TOKEN', ''),
     ],

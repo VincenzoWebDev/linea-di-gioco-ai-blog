@@ -3,6 +3,7 @@ import BlogLayout from "@/Layouts/BlogLayout";
 import HomeBriefingSection from "@/Components/blog/home/HomeBriefingSection";
 import HomeCommandCenter from "@/Components/blog/home/HomeCommandCenter";
 import HomeFeedSection from "@/Components/blog/home/HomeFeedSection";
+import HomeLatestNewsSection from "@/Components/blog/home/HomeLatestNewsSection";
 import HomeStatsSection from "@/Components/blog/home/HomeStatsSection";
 import SeoHead from "@/Components/Seo/SeoHead";
 import { buildHomeSeo } from "@/lib/blog/homeSeo";
@@ -10,8 +11,8 @@ import { normalizeOperations, resolveLcpImageUrl } from "@/lib/blog/operations";
 
 export default function Welcome({
     latestArticles = [],
-    briefingArticles = [],
     locations = [],
+    historicalOperations = [],
     stats = {},
 }) {
     const operations = useMemo(
@@ -22,8 +23,10 @@ export default function Welcome({
         () =>
             operations.length > 0
                 ? operations
-                : normalizeOperations([], latestArticles),
-        [operations, latestArticles],
+                : historicalOperations.length === 0
+                  ? normalizeOperations([], latestArticles)
+                  : [],
+        [operations, historicalOperations, latestArticles],
     );
     const lcpImageUrl = useMemo(
         () => resolveLcpImageUrl(feedItems[0]),
@@ -50,7 +53,8 @@ export default function Welcome({
                     hotspotsCount={operations.length}
                 />
                 <HomeFeedSection items={feedItems} />
-                <HomeBriefingSection articles={briefingArticles} />
+                <HomeLatestNewsSection articles={latestArticles} />
+                <HomeBriefingSection items={historicalOperations} />
             </BlogLayout>
         </>
     );

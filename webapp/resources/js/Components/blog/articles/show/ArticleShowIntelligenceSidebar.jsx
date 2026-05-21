@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Crosshair, Shield, Target } from "lucide-react";
+import { Clock3, Crosshair, Shield, Target } from "lucide-react";
 import IntelligenceMetricBlock from "@/Components/blog/articles/show/IntelligenceMetricBlock";
 import IntelligenceRadarChart from "@/Components/blog/articles/show/IntelligenceRadarChart";
 import IntelligenceRadarIcon from "@/Components/blog/articles/show/IntelligenceRadarIcon";
@@ -40,8 +40,8 @@ export default function ArticleShowIntelligenceSidebar({
 
                 <div className="mt-5 grid grid-cols-3 gap-3">
                     <IntelligenceMetricBlock
-                        label="Rischio"
-                        value={intelligence.riskScore}
+                        label="Tensione"
+                        value={article.tension?.current_tension ?? intelligence.riskScore}
                         icon={Crosshair}
                     />
                     <IntelligenceMetricBlock
@@ -55,6 +55,21 @@ export default function ArticleShowIntelligenceSidebar({
                         icon={Shield}
                     />
                 </div>
+
+                {article.tension && (
+                    <div className="mt-5 grid grid-cols-2 gap-3">
+                        <IntelligenceMetricBlock
+                            label="Silenzio"
+                            value={`${article.tension.silence_hours}h`}
+                            icon={Clock3}
+                        />
+                        <IntelligenceMetricBlock
+                            label="Decay"
+                            value={`${article.tension.decay_days}g`}
+                            icon={Clock3}
+                        />
+                    </div>
+                )}
 
                 <div className="mt-5 grid gap-3">
                     <div className="flex items-center justify-between border border-[#202A3D] bg-[#121722] px-4 py-3">
@@ -77,9 +92,19 @@ export default function ArticleShowIntelligenceSidebar({
                         <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#7E8796]">
                             Scenari futuri
                         </p>
-                        <p className="mt-3 font-mono text-sm leading-7 text-[#C8D0DC]">
-                            {intelligence.scenario}
-                        </p>
+                        <div className="mt-3 grid gap-3">
+                            {(article.future_scenarios?.length > 0
+                                ? article.future_scenarios
+                                : [intelligence.scenario]
+                            ).map((line, index) => (
+                                <p
+                                    key={`${index}-${line}`}
+                                    className="font-mono text-sm leading-7 text-[#C8D0DC]"
+                                >
+                                    {line}
+                                </p>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </motion.div>

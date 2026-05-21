@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Link } from "@inertiajs/react";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { ArrowLeft } from "lucide-react";
@@ -5,11 +6,14 @@ import BlogLayout from "@/Layouts/BlogLayout";
 import ArticleShowBody from "@/Components/blog/articles/show/ArticleShowBody";
 import ArticleShowCover from "@/Components/blog/articles/show/ArticleShowCover";
 import ArticleShowHeader from "@/Components/blog/articles/show/ArticleShowHeader";
-import ArticleShowIntelligenceSidebar from "@/Components/blog/articles/show/ArticleShowIntelligenceSidebar";
 import ArticleShowRelatedSection from "@/Components/blog/articles/show/ArticleShowRelatedSection";
 import SeoHead from "@/Components/Seo/SeoHead";
 import { buildIntelligence } from "@/lib/blog/intelligence";
 import { safeText } from "@/lib/blog/text";
+
+const ArticleShowIntelligenceSidebar = lazy(
+    () => import("@/Components/blog/articles/show/ArticleShowIntelligenceSidebar"),
+);
 
 function buildMetaDescription(article) {
     if (article.summary) {
@@ -75,10 +79,20 @@ export default function ArticlesShow({
                                 article={article}
                                 glossary={glossary}
                             />
-                            <ArticleShowIntelligenceSidebar
-                                article={article}
-                                intelligence={intelligence}
-                            />
+                            <Suspense
+                                fallback={
+                                    <aside className="min-w-0 max-w-full lg:sticky lg:top-8 lg:self-start">
+                                        <div className="border border-[#202A3D] bg-[#0B0F15]/90 p-4 shadow-2xl shadow-black/20 sm:p-5">
+                                            <div className="h-[420px] animate-pulse border border-[#182234] bg-[#121722]" />
+                                        </div>
+                                    </aside>
+                                }
+                            >
+                                <ArticleShowIntelligenceSidebar
+                                    article={article}
+                                    intelligence={intelligence}
+                                />
+                            </Suspense>
                         </div>
                     </article>
 

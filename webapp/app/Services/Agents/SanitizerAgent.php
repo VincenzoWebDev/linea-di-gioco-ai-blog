@@ -3,6 +3,7 @@
 namespace App\Services\Agents;
 
 use App\Services\AiArticleWriter;
+use App\Services\ArticleInsightService;
 use App\Services\ArticleValidationService;
 use App\Services\CrewAiClient;
 use App\Support\ArticleContentNormalizer;
@@ -12,6 +13,7 @@ class SanitizerAgent
 {
     public function __construct(
         private readonly AiArticleWriter $aiArticleWriter,
+        private readonly ArticleInsightService $articleInsightService,
         private readonly CrewAiClient $crewAiClient,
         private readonly ArticleValidationService $articleValidationService
     ) {
@@ -70,6 +72,7 @@ class SanitizerAgent
             if (is_array($crewOutput['geopolitical_tension'] ?? null)) {
                 $crewCandidate['geopolitical_tension'] = $crewOutput['geopolitical_tension'];
             }
+            $crewCandidate = $this->articleInsightService->enrichPayload($crewCandidate);
 
             if ($this->articleValidationService->validateContentPolicy($crewCandidate)['valid']) {
                 return $crewCandidate;
@@ -98,14 +101,16 @@ class SanitizerAgent
                 'source_url' => $sourceUrl,
                 'rewrite_mode' => 'ai',
                 'language' => 'it',
+                'future_scenarios' => $aiOutput['future_scenarios'] ?? [],
             ];
+            $aiCandidate = $this->articleInsightService->enrichPayload($aiCandidate);
 
             if ($this->articleValidationService->validateContentPolicy($aiCandidate)['valid']) {
                 return $aiCandidate;
             }
         }
 
-        return [
+        return $this->articleInsightService->enrichPayload([
             'title' => $safeTitle,
             'summary' => $finalSummary,
             'content' => $body,
@@ -115,7 +120,7 @@ class SanitizerAgent
             'source_url' => $sourceUrl,
             'rewrite_mode' => 'fallback',
             'language' => 'und',
-        ];
+        ]);
     }
 
     private function qualityScore(string $title, string $content): float

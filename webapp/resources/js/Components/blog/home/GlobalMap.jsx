@@ -7,7 +7,7 @@ import {
 } from "react-simple-maps";
 import { useState } from "react";
 import { severityClasses } from "@/lib/geopoliticalSeverity";
-import { ArrowRight, Crosshair, MapPin, Satellite } from "lucide-react";
+import { ArrowRight, Clock3, Crosshair, MapPin, RadioTower, Satellite } from "lucide-react";
 import { Link } from "@inertiajs/react";
 import ArticleCoverImage from "@/Components/blog/articles/ArticleCoverImage";
 
@@ -123,20 +123,20 @@ export default function GlobalMap({ operations }) {
                     </div>
                 </div>
 
-                <aside className="min-w-0 border border-[#202A3D] bg-[#101620]/95 p-4 sm:p-5">
+                <aside className="min-w-0 border border-[#202A3D] bg-[#101620]/95 p-4 sm:p-5 lg:min-h-[620px]">
                     {active ? (
-                        <>
-                            <div className="flex flex-wrap items-start justify-between gap-3">
-                                <div className="min-w-0">
+                        <div className="flex h-full flex-col">
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0 flex-1">
                                     <p className="font-mono text-[11px] uppercase tracking-[0.26em] text-[#7E8796]">
                                         Hotspot selezionato
                                     </p>
-                                    <h2 className="mt-2 text-2xl font-semibold leading-tight text-[#F3F4F6]">
+                                    <h2 className="mt-2 min-h-[4rem] text-2xl font-semibold leading-tight text-[#F3F4F6]">
                                         {active.region_name}
                                     </h2>
                                 </div>
                                 <span
-                                    className={`shrink-0 border px-3 py-1 font-mono text-xs uppercase tracking-[0.2em] ${(severityClasses[active.severity] ?? severityClasses.low).border} ${(severityClasses[active.severity] ?? severityClasses.low).bg} ${(severityClasses[active.severity] ?? severityClasses.low).text}`}
+                                    className={`mt-0.5 shrink-0 whitespace-nowrap border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] ${(severityClasses[active.severity] ?? severityClasses.low).border} ${(severityClasses[active.severity] ?? severityClasses.low).bg} ${(severityClasses[active.severity] ?? severityClasses.low).text}`}
                                 >
                                     {(severityClasses[active.severity] ?? severityClasses.low).label}
                                 </span>
@@ -145,39 +145,49 @@ export default function GlobalMap({ operations }) {
                             <div className="mt-5 grid grid-cols-2 gap-3">
                                 <SignalBox
                                     icon={Crosshair}
-                                    label="Rischio"
-                                    value={active.risk_score}
+                                    label="Tensione"
+                                    value={active.current_tension}
                                 />
                                 <SignalBox
                                     icon={MapPin}
                                     label="Coordinate"
                                     value={`${formatCoordinate(active.lat, "lat")} / ${formatCoordinate(active.long, "long")}`}
                                 />
+                                <SignalBox
+                                    icon={Clock3}
+                                    label="Silenzio"
+                                    value={`${active.silence_hours}h`}
+                                />
+                                <SignalBox
+                                    icon={RadioTower}
+                                    label="Stato"
+                                    value={active.radio_silence_label}
+                                />
                             </div>
 
                             <ArticleCoverImage
                                 item={active}
                                 variant="thumb"
-                                className="mt-5 h-40 border border-[#202A3D]"
+                                className="mt-5 h-40 shrink-0 border border-[#202A3D]"
                                 loading="eager"
                                 fetchPriority="high"
                                 sizes="(min-width: 1024px) 320px, 100vw"
                             />
 
-                            <p className="mt-5 font-mono text-sm leading-7 text-[#B8C2D2]">
+                            <p className="mt-5 min-h-[5.25rem] line-clamp-3 font-mono text-sm leading-7 text-[#B8C2D2]">
                                 {active.title}
                             </p>
 
                             {active.url && (
                                 <Link
                                     href={active.url}
-                                    className="mt-5 inline-flex w-full items-center justify-center gap-2 border border-[#D7B56D]/40 bg-[#D7B56D]/10 px-4 py-3 font-mono text-xs uppercase tracking-[0.2em] text-[#FDE68A] transition hover:border-[#D7B56D]/70 hover:bg-[#D7B56D]/15"
+                                    className="mt-auto inline-flex w-full items-center justify-center gap-2 border border-[#D7B56D]/40 bg-[#D7B56D]/10 px-4 py-3 font-mono text-xs uppercase tracking-[0.2em] text-[#FDE68A] transition hover:border-[#D7B56D]/70 hover:bg-[#D7B56D]/15"
                                 >
                                     Apri dossier
                                     <ArrowRight className="h-4 w-4" />
                                 </Link>
                             )}
-                        </>
+                        </div>
                     ) : (
                         <div className="flex min-h-80 items-center justify-center text-center font-mono text-sm uppercase tracking-[0.24em] text-[#7E8796]">
                             Nessun hotspot attivo

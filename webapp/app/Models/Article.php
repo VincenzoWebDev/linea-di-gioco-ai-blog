@@ -28,6 +28,7 @@ class Article extends Model
         'ai_generated',
         'quality_score',
         'glossary',
+        'future_scenarios',
     ];
 
     protected $casts = [
@@ -35,6 +36,7 @@ class Article extends Model
         'ai_generated' => 'boolean',
         'quality_score' => 'decimal:2',
         'glossary' => 'array',
+        'future_scenarios' => 'array',
     ];
 
     public function incomingNews(): BelongsTo

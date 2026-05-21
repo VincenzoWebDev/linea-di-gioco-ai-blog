@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Article;
 use App\Models\GeopoliticalTension;
+use App\Support\GeopoliticalSeverity;
+use App\Support\ThermalDecay;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
@@ -33,13 +35,14 @@ class GeopoliticalTensionService
             return null;
         }
 
-        $regionName = trim((string) ($payload['region_name'] ?? ''));
+        $rawRegionName = trim((string) ($payload['region_name'] ?? ''));
+        $context = $this->articleContext($featuredArticle);
+        $regionName = $this->normalizeRegionName($rawRegionName, $featuredArticle);
         if ($regionName === '') {
             return null;
         }
 
         $statusLabel = trim((string) ($payload['status_label'] ?? ''));
-        $context = $this->articleContext($featuredArticle);
         $rawRisk = $this->normalizeRiskScore($payload['risk_score'] ?? 0);
         $riskScore = $this->riskScoreCalibration->calibrate($rawRisk, $context, $statusLabel);
         $trendDirection = $this->normalizeTrendDirection($payload['trend_direction'] ?? 'stable');
@@ -91,6 +94,42 @@ class GeopoliticalTensionService
     }
 
     /**
+     * @return array{
+     *     initial_risk_score: int,
+     *     current_tension: int,
+     *     silence_hours: int,
+     *     decay_days: int,
+     *     radio_silence_label: string
+     * }
+     */
+    public function decaySnapshot(GeopoliticalTension $tension): array
+    {
+        return ThermalDecay::snapshot(
+            (int) $tension->risk_score,
+            $tension->updated_at,
+        );
+    }
+
+    public function normalizeRegionName(string $regionName, ?Article $article = null): string
+    {
+        $regionName = trim($regionName);
+        $context = $this->articleContext($article);
+        $canonical = $this->coordinateResolver->canonicalRegionName($regionName, $context);
+
+        if ($canonical !== null && $canonical !== '') {
+            return Str::limit($canonical, 255, '');
+        }
+
+        if ($regionName !== '') {
+            return Str::limit($regionName, 255, '');
+        }
+
+        $fallback = $article ? $this->coordinateResolver->canonicalRegionName('', $context) : null;
+
+        return Str::limit((string) ($fallback ?: ''), 255, '');
+    }
+
+    /**
      * Risolve e salva coordinate mancanti (es. regione generica + titolo articolo con "turca").
      */
     public function backfillMapCoordinates(): int
@@ -114,12 +153,14 @@ class GeopoliticalTensionService
                         (string) $tension->region_name,
                         $tension->featuredArticle
                     );
+                    $regionName = $this->normalizeRegionName((string) $tension->region_name, $tension->featuredArticle);
 
                     if ($coordinates === null) {
                         continue;
                     }
 
                     $tension->update([
+                        'region_name' => $regionName !== '' ? $regionName : $tension->region_name,
                         'latitude' => $coordinates['lat'],
                         'longitude' => $coordinates['long'],
                     ]);
@@ -141,18 +182,31 @@ class GeopoliticalTensionService
     {
         return GeopoliticalTension::query()
             ->with('featuredArticle:id,title,slug,status')
-            ->orderByDesc('risk_score')
-            ->orderBy('region_name')
-            ->limit($limit)
             ->get()
-            ->map(fn (GeopoliticalTension $tension) => [
-                'region_name' => $tension->region_name,
-                'risk_score' => $tension->risk_score,
-                'trend_direction' => $tension->trend_direction,
-                'status_label' => $tension->status_label,
-                'status_color' => $tension->getStatusColor(),
-                'article_url' => $this->articleUrl($tension),
+            ->map(function (GeopoliticalTension $tension) {
+                $decay = $this->decaySnapshot($tension);
+                $regionName = $this->normalizeRegionName((string) $tension->region_name, $tension->featuredArticle);
+
+                return [
+                    'region_name' => $regionName !== '' ? $regionName : $tension->region_name,
+                    'risk_score' => $decay['current_tension'],
+                    'initial_risk_score' => $decay['initial_risk_score'],
+                    'current_tension' => $decay['current_tension'],
+                    'trend_direction' => $tension->trend_direction,
+                    'status_label' => $tension->status_label,
+                    'status_color' => $this->statusColorForScore($decay['current_tension']),
+                    'silence_hours' => $decay['silence_hours'],
+                    'radio_silence_label' => $decay['radio_silence_label'],
+                    'severity' => GeopoliticalSeverity::fromRiskScore($decay['current_tension']),
+                    'article_url' => $this->articleUrl($tension),
+                ];
+            })
+            ->filter(fn (array $tension) => $tension['current_tension'] > 0)
+            ->sortBy([
+                ['current_tension', 'desc'],
+                ['region_name', 'asc'],
             ])
+            ->take($limit)
             ->values();
     }
 
@@ -247,5 +301,15 @@ class GeopoliticalTensionService
             'id' => $article->id,
             'slug' => $article->slug,
         ]);
+    }
+
+    private function statusColorForScore(int $score): string
+    {
+        return match (true) {
+            $score >= (int) config('ai_news.risk.severity_high', 80) => 'text-red-600',
+            $score >= (int) config('ai_news.risk.severity_elevated', 60) => 'text-orange-600',
+            $score >= (int) config('ai_news.risk.severity_guarded', 40) => 'text-yellow-600',
+            default => 'text-green-600',
+        };
     }
 }

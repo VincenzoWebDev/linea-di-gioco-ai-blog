@@ -26,13 +26,24 @@ class ResolveGeopoliticalCoordinatesCommand extends Command
             ->orderBy('id')
             ->chunkById(50, function ($tensions) use ($resolver, $force, &$updated, &$skipped, &$cleared) {
                 foreach ($tensions as $tension) {
-                    if (! $force && $tension->latitude !== null && $tension->longitude !== null) {
+                    $context = $this->buildContext($tension->featuredArticle);
+                    $resolvedRegionName = $resolver->canonicalRegionName((string) $tension->region_name, $context);
+                    if (($resolvedRegionName === null || $resolvedRegionName === '') && $tension->latitude !== null && $tension->longitude !== null) {
+                        $resolvedRegionName = $resolver->canonicalRegionNameFromCoordinates(
+                            (float) $tension->latitude,
+                            (float) $tension->longitude
+                        );
+                    }
+                    $needsRegionRefresh = $resolvedRegionName !== null
+                        && $resolvedRegionName !== ''
+                        && $resolvedRegionName !== $tension->region_name;
+
+                    if (! $force && $tension->latitude !== null && $tension->longitude !== null && ! $needsRegionRefresh) {
                         $skipped++;
 
                         continue;
                     }
 
-                    $context = $this->buildContext($tension->featuredArticle);
                     $point = $resolver->resolve($tension->region_name, $context);
 
                     if ($point === null) {
@@ -47,6 +58,7 @@ class ResolveGeopoliticalCoordinatesCommand extends Command
                     }
 
                     $tension->update([
+                        'region_name' => $resolvedRegionName ?: $tension->region_name,
                         'latitude' => $point['lat'],
                         'longitude' => $point['long'],
                     ]);

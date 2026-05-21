@@ -83,6 +83,7 @@ class PersistArticleJob implements ShouldQueue
             'source_name' => (string) ($incoming->source?->name ?? 'unknown'),
             'ai_generated' => true,
             'quality_score' => (float) ($payload['quality_score'] ?? 0),
+            'future_scenarios' => is_array($payload['future_scenarios'] ?? null) ? $payload['future_scenarios'] : null,
             'published_at' => $autoPublish ? ($incoming->published_at ?? now()) : null,
         ]);
 
@@ -111,6 +112,9 @@ class PersistArticleJob implements ShouldQueue
             ->onQueue(config('ai_news.queues.images', 'news-images'));
 
         GenerateArticleGlossaryJob::dispatch($article->id)
+            ->onQueue(config('ai_news.queues.glossary', 'news-sanitize'));
+
+        GenerateArticleFutureScenariosJob::dispatch($article->id)
             ->onQueue(config('ai_news.queues.glossary', 'news-sanitize'));
 
         if ($autoPublish) {

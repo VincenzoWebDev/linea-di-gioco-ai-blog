@@ -1,45 +1,47 @@
 import { jsxs, jsx, Fragment } from "react/jsx-runtime";
 import { useState, useEffect, useMemo } from "react";
-import { B as BlogLayout } from "./BlogLayout-CWUdKTO5.mjs";
+import { B as BlogLayout } from "./BlogLayout-DH9CwkrL.mjs";
 import { Link } from "@inertiajs/react";
-import { Radar, ShieldAlert, Satellite, Crosshair, MapPin, ArrowRight, RadioTower, Activity, FileSearch, Target, Binary } from "lucide-react";
+import { Archive, RadioTower, Satellite, Crosshair, MapPin, Clock3, ArrowRight, Activity, FileSearch, Target, Binary } from "lucide-react";
 import { A as ArticleCoverImage, a as ArticleIntelligenceCard } from "./ArticleIntelligenceCard-C-tTT0ik.mjs";
 import { ComposableMap, Graticule, Geographies, Geography, Marker } from "react-simple-maps";
-import { d as severityClasses, t as trendCopy, s as severityBadge, c as formatShortDate } from "./geopoliticalSeverity-h9y-I_BV.mjs";
+import { d as severityClasses, s as severityBadge, c as formatShortDate } from "./geopoliticalSeverity-B4PJR-9p.mjs";
 import Marquee from "react-fast-marquee";
+import { t as trendCopy } from "./trendCopy-BRLsGmW-.mjs";
+import { A as ArticleMeta } from "./ArticleMeta-D89ShIt2.mjs";
 import { S as SeoHead } from "./SeoHead-9Gv-Y1Y7.mjs";
-function HomeBriefingSection({ articles = [] }) {
+function HomeBriefingSection({ items = [] }) {
   return /* @__PURE__ */ jsxs("section", { className: "mt-10 sm:mt-14 grid gap-6 border border-[#202A3D] bg-[#101620] p-4 sm:p-6 lg:grid-cols-[0.75fr_1.25fr]", children: [
     /* @__PURE__ */ jsxs("div", { children: [
-      /* @__PURE__ */ jsx("div", { className: "flex h-12 w-12 items-center justify-center rounded-full border border-[#D7B56D]/40 bg-[#D7B56D]/10 text-[#D7B56D]", children: /* @__PURE__ */ jsx(Radar, { className: "h-5 w-5" }) }),
-      /* @__PURE__ */ jsx("p", { className: "mt-5 font-mono text-xs uppercase tracking-[0.3em] text-[#7E8796]", children: "Briefing rapido" }),
-      /* @__PURE__ */ jsx("h3", { className: "mt-2 font-serif text-3xl text-[#F3F4F6]", children: "Ultime finestre operative" })
+      /* @__PURE__ */ jsx("div", { className: "flex h-12 w-12 items-center justify-center rounded-full border border-[#D7B56D]/40 bg-[#D7B56D]/10 text-[#D7B56D]", children: /* @__PURE__ */ jsx(Archive, { className: "h-5 w-5" }) }),
+      /* @__PURE__ */ jsx("p", { className: "mt-5 font-mono text-xs uppercase tracking-[0.3em] text-[#7E8796]", children: "Storico cronologico" }),
+      /* @__PURE__ */ jsx("h3", { className: "mt-2 font-serif text-3xl text-[#F3F4F6]", children: "Aree entrate in silenzio" })
     ] }),
-    /* @__PURE__ */ jsx("div", { className: "grid gap-3", children: articles.length > 0 ? articles.slice(0, 5).map((article) => /* @__PURE__ */ jsxs(
+    /* @__PURE__ */ jsx("div", { className: "grid gap-3", children: items.length > 0 ? items.slice(0, 5).map((item) => /* @__PURE__ */ jsxs(
       Link,
       {
-        href: route("blog.articles.show", {
-          id: article.id,
-          slug: article.slug
-        }),
+        href: item.url || route("blog.articles.index"),
         className: "grid grid-cols-[64px_minmax(0,1fr)] items-center gap-3 border border-[#202A3D] bg-[#0B0F15] p-3 transition hover:border-[#D7B56D]/50 sm:grid-cols-[76px_minmax(0,1fr)_auto] sm:gap-4",
         children: [
           /* @__PURE__ */ jsx(
             ArticleCoverImage,
             {
-              item: article,
+              item,
               variant: "thumb",
               compact: true,
               className: "h-14 border border-[#182234]",
               sizes: "76px"
             }
           ),
-          /* @__PURE__ */ jsx("span", { className: "min-w-0 truncate text-sm text-[#D7DEE8]", children: article.title }),
-          /* @__PURE__ */ jsx(ShieldAlert, { className: "h-4 w-4 shrink-0 text-[#D7B56D]" })
+          /* @__PURE__ */ jsxs("div", { className: "min-w-0", children: [
+            /* @__PURE__ */ jsx("span", { className: "block truncate text-sm text-[#D7DEE8]", children: item.title }),
+            /* @__PURE__ */ jsx("span", { className: "mt-1 block truncate font-mono text-[11px] uppercase tracking-[0.14em] text-[#7E8796]", children: item.radio_silence_label })
+          ] }),
+          /* @__PURE__ */ jsx(RadioTower, { className: "h-4 w-4 shrink-0 text-[#D7B56D]" })
         ]
       },
-      article.id
-    )) : /* @__PURE__ */ jsx("p", { className: "text-sm text-[#9CA3AF]", children: "Nessun briefing disponibile." }) })
+      item.id
+    )) : /* @__PURE__ */ jsx("p", { className: "text-sm text-[#9CA3AF]", children: "Nessuna area storicizzata." }) })
   ] });
 }
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
@@ -139,16 +141,16 @@ function GlobalMap({ operations }) {
           }
         ) })
       ] }),
-      /* @__PURE__ */ jsx("aside", { className: "min-w-0 border border-[#202A3D] bg-[#101620]/95 p-4 sm:p-5", children: active ? /* @__PURE__ */ jsxs(Fragment, { children: [
-        /* @__PURE__ */ jsxs("div", { className: "flex flex-wrap items-start justify-between gap-3", children: [
-          /* @__PURE__ */ jsxs("div", { className: "min-w-0", children: [
+      /* @__PURE__ */ jsx("aside", { className: "min-w-0 border border-[#202A3D] bg-[#101620]/95 p-4 sm:p-5 lg:min-h-[620px]", children: active ? /* @__PURE__ */ jsxs("div", { className: "flex h-full flex-col", children: [
+        /* @__PURE__ */ jsxs("div", { className: "flex items-start justify-between gap-3", children: [
+          /* @__PURE__ */ jsxs("div", { className: "min-w-0 flex-1", children: [
             /* @__PURE__ */ jsx("p", { className: "font-mono text-[11px] uppercase tracking-[0.26em] text-[#7E8796]", children: "Hotspot selezionato" }),
-            /* @__PURE__ */ jsx("h2", { className: "mt-2 text-2xl font-semibold leading-tight text-[#F3F4F6]", children: active.region_name })
+            /* @__PURE__ */ jsx("h2", { className: "mt-2 min-h-[4rem] text-2xl font-semibold leading-tight text-[#F3F4F6]", children: active.region_name })
           ] }),
           /* @__PURE__ */ jsx(
             "span",
             {
-              className: `shrink-0 border px-3 py-1 font-mono text-xs uppercase tracking-[0.2em] ${(severityClasses[active.severity] ?? severityClasses.low).border} ${(severityClasses[active.severity] ?? severityClasses.low).bg} ${(severityClasses[active.severity] ?? severityClasses.low).text}`,
+              className: `mt-0.5 shrink-0 whitespace-nowrap border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] ${(severityClasses[active.severity] ?? severityClasses.low).border} ${(severityClasses[active.severity] ?? severityClasses.low).bg} ${(severityClasses[active.severity] ?? severityClasses.low).text}`,
               children: (severityClasses[active.severity] ?? severityClasses.low).label
             }
           )
@@ -158,8 +160,8 @@ function GlobalMap({ operations }) {
             SignalBox,
             {
               icon: Crosshair,
-              label: "Rischio",
-              value: active.risk_score
+              label: "Tensione",
+              value: active.current_tension
             }
           ),
           /* @__PURE__ */ jsx(
@@ -169,6 +171,22 @@ function GlobalMap({ operations }) {
               label: "Coordinate",
               value: `${formatCoordinate$1(active.lat, "lat")} / ${formatCoordinate$1(active.long, "long")}`
             }
+          ),
+          /* @__PURE__ */ jsx(
+            SignalBox,
+            {
+              icon: Clock3,
+              label: "Silenzio",
+              value: `${active.silence_hours}h`
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            SignalBox,
+            {
+              icon: RadioTower,
+              label: "Stato",
+              value: active.radio_silence_label
+            }
           )
         ] }),
         /* @__PURE__ */ jsx(
@@ -176,18 +194,18 @@ function GlobalMap({ operations }) {
           {
             item: active,
             variant: "thumb",
-            className: "mt-5 h-40 border border-[#202A3D]",
+            className: "mt-5 h-40 shrink-0 border border-[#202A3D]",
             loading: "eager",
             fetchPriority: "high",
             sizes: "(min-width: 1024px) 320px, 100vw"
           }
         ),
-        /* @__PURE__ */ jsx("p", { className: "mt-5 font-mono text-sm leading-7 text-[#B8C2D2]", children: active.title }),
+        /* @__PURE__ */ jsx("p", { className: "mt-5 min-h-[5.25rem] line-clamp-3 font-mono text-sm leading-7 text-[#B8C2D2]", children: active.title }),
         active.url && /* @__PURE__ */ jsxs(
           Link,
           {
             href: active.url,
-            className: "mt-5 inline-flex w-full items-center justify-center gap-2 border border-[#D7B56D]/40 bg-[#D7B56D]/10 px-4 py-3 font-mono text-xs uppercase tracking-[0.2em] text-[#FDE68A] transition hover:border-[#D7B56D]/70 hover:bg-[#D7B56D]/15",
+            className: "mt-auto inline-flex w-full items-center justify-center gap-2 border border-[#D7B56D]/40 bg-[#D7B56D]/10 px-4 py-3 font-mono text-xs uppercase tracking-[0.2em] text-[#FDE68A] transition hover:border-[#D7B56D]/70 hover:bg-[#D7B56D]/15",
             children: [
               "Apri dossier",
               /* @__PURE__ */ jsx(ArrowRight, { className: "h-4 w-4" })
@@ -303,12 +321,16 @@ function OperationIntelligenceCard({ item, index }) {
         {
           icon: TrendIcon,
           value: trendCopy[item.trend_direction]?.label || "Stabile"
+        },
+        {
+          icon: RadioTower,
+          value: item.radio_silence_label || "Silenzio radio: 0 ore"
         }
       ]
     }
   );
 }
-function EmptyState() {
+function EmptyState$1() {
   return /* @__PURE__ */ jsx("div", { className: "border border-dashed border-[#2A354D] bg-[#101620] p-8 text-[#9CA3AF]", children: "La sala operativa si popolera automaticamente con le prime analisi pubblicate." });
 }
 function HomeFeedSection({ items }) {
@@ -337,6 +359,59 @@ function HomeFeedSection({ items }) {
         index
       },
       `${item.id}-${item.operation_code}`
+    )) }) : /* @__PURE__ */ jsx(EmptyState$1, {})
+  ] });
+}
+function ArticleCard({ article }) {
+  return /* @__PURE__ */ jsx("article", { className: "group overflow-hidden rounded-2xl border border-[#1C2333] bg-[#131823] shadow-[0_24px_60px_rgba(0,0,0,0.22)] transition duration-300 hover:-translate-y-1 hover:border-[#2A354D]", children: /* @__PURE__ */ jsxs(Link, { href: route("blog.articles.show", { id: article.id, slug: article.slug }), className: "block", children: [
+    /* @__PURE__ */ jsx("div", { className: "h-44 w-full overflow-hidden bg-[#0E1116]", children: article.thumb_url || article.cover_url ? /* @__PURE__ */ jsx(
+      "img",
+      {
+        src: article.thumb_url || article.cover_url,
+        alt: article.title,
+        className: "h-full w-full object-cover transition duration-500 group-hover:scale-105"
+      }
+    ) : /* @__PURE__ */ jsx("div", { className: "h-full w-full bg-gradient-to-br from-[#1F3A5F]/40 to-[#9E2A2B]/25" }) }),
+    /* @__PURE__ */ jsxs("div", { className: "p-6", children: [
+      /* @__PURE__ */ jsx(ArticleMeta, { topic: article.topic, publishedAt: article.published_at }),
+      /* @__PURE__ */ jsx("h3", { className: "mt-3 font-serif text-2xl leading-tight text-[#E5E7EB]", children: article.title }),
+      /* @__PURE__ */ jsx("p", { className: "mt-3 text-sm text-[#9CA3AF]", children: article.excerpt }),
+      /* @__PURE__ */ jsxs("div", { className: "mt-5 inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[#9E2A2B]", children: [
+        "Leggi articolo",
+        /* @__PURE__ */ jsx(ArrowRight, { className: "h-4 w-4 transition duration-300 group-hover:translate-x-1" })
+      ] })
+    ] })
+  ] }) });
+}
+function EmptyState() {
+  return /* @__PURE__ */ jsx("div", { className: "border border-dashed border-[#2A354D] bg-[#101620] p-8 text-[#9CA3AF]", children: "Nessuna notizia recente disponibile." });
+}
+function HomeLatestNewsSection({ articles = [] }) {
+  return /* @__PURE__ */ jsxs("section", { className: "mt-10 sm:mt-14", children: [
+    /* @__PURE__ */ jsxs("div", { className: "mb-6 flex flex-wrap items-end justify-between gap-4", children: [
+      /* @__PURE__ */ jsxs("div", { className: "min-w-0", children: [
+        /* @__PURE__ */ jsx("p", { className: "font-mono text-xs uppercase tracking-[0.3em] text-[#7E8796]", children: "Ultime notizie" }),
+        /* @__PURE__ */ jsx("h2", { className: "mt-2 font-serif text-3xl leading-tight text-[#F3F4F6] sm:text-4xl", children: "Ultimi aggiornamenti dal blog" }),
+        /* @__PURE__ */ jsx("p", { className: "mt-3 max-w-3xl text-sm leading-7 text-[#AAB3C2] sm:text-base", children: "Una sequenza editoriale lineare delle pubblicazioni più recenti, utile per lettori e motori di ricerca." })
+      ] }),
+      /* @__PURE__ */ jsxs(
+        Link,
+        {
+          href: route("blog.articles.index"),
+          className: "inline-flex items-center gap-2 border border-[#2A354D] bg-[#101620] px-4 py-2 font-mono text-xs uppercase tracking-[0.2em] text-[#AAB3C2] transition hover:border-[#D7B56D]/60 hover:text-[#F3F4F6]",
+          children: [
+            "Tutte le notizie",
+            /* @__PURE__ */ jsx(ArrowRight, { className: "h-4 w-4" })
+          ]
+        }
+      )
+    ] }),
+    articles.length > 0 ? /* @__PURE__ */ jsx("div", { className: "grid gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3", children: articles.slice(0, 6).map((article) => /* @__PURE__ */ jsx(
+      ArticleCard,
+      {
+        article
+      },
+      `${article.id}-${article.slug}`
     )) }) : /* @__PURE__ */ jsx(EmptyState, {})
   ] });
 }
@@ -453,8 +528,8 @@ function normalizeOperations(locations = [], articles = []) {
 }
 function Welcome({
   latestArticles = [],
-  briefingArticles = [],
   locations = [],
+  historicalOperations = [],
   stats = {}
 }) {
   const operations = useMemo(
@@ -462,8 +537,8 @@ function Welcome({
     [locations]
   );
   const feedItems = useMemo(
-    () => operations.length > 0 ? operations : normalizeOperations([], latestArticles),
-    [operations, latestArticles]
+    () => operations.length > 0 ? operations : historicalOperations.length === 0 ? normalizeOperations([], latestArticles) : [],
+    [operations, historicalOperations, latestArticles]
   );
   const lcpImageUrl = useMemo(
     () => resolveLcpImageUrl(feedItems[0]),
@@ -489,7 +564,8 @@ function Welcome({
         }
       ),
       /* @__PURE__ */ jsx(HomeFeedSection, { items: feedItems }),
-      /* @__PURE__ */ jsx(HomeBriefingSection, { articles: briefingArticles })
+      /* @__PURE__ */ jsx(HomeLatestNewsSection, { articles: latestArticles }),
+      /* @__PURE__ */ jsx(HomeBriefingSection, { items: historicalOperations })
     ] })
   ] });
 }

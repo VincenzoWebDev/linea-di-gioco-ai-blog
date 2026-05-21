@@ -51,9 +51,11 @@ export function buildIntelligence(article, riskThresholds = {}) {
         riskScore,
         qualityScore,
         scenario:
-            riskScore >= scenarioHigh
-                ? "Probabile intensificazione della pressione diplomatica e aumento della sorveglianza nelle prossime finestre operative."
-                : "Scenario in consolidamento: monitorare segnali politici, catene logistiche e variazioni nella postura militare regionale.",
+            Array.isArray(article.future_scenarios) && article.future_scenarios[0]
+                ? article.future_scenarios[0]
+                : riskScore >= scenarioHigh
+                  ? "Probabile intensificazione della pressione diplomatica e aumento della sorveglianza nelle prossime finestre operative."
+                  : "Scenario in consolidamento: monitorare segnali politici, catene logistiche e variazioni nella postura militare regionale.",
         hasTension,
     };
 }

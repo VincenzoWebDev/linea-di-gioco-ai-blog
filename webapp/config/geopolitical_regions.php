@@ -16,7 +16,7 @@ return [
         ['aliases' => ['horn of africa', 'corno d africa', 'corno dell africa'], 'lat' => 9.0, 'long' => 45.0],
         ['aliases' => ['western balkans', 'balcani occidentali', 'balcani'], 'lat' => 43.5, 'long' => 20.5],
         ['aliases' => ['middle east', 'medio oriente', 'levant', 'levante'], 'lat' => 33.0, 'long' => 44.0],
-        ['aliases' => ['united states', 'stati uniti', 'washington', 'pentagon', 'white house'], 'lat' => 38.9072, 'long' => -77.0369],
+        ['label' => 'Stati Uniti', 'aliases' => ['united states', 'stati uniti', 'usa', 'u.s.', 'washington', 'pentagon', 'white house'], 'lat' => 38.9072, 'long' => -77.0369],
         ['aliases' => ['united kingdom', 'regno unito', 'london', 'londra', 'britain'], 'lat' => 51.5074, 'long' => -0.1278],
         ['aliases' => ['france', 'francia', 'paris', 'parigi'], 'lat' => 48.8566, 'long' => 2.3522],
         ['aliases' => ['germany', 'germania', 'berlin', 'berlino'], 'lat' => 52.52, 'long' => 13.405],

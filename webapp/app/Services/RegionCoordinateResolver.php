@@ -11,6 +11,56 @@ class RegionCoordinateResolver
      */
     public function resolve(string $regionName, string $context = ''): ?array
     {
+        $match = $this->resolveMatch($regionName, $context);
+
+        return $match ? [
+            'lat' => $match['lat'],
+            'long' => $match['long'],
+        ] : null;
+    }
+
+    public function canonicalRegionName(string $regionName, string $context = ''): ?string
+    {
+        $regionName = trim($regionName);
+        if ($regionName !== '' && ! $this->isGenericRegion($this->normalize($regionName))) {
+            $match = $this->resolveMatch($regionName, $context);
+
+            return $match['label'] ?? $regionName;
+        }
+
+        $match = $this->resolveMatch($regionName, $context);
+
+        return $match['label'] ?? null;
+    }
+
+    public function isGenericRegionName(string $regionName): bool
+    {
+        return $this->isGenericRegion($this->normalize($regionName));
+    }
+
+    public function canonicalRegionNameFromCoordinates(?float $latitude, ?float $longitude): ?string
+    {
+        if ($latitude === null || $longitude === null) {
+            return null;
+        }
+
+        foreach ($this->regions() as $entry) {
+            if (
+                abs(((float) $entry['lat']) - $latitude) < 0.0001
+                && abs(((float) $entry['long']) - $longitude) < 0.0001
+            ) {
+                return $this->entryLabel($entry);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array{lat: float, long: float, label: string}|null
+     */
+    private function resolveMatch(string $regionName, string $context = ''): ?array
+    {
         $regionName = trim($regionName);
         $context = trim($context);
 
@@ -36,7 +86,7 @@ class RegionCoordinateResolver
     }
 
     /**
-     * @return array{lat: float, long: float}|null
+     * @return array{lat: float, long: float, label: string}|null
      */
     private function matchHaystack(string $haystack): ?array
     {
@@ -64,6 +114,7 @@ class RegionCoordinateResolver
                     $bestPoint = [
                         'lat' => (float) $entry['lat'],
                         'long' => (float) $entry['long'],
+                        'label' => $this->entryLabel($entry),
                     ];
                 }
             }
@@ -114,6 +165,36 @@ class RegionCoordinateResolver
         $pattern = '/(?:^|\s)'.preg_quote($alias, '/').'(?:\s|$)/u';
 
         return preg_match($pattern, $haystack) === 1;
+    }
+
+    /**
+     * @param array{aliases: list<string>, lat: float, long: float, label?: string} $entry
+     */
+    private function entryLabel(array $entry): string
+    {
+        $label = trim((string) ($entry['label'] ?? ''));
+        if ($label !== '') {
+            return $label;
+        }
+
+        $fallback = trim((string) ($entry['aliases'][0] ?? 'Area non specificata'));
+        $mapped = [
+            'united states' => 'Stati Uniti',
+            'united kingdom' => 'Regno Unito',
+            'south korea' => 'Corea del Sud',
+            'north korea' => 'Corea del Nord',
+            'european union' => 'Unione Europea',
+            'middle east' => 'Medio Oriente',
+            'red sea' => 'Mar Rosso',
+            'south china sea' => 'Mar Cinese Meridionale',
+            'taiwan strait' => 'Stretto di Taiwan',
+            'horn of africa' => "Corno d'Africa",
+            'western balkans' => 'Balcani Occidentali',
+        ];
+
+        $normalizedFallback = $this->normalize($fallback);
+
+        return $mapped[$normalizedFallback] ?? Str::of($fallback)->headline()->value();
     }
 
     private function normalize(string $value): string

@@ -1,12 +1,12 @@
 import { jsxs, jsx, Fragment } from "react/jsx-runtime";
+import { useState, useEffect, Suspense, lazy } from "react";
 import { Link } from "@inertiajs/react";
 import * as Tooltip from "@radix-ui/react-tooltip";
-import { Info, ExternalLink, MapPin, Clock3, RadioTower, Crosshair, Target, Shield, FileSearch, ArrowLeft } from "lucide-react";
-import { B as BlogLayout } from "./BlogLayout-CWUdKTO5.mjs";
+import { Info, ExternalLink, MapPin, Clock3, RadioTower, FileSearch, ArrowLeft } from "lucide-react";
+import { B as BlogLayout } from "./BlogLayout-DH9CwkrL.mjs";
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
-import { b as formatPublishedAt, f as formatDateTime, g as getTrendConfig, r as resolveSeverityThresholds, a as alertFromRiskScore } from "./geopoliticalSeverity-h9y-I_BV.mjs";
-import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from "recharts";
+import { A as ArticleMeta } from "./ArticleMeta-D89ShIt2.mjs";
+import { f as formatDateTime, r as resolveSeverityThresholds, a as alertFromRiskScore } from "./geopoliticalSeverity-B4PJR-9p.mjs";
 import { S as SeoHead } from "./SeoHead-9Gv-Y1Y7.mjs";
 function safeText(value) {
   if (typeof value === "symbol") {
@@ -244,14 +244,6 @@ function ArticleShowCover({ article }) {
     }
   ) });
 }
-function ArticleMeta({ topic, publishedAt }) {
-  const dateLabel = publishedAt ? formatPublishedAt(publishedAt) : null;
-  return /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-[#6B7280]", children: [
-    topic && /* @__PURE__ */ jsx("span", { children: topic }),
-    topic && dateLabel && /* @__PURE__ */ jsx("span", { className: "h-1 w-1 rounded-full bg-[#1C2333]" }),
-    dateLabel && /* @__PURE__ */ jsx("span", { children: dateLabel })
-  ] });
-}
 function ArticleDataPill({ icon: Icon, label, value }) {
   return /* @__PURE__ */ jsxs("div", { className: "min-w-0 border-t border-[#2A354D] px-4 py-3 first:border-t-0 sm:border-l sm:border-t-0 sm:py-2 sm:first:border-l-0", children: [
     /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-[#7E8796]", children: [
@@ -313,134 +305,6 @@ function ArticleShowHeader({ article, intelligence }) {
     ] })
   ] });
 }
-function IntelligenceMetricBlock({ icon: Icon, label, value }) {
-  return /* @__PURE__ */ jsxs("div", { className: "border border-[#202A3D] bg-[#121722] p-3", children: [
-    /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between text-[#7E8796]", children: [
-      /* @__PURE__ */ jsx("span", { className: "font-mono text-[10px] uppercase tracking-[0.2em]", children: label }),
-      /* @__PURE__ */ jsx(Icon, { className: "h-3.5 w-3.5" })
-    ] }),
-    /* @__PURE__ */ jsx("div", { className: "mt-3 font-mono text-2xl font-semibold text-[#E8EDF5]", children: value })
-  ] });
-}
-function IntelligenceRadarChart({ metrics }) {
-  return /* @__PURE__ */ jsx("div", { className: "h-64 border border-[#182234] bg-[#0E1116] px-1 py-2 sm:h-80 sm:px-2 sm:py-3", children: /* @__PURE__ */ jsx(ResponsiveContainer, { width: "100%", height: "100%", children: /* @__PURE__ */ jsxs(
-    RadarChart,
-    {
-      data: metrics,
-      outerRadius: "58%",
-      margin: { top: 12, right: 20, bottom: 12, left: 20 },
-      children: [
-        /* @__PURE__ */ jsx(PolarGrid, { stroke: "#2A354D", radialLines: true }),
-        /* @__PURE__ */ jsx(
-          PolarAngleAxis,
-          {
-            dataKey: "axis",
-            tick: {
-              fill: "#AAB3C2",
-              fontSize: 10,
-              fontFamily: "monospace"
-            }
-          }
-        ),
-        /* @__PURE__ */ jsx(
-          Radar,
-          {
-            dataKey: "value",
-            stroke: "#D7B56D",
-            fill: "#D7B56D",
-            fillOpacity: 0.22,
-            strokeWidth: 2,
-            animationDuration: 900
-          }
-        )
-      ]
-    }
-  ) }) });
-}
-function IntelligenceRadarIcon() {
-  return /* @__PURE__ */ jsxs("div", { className: "relative h-6 w-6 rounded-full border border-[#D7B56D]", children: [
-    /* @__PURE__ */ jsx(
-      motion.span,
-      {
-        className: "absolute left-1/2 top-1/2 h-px w-3 origin-left bg-[#D7B56D]",
-        animate: { rotate: 360 },
-        transition: { duration: 2.2, repeat: Infinity, ease: "linear" }
-      }
-    ),
-    /* @__PURE__ */ jsx("span", { className: "absolute left-1/2 top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#D7B56D]" })
-  ] });
-}
-function ArticleShowIntelligenceSidebar({
-  article,
-  intelligence
-}) {
-  const trend = getTrendConfig(article.tension?.trend_direction);
-  const TrendIcon = trend.icon;
-  return /* @__PURE__ */ jsx("aside", { className: "min-w-0 max-w-full lg:sticky lg:top-8 lg:self-start", children: /* @__PURE__ */ jsxs(
-    motion.div,
-    {
-      initial: { opacity: 0, y: 18 },
-      animate: { opacity: 1, y: 0 },
-      transition: { duration: 0.45 },
-      className: "border border-[#202A3D] bg-[#0B0F15]/90 p-4 shadow-2xl shadow-black/20 sm:p-5",
-      children: [
-        /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between gap-4", children: [
-          /* @__PURE__ */ jsxs("div", { children: [
-            /* @__PURE__ */ jsx("p", { className: "font-mono text-[11px] uppercase tracking-[0.28em] text-[#7E8796]", children: "Matrice operativa" }),
-            /* @__PURE__ */ jsx("h2", { className: "mt-2 text-xl font-semibold text-[#F3F4F6]", children: "Impatto operativo" })
-          ] }),
-          /* @__PURE__ */ jsx("div", { className: "flex h-11 w-11 items-center justify-center rounded-full border border-[#D7B56D]/40 bg-[#D7B56D]/10", children: /* @__PURE__ */ jsx(IntelligenceRadarIcon, {}) })
-        ] }),
-        /* @__PURE__ */ jsx("div", { className: "mt-5", children: /* @__PURE__ */ jsx(IntelligenceRadarChart, { metrics: intelligence.metrics }) }),
-        /* @__PURE__ */ jsxs("div", { className: "mt-5 grid grid-cols-3 gap-3", children: [
-          /* @__PURE__ */ jsx(
-            IntelligenceMetricBlock,
-            {
-              label: "Rischio",
-              value: intelligence.riskScore,
-              icon: Crosshair
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            IntelligenceMetricBlock,
-            {
-              label: "Impatto",
-              value: intelligence.averageImpact,
-              icon: Target
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            IntelligenceMetricBlock,
-            {
-              label: "Fonte",
-              value: intelligence.qualityScore,
-              icon: Shield
-            }
-          )
-        ] }),
-        /* @__PURE__ */ jsxs("div", { className: "mt-5 grid gap-3", children: [
-          /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between border border-[#202A3D] bg-[#121722] px-4 py-3", children: [
-            /* @__PURE__ */ jsxs("div", { children: [
-              /* @__PURE__ */ jsx("p", { className: "font-mono text-[11px] uppercase tracking-[0.22em] text-[#7E8796]", children: "Tendenza" }),
-              /* @__PURE__ */ jsx("p", { className: "mt-1 text-sm text-[#D7DEE8]", children: trend.label })
-            ] }),
-            /* @__PURE__ */ jsx(
-              "div",
-              {
-                className: `flex h-10 w-10 items-center justify-center rounded-full ${trend.bg} ${trend.color}`,
-                children: /* @__PURE__ */ jsx(TrendIcon, { className: "h-5 w-5" })
-              }
-            )
-          ] }),
-          /* @__PURE__ */ jsxs("div", { className: "border border-[#202A3D] bg-[#121722] px-4 py-4", children: [
-            /* @__PURE__ */ jsx("p", { className: "font-mono text-[11px] uppercase tracking-[0.22em] text-[#7E8796]", children: "Scenari futuri" }),
-            /* @__PURE__ */ jsx("p", { className: "mt-3 font-mono text-sm leading-7 text-[#C8D0DC]", children: intelligence.scenario })
-          ] })
-        ] })
-      ]
-    }
-  ) });
-}
 function ArticleRelatedCard({ article }) {
   return /* @__PURE__ */ jsxs(
     Link,
@@ -471,7 +335,8 @@ function ArticleRelatedCard({ article }) {
               topic: article.topic,
               publishedAt: article.published_at
             }
-          ) })
+          ) }),
+          article.match_reason && /* @__PURE__ */ jsx("p", { className: "mt-3 font-mono text-[11px] uppercase tracking-[0.15em] text-[#D7B56D]", children: article.match_reason })
         ] })
       ]
     }
@@ -483,11 +348,11 @@ function ArticleShowRelatedSection({ related = [] }) {
       /* @__PURE__ */ jsxs("div", { children: [
         /* @__PURE__ */ jsx("p", { className: "font-mono text-xs uppercase tracking-[0.28em] text-[#7E8796]", children: "Prossimi passaggi" }),
         /* @__PURE__ */ jsx("h2", { className: "mt-2 font-serif text-3xl text-[#F3F4F6]", children: "Prossimi step consigliati" }),
-        /* @__PURE__ */ jsx("p", { className: "mt-3 max-w-2xl text-[#AAB3C2]", children: "Incrociare questo dossier con fonti regionali, aggiornare gli score sugli assi critici e monitorare gli articoli correlati per variazioni di contesto." })
+        /* @__PURE__ */ jsx("p", { className: "mt-3 max-w-2xl text-[#AAB3C2]", children: "Selezione di dossier affini per area, categoria o lessico operativo, così il contesto resta coerente e confrontabile." })
       ] }),
       /* @__PURE__ */ jsx("div", { className: "flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#D7B56D]/40 bg-[#D7B56D]/10 text-[#D7B56D]", children: /* @__PURE__ */ jsx(FileSearch, { className: "h-5 w-5" }) })
     ] }),
-    related.length > 0 && /* @__PURE__ */ jsx("div", { className: "mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3", children: related.map((item) => /* @__PURE__ */ jsx(ArticleRelatedCard, { article: item }, item.id)) })
+    related.length > 0 ? /* @__PURE__ */ jsx("div", { className: "mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3", children: related.map((item) => /* @__PURE__ */ jsx(ArticleRelatedCard, { article: item }, item.id)) }) : /* @__PURE__ */ jsx("p", { className: "mt-6 text-sm text-[#9CA3AF]", children: "Nessun dossier affine disponibile al momento." })
   ] });
 }
 const regionCoordinates = [
@@ -547,10 +412,13 @@ function buildIntelligence(article, riskThresholds = {}) {
     metrics,
     riskScore,
     qualityScore,
-    scenario: riskScore >= scenarioHigh ? "Probabile intensificazione della pressione diplomatica e aumento della sorveglianza nelle prossime finestre operative." : "Scenario in consolidamento: monitorare segnali politici, catene logistiche e variazioni nella postura militare regionale.",
+    scenario: Array.isArray(article.future_scenarios) && article.future_scenarios[0] ? article.future_scenarios[0] : riskScore >= scenarioHigh ? "Probabile intensificazione della pressione diplomatica e aumento della sorveglianza nelle prossime finestre operative." : "Scenario in consolidamento: monitorare segnali politici, catene logistiche e variazioni nella postura militare regionale.",
     hasTension
   };
 }
+const ArticleShowIntelligenceSidebar = lazy(
+  () => import("./ArticleShowIntelligenceSidebar-q01Pav81.mjs")
+);
 function buildMetaDescription(article) {
   if (article.summary) {
     return article.summary;
@@ -616,10 +484,16 @@ function ArticlesShow({
             }
           ),
           /* @__PURE__ */ jsx(
-            ArticleShowIntelligenceSidebar,
+            Suspense,
             {
-              article,
-              intelligence
+              fallback: /* @__PURE__ */ jsx("aside", { className: "min-w-0 max-w-full lg:sticky lg:top-8 lg:self-start", children: /* @__PURE__ */ jsx("div", { className: "border border-[#202A3D] bg-[#0B0F15]/90 p-4 shadow-2xl shadow-black/20 sm:p-5", children: /* @__PURE__ */ jsx("div", { className: "h-[420px] animate-pulse border border-[#182234] bg-[#121722]" }) }) }),
+              children: /* @__PURE__ */ jsx(
+                ArticleShowIntelligenceSidebar,
+                {
+                  article,
+                  intelligence
+                }
+              )
             }
           )
         ] })

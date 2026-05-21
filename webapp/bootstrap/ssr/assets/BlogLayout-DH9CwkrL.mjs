@@ -32,13 +32,20 @@ function TensionItem({ tension }) {
       Link,
       {
         href: tension.article_url,
-        title: tension.status_label,
+        title: `${tension.status_label} • ${tension.radio_silence_label}`,
         className: `${className} transition hover:border-[#2C4667]`,
         children: content
       }
     );
   }
-  return /* @__PURE__ */ jsx("div", { title: tension.status_label, className, children: content });
+  return /* @__PURE__ */ jsx(
+    "div",
+    {
+      title: `${tension.status_label} • ${tension.radio_silence_label}`,
+      className,
+      children: content
+    }
+  );
 }
 function TensionHeader({ tensions = [] }) {
   const visibleTensions = tensions.slice(0, 5);

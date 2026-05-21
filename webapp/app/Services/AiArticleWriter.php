@@ -36,20 +36,23 @@ class AiArticleWriter
         $userPrompt = <<<PROMPT
 Genera un articolo in JSON con chiavi:
 - title (max 120 chars)
-- summary (max 240 chars)
+- summary (max 240 chars, frase completa che termina con un punto)
 - content (500-1500 chars, in italiano, con struttura fluida)
 - topic (1-3 parole, es: geopolitica, diplomazia, sicurezza, energia)
 - categories (array di 1-3 categorie in italiano coerenti con il contenuto)
+- future_scenarios (array di 2 frasi brevi, ciascuna chiusa da un punto)
 
 Regole:
 - Mantieni i fatti principali della notizia.
 - Testo originale e personalizzato, no traduzione letterale.
 - Tutto l'output deve essere in italiano corretto.
+- Il summary deve essere un sottotitolo completo, non spezzato, e deve finire con il punto.
 - L'articolo deve essere coerente con geopolitica, relazioni internazionali, sicurezza, diplomazia, guerra, energia, elezioni, istituzioni internazionali.
 - Se la notizia riguarda sport, gossip, intrattenimento, lifestyle o temi fuori scope, restituisci JSON con title, summary, content vuoti e topic "scarto".
 - Se manca un dato, non inventarlo.
 - Se viene nominata qualche testata giornalistica, eliminala e adattala al contesto del blog.
 - Non inserire mai righe o frasi finali con "Fonte:"; la fonte viene salvata separatamente in source_url.
+- Le future_scenarios devono essere prudenti, concrete e condizionali, non generiche.
 - Rispondi solo con JSON valido, senza markdown e senza testo extra.
 
 INPUT
@@ -160,6 +163,7 @@ PROMPT;
             'content' => Str::limit($body, 14000, ''),
             'topic' => Str::limit($topic, 60, ''),
             'categories' => ArticleContentNormalizer::normalizeCategories($decoded['categories'] ?? [$topic], 3),
+            'future_scenarios' => is_array($decoded['future_scenarios'] ?? null) ? $decoded['future_scenarios'] : [],
         ];
     }
 
@@ -196,6 +200,7 @@ PROMPT;
             'content' => Str::limit(ArticleContentNormalizer::stripSourceFooter($plain), 14000, ''),
             'topic' => 'news',
             'categories' => ['news'],
+            'future_scenarios' => [],
         ];
     }
 

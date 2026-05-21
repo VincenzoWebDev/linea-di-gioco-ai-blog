@@ -70,6 +70,9 @@ class CrewAiClient
             $geopoliticalTension = is_array($article['geopolitical_tension'] ?? null)
                 ? $article['geopolitical_tension']
                 : null;
+            $futureScenarios = is_array($article['future_scenarios'] ?? null)
+                ? $article['future_scenarios']
+                : [];
 
             if ($title === '' || $content === '') {
                 return null;
@@ -84,6 +87,7 @@ class CrewAiClient
                 'quality_score' => (float) ($article['quality_score'] ?? 0),
                 'source_url' => $sourceUrl,
                 'rewrite_mode' => 'crewai',
+                'future_scenarios' => $futureScenarios,
             ];
             if ($geopoliticalTension !== null) {
                 $result['geopolitical_tension'] = $geopoliticalTension;

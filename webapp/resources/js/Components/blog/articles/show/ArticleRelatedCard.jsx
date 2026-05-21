@@ -35,6 +35,11 @@ export default function ArticleRelatedCard({ article }) {
                         publishedAt={article.published_at}
                     />
                 </div>
+                {article.match_reason && (
+                    <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.15em] text-[#D7B56D]">
+                        {article.match_reason}
+                    </p>
+                )}
             </div>
         </Link>
     );

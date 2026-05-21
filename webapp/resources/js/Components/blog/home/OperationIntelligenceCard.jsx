@@ -1,4 +1,4 @@
-import { Activity, MapPin } from "lucide-react";
+import { Activity, MapPin, RadioTower } from "lucide-react";
 import ArticleIntelligenceCard from "@/Components/blog/articles/ArticleIntelligenceCard";
 import { severityBadge } from "@/lib/geopoliticalSeverity";
 import { trendCopy } from "@/lib/blog/trendCopy";
@@ -28,6 +28,10 @@ export default function OperationIntelligenceCard({ item, index }) {
                 {
                     icon: TrendIcon,
                     value: trendCopy[item.trend_direction]?.label || "Stabile",
+                },
+                {
+                    icon: RadioTower,
+                    value: item.radio_silence_label || "Silenzio radio: 0 ore",
                 },
             ]}
         />

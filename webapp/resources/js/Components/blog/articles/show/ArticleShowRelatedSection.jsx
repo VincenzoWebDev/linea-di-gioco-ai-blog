@@ -13,9 +13,9 @@ export default function ArticleShowRelatedSection({ related = [] }) {
                         Prossimi step consigliati
                     </h2>
                     <p className="mt-3 max-w-2xl text-[#AAB3C2]">
-                        Incrociare questo dossier con fonti regionali,
-                        aggiornare gli score sugli assi critici e monitorare
-                        gli articoli correlati per variazioni di contesto.
+                        Selezione di dossier affini per area, categoria o
+                        lessico operativo, così il contesto resta coerente e
+                        confrontabile.
                     </p>
                 </div>
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#D7B56D]/40 bg-[#D7B56D]/10 text-[#D7B56D]">
@@ -23,12 +23,16 @@ export default function ArticleShowRelatedSection({ related = [] }) {
                 </div>
             </div>
 
-            {related.length > 0 && (
+            {related.length > 0 ? (
                 <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {related.map((item) => (
                         <ArticleRelatedCard key={item.id} article={item} />
                     ))}
                 </div>
+            ) : (
+                <p className="mt-6 text-sm text-[#9CA3AF]">
+                    Nessun dossier affine disponibile al momento.
+                </p>
             )}
         </section>
     );
