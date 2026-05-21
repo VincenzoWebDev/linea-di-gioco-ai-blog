@@ -32,7 +32,7 @@ export function normalizeOperations(locations = [], articles = []) {
         }));
     }
 
-    return articles.map((article, index) => ({
+    return articles.map((article) => ({
         ...article,
         title: article.title,
         summary: article.excerpt || article.summary,
@@ -41,9 +41,9 @@ export function normalizeOperations(locations = [], articles = []) {
             slug: article.slug,
         }),
         region_name: article.topic || "Dossier globale",
-        risk_score: 38,
-        severity: index === 0 ? "elevated" : "guarded",
-        trend_direction: "stable",
+        risk_score: article.current_tension ?? article.risk_score ?? 38,
+        severity: article.severity || "low",
+        trend_direction: article.trend_direction || "stable",
         operation_code:
             article.operation_code ||
             `OP-${String(article.id).padStart(4, "0")}`,

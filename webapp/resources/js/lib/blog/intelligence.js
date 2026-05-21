@@ -9,8 +9,10 @@ export function clamp(value, min = 0, max = 100) {
 }
 
 export function buildIntelligence(article, riskThresholds = {}) {
-    const hasTension = article.tension?.risk_score != null;
-    const riskScore = clamp(hasTension ? article.tension.risk_score : 38);
+    const tensionScore =
+        article.tension?.current_tension ?? article.tension?.risk_score ?? null;
+    const hasTension = tensionScore != null;
+    const riskScore = clamp(hasTension ? tensionScore : 38);
     const qualityScore = clamp(article.quality_score ?? 55);
     const trendBump =
         article.tension?.trend_direction === "rising"

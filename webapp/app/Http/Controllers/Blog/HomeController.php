@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\GeopoliticalTension;
 use App\Services\ArticleInsightService;
 use App\Services\GeopoliticalTensionService;
+use App\Support\GeopoliticalSeverity;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -22,7 +23,7 @@ class HomeController extends Controller
 
     public function index(): Response
     {
-        $articles = Article::query()
+        $publishedArticles = Article::query()
             ->where('status', 'published')
             ->with('categories:id,name')
             ->latest('published_at')
@@ -37,8 +38,21 @@ class HomeController extends Controller
                 'cover_path',
                 'thumb_path',
                 'quality_score',
+            ]);
+
+        $tensions = GeopoliticalTension::query()
+            ->whereIn('featured_article_id', $publishedArticles->pluck('id'))
+            ->get([
+                'featured_article_id',
+                'risk_score',
+                'trend_direction',
+                'region_name',
+                'updated_at',
             ])
-            ->map(fn(Article $article) => $this->toArticleCardData($article))
+            ->keyBy('featured_article_id');
+
+        $articles = $publishedArticles
+            ->map(fn(Article $article) => $this->toArticleCardData($article, $tensions->get($article->id)))
             ->values();
 
         $operations = $this->commandLocations();
@@ -82,7 +96,7 @@ class HomeController extends Controller
         return Inertia::render('Blog/Contact');
     }
 
-    private function toArticleCardData(Article $article): array
+    private function toArticleCardData(Article $article, ?GeopoliticalTension $tension = null): array
     {
         $categoryNames = $article->categories->pluck('name')->values();
         $summary = $this->articleInsightService->normalizeSummary(
@@ -90,6 +104,9 @@ class HomeController extends Controller
             (string) $article->content,
             (string) $article->title
         );
+        $currentTension = $tension
+            ? (int) ($this->geopoliticalTensionService->decaySnapshot($tension)['current_tension'] ?? $tension->risk_score ?? 0)
+            : null;
 
         return [
             'id' => $article->id,
@@ -104,6 +121,13 @@ class HomeController extends Controller
             'thumb_url' => $article->thumb_path ? Storage::url($article->thumb_path) : null,
             'quality_score' => $article->quality_score !== null ? (float) $article->quality_score : null,
             'operation_code' => sprintf('OP-%04d', $article->id),
+            'severity' => $currentTension !== null
+                ? GeopoliticalSeverity::fromRiskScore($currentTension)
+                : 'low',
+            'risk_score' => $tension?->risk_score,
+            'current_tension' => $currentTension,
+            'trend_direction' => $tension?->trend_direction ?? 'stable',
+            'region_name' => $tension?->region_name,
         ];
     }
 

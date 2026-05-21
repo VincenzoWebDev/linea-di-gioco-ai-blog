@@ -44,6 +44,7 @@ class ArticleController extends Controller
                 'risk_score',
                 'trend_direction',
                 'region_name',
+                'updated_at',
             ])
             ->keyBy('featured_article_id');
 
@@ -51,7 +52,9 @@ class ArticleController extends Controller
             ->map(function (Article $article) use ($tensions) {
                 $categoryNames = $article->categories->pluck('name')->values();
                 $tension = $tensions->get($article->id);
-                $riskScore = $tension?->risk_score;
+                $currentTension = $tension
+                    ? (int) (app(GeopoliticalTensionService::class)->decaySnapshot($tension)['current_tension'] ?? $tension->risk_score ?? 0)
+                    : null;
                 $summary = app(ArticleInsightService::class)->normalizeSummary(
                     (string) $article->summary,
                     (string) $article->content,
@@ -74,10 +77,11 @@ class ArticleController extends Controller
                         ? Storage::url($article->thumb_path)
                         : null,
                     'operation_code' => sprintf('OP-%04d', $article->id),
-                    'severity' => $riskScore !== null
-                        ? GeopoliticalSeverity::fromRiskScore((int) $riskScore)
+                    'severity' => $currentTension !== null
+                        ? GeopoliticalSeverity::fromRiskScore($currentTension)
                         : 'low',
-                    'risk_score' => $riskScore,
+                    'risk_score' => $tension?->risk_score,
+                    'current_tension' => $currentTension,
                     'trend_direction' => $tension?->trend_direction ?? 'stable',
                     'region_name' => $tension?->region_name,
                 ];
