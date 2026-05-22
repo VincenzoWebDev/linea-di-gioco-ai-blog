@@ -55,6 +55,9 @@ class ArticleController extends Controller
                 $currentTension = $tension
                     ? (int) (app(GeopoliticalTensionService::class)->decaySnapshot($tension)['current_tension'] ?? $tension->risk_score ?? 0)
                     : null;
+                $trendDirection = $tension
+                    ? app(GeopoliticalTensionService::class)->resolveTrendDirection($tension)
+                    : 'stable';
                 $summary = app(ArticleInsightService::class)->normalizeSummary(
                     (string) $article->summary,
                     (string) $article->content,
@@ -82,7 +85,7 @@ class ArticleController extends Controller
                         : 'low',
                     'risk_score' => $tension?->risk_score,
                     'current_tension' => $currentTension,
-                    'trend_direction' => $tension?->trend_direction ?? 'stable',
+                    'trend_direction' => $trendDirection,
                     'region_name' => $tension?->region_name,
                 ];
             });
@@ -135,6 +138,7 @@ class ArticleController extends Controller
             ->where('featured_article_id', $article->id)
             ->first(['region_name', 'risk_score', 'trend_direction', 'status_label', 'updated_at']);
         $decay = $tension ? $geopoliticalTensionService->decaySnapshot($tension) : null;
+        $trendDirection = $tension ? $geopoliticalTensionService->resolveTrendDirection($tension) : 'stable';
         $resolvedRegionName = $tension
             ? $geopoliticalTensionService->normalizeRegionName($tension->region_name, $article)
             : null;
@@ -165,7 +169,7 @@ class ArticleController extends Controller
                 'tension' => $tension ? [
                     'region_name' => $resolvedRegionName ?: $tension->region_name,
                     'risk_score' => $tension->risk_score,
-                    'trend_direction' => $tension->trend_direction,
+                    'trend_direction' => $trendDirection,
                     'status_label' => $tension->status_label,
                     'updated_at' => optional($tension->updated_at)->toISOString(),
                     'current_tension' => $decay['current_tension'] ?? $tension->risk_score,

@@ -11,7 +11,7 @@ import { ArrowRight, Clock3, Crosshair, MapPin, RadioTower, Satellite } from "lu
 import { Link } from "@inertiajs/react";
 import ArticleCoverImage from "@/Components/blog/articles/ArticleCoverImage";
 
-const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
+const geoUrl = "/vendor/world-atlas/countries-110m.json";
 
 function formatCoordinate(value, axis) {
     const numeric = Number(value) || 0;

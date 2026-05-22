@@ -42,10 +42,14 @@ class GeopoliticalTensionService
             return null;
         }
 
+        $existingTension = GeopoliticalTension::query()
+            ->where('region_name', Str::limit($regionName, 255, ''))
+            ->first();
+
         $statusLabel = trim((string) ($payload['status_label'] ?? ''));
         $rawRisk = $this->normalizeRiskScore($payload['risk_score'] ?? 0);
         $riskScore = $this->riskScoreCalibration->calibrate($rawRisk, $context, $statusLabel);
-        $trendDirection = $this->normalizeTrendDirection($payload['trend_direction'] ?? 'stable');
+        $trendDirection = $this->scoreTrendDirection($existingTension?->risk_score, $riskScore);
         $coordinates = $this->resolveCoordinates($regionName, $featuredArticle);
 
         $attributes = [
@@ -108,6 +112,17 @@ class GeopoliticalTensionService
             (int) $tension->risk_score,
             $tension->updated_at,
         );
+    }
+
+    public function resolveTrendDirection(GeopoliticalTension $tension): string
+    {
+        $currentTension = (int) ($this->decaySnapshot($tension)['current_tension'] ?? $tension->risk_score ?? 0);
+
+        if ($currentTension < (int) $tension->risk_score) {
+            return 'falling';
+        }
+
+        return $this->normalizeTrendDirection($tension->trend_direction);
     }
 
     public function normalizeRegionName(string $regionName, ?Article $article = null): string
@@ -233,6 +248,21 @@ class GeopoliticalTensionService
         $trend = strtolower(trim((string) $value));
 
         return in_array($trend, ['rising', 'falling', 'stable'], true) ? $trend : 'stable';
+    }
+
+    private function scoreTrendDirection(mixed $previousScore, int $currentScore): string
+    {
+        if (! is_numeric($previousScore)) {
+            return 'stable';
+        }
+
+        $previous = (int) $previousScore;
+
+        return match (true) {
+            $currentScore > $previous => 'rising',
+            $currentScore < $previous => 'falling',
+            default => 'stable',
+        };
     }
 
     private function articleContext(?Article $article): string

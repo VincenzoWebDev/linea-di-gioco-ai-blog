@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
-import GlobalMap from "@/Components/blog/home/GlobalMap";
+import { lazy, Suspense, useEffect, useState } from "react";
 import GlobalMapPlaceholder from "@/Components/blog/home/GlobalMapPlaceholder";
 import TacticalTicker from "@/Components/blog/home/TacticalTicker";
+
+const GlobalMap = lazy(() => import("@/Components/blog/home/GlobalMap"));
 
 export default function HomeCommandCenter({ operations }) {
     const [mounted, setMounted] = useState(false);
@@ -14,9 +15,11 @@ export default function HomeCommandCenter({ operations }) {
 
     return (
         <>
-            {/* GLOBAL MAP: render SOLO client-side (fix hydration crash) */}
+            {/* Keep the first paint cheap, then load the interactive map chunk. */}
             {mounted ? (
-                <GlobalMap operations={operations} />
+                <Suspense fallback={<GlobalMapPlaceholder />}>
+                    <GlobalMap operations={operations} />
+                </Suspense>
             ) : (
                 <GlobalMapPlaceholder />
             )}

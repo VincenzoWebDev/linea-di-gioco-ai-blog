@@ -21,6 +21,17 @@ export default defineConfig({
                         return;
                     }
 
+                    if (id.includes('lucide-react')) {
+                        return 'vendor-icons';
+                    }
+
+                    if (
+                        id.includes('@headlessui') ||
+                        id.includes('@radix-ui')
+                    ) {
+                        return 'vendor-ui';
+                    }
+
                     if (
                         id.includes('react-simple-maps') ||
                         id.includes('d3-')

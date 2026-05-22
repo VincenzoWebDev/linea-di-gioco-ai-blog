@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Link } from "@inertiajs/react";
 import { ArrowRight } from "lucide-react";
 import ArticleCoverImage from "@/Components/blog/articles/ArticleCoverImage";
@@ -22,7 +23,7 @@ export { formatPublishedAt } from "@/lib/blog/formatters";
  * @param {{ icon: import("lucide-react").LucideIcon, value: string }[]} [props.chips]
  * @param {{ label: string, border: string, bg: string, text: string } | null} [props.statusBadge]
  */
-export default function ArticleIntelligenceCard({
+function ArticleIntelligenceCard({
     article,
     index = 0,
     href,
@@ -111,3 +112,5 @@ export default function ArticleIntelligenceCard({
         </article>
     );
 }
+
+export default memo(ArticleIntelligenceCard);

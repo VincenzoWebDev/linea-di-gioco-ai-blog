@@ -1,9 +1,10 @@
+import { memo } from "react";
 import { Activity, MapPin, RadioTower } from "lucide-react";
 import ArticleIntelligenceCard from "@/Components/blog/articles/ArticleIntelligenceCard";
 import { severityBadge } from "@/lib/geopoliticalSeverity";
 import { trendCopy } from "@/lib/blog/trendCopy";
 
-export default function OperationIntelligenceCard({ item, index }) {
+function OperationIntelligenceCard({ item, index }) {
     const TrendIcon = trendCopy[item.trend_direction]?.icon || Activity;
 
     return (
@@ -37,3 +38,5 @@ export default function OperationIntelligenceCard({ item, index }) {
         />
     );
 }
+
+export default memo(OperationIntelligenceCard);

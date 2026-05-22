@@ -34,7 +34,7 @@ export default function HomeFeedSection({ items }) {
 
             {items.length > 0 ? (
                 <div className="grid gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
-                    {items.slice(0, 9).map((item, index) => (
+                    {items.slice(0, 6).map((item, index) => (
                         <OperationIntelligenceCard
                             key={`${item.id}-${item.operation_code}`}
                             item={item}

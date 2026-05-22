@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import BlogLayout from "@/Layouts/BlogLayout";
 import HomeBriefingSection from "@/Components/blog/home/HomeBriefingSection";
 import HomeCommandCenter from "@/Components/blog/home/HomeCommandCenter";
@@ -7,31 +6,16 @@ import HomeLatestNewsSection from "@/Components/blog/home/HomeLatestNewsSection"
 import HomeStatsSection from "@/Components/blog/home/HomeStatsSection";
 import SeoHead from "@/Components/Seo/SeoHead";
 import { buildHomeSeo } from "@/lib/blog/homeSeo";
-import { normalizeOperations, resolveLcpImageUrl } from "@/lib/blog/operations";
+import { resolveLcpImageUrl } from "@/lib/blog/operations";
 
 export default function Welcome({
-    latestArticles = [],
+    feedItems = [],
+    latestItems = [],
     locations = [],
     historicalOperations = [],
     stats = {},
 }) {
-    const operations = useMemo(
-        () => normalizeOperations(locations, []),
-        [locations],
-    );
-    const feedItems = useMemo(
-        () =>
-            operations.length > 0
-                ? operations
-                : historicalOperations.length === 0
-                  ? normalizeOperations([], latestArticles)
-                  : [],
-        [operations, historicalOperations, latestArticles],
-    );
-    const lcpImageUrl = useMemo(
-        () => resolveLcpImageUrl(feedItems[0]),
-        [feedItems],
-    );
+    const lcpImageUrl = resolveLcpImageUrl(feedItems[0]);
 
     const canonicalUrl = route("home");
     const seo = buildHomeSeo(canonicalUrl);
@@ -47,13 +31,13 @@ export default function Welcome({
                 }
             />
             <BlogLayout>
-                <HomeCommandCenter operations={operations} />
+                <HomeCommandCenter operations={locations} />
                 <HomeStatsSection
                     stats={stats}
-                    hotspotsCount={operations.length}
+                    hotspotsCount={locations.length}
                 />
                 <HomeFeedSection items={feedItems} />
-                <HomeLatestNewsSection articles={latestArticles} />
+                <HomeLatestNewsSection items={latestItems} />
                 <HomeBriefingSection items={historicalOperations} />
             </BlogLayout>
         </>

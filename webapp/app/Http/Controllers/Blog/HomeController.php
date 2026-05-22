@@ -27,17 +27,15 @@ class HomeController extends Controller
             ->where('status', 'published')
             ->with('categories:id,name')
             ->latest('published_at')
-            ->limit(10)
+            ->limit(6)
             ->get([
                 'id',
                 'title',
                 'slug',
                 'summary',
-                'content',
                 'published_at',
                 'cover_path',
                 'thumb_path',
-                'quality_score',
             ]);
 
         $tensions = GeopoliticalTension::query()
@@ -58,20 +56,21 @@ class HomeController extends Controller
         $operations = $this->commandLocations();
         $activeOperations = $operations
             ->where('current_tension', '>', 0)
+            ->take(6)
             ->values();
         $historicalOperations = $operations
             ->where('current_tension', '=', 0)
+            ->take(5)
             ->values();
-        $featuredArticle = $activeOperations->first() ?? $articles->first();
         $fallbackArticle = $articles->first();
-        $latestPublishedAt = $featuredArticle['published_at']
+        $latestPublishedAt = ($activeOperations->first()['published_at'] ?? null)
             ?? ($fallbackArticle['published_at'] ?? null);
 
         return Inertia::render('Welcome', [
-            'featuredArticle' => $featuredArticle,
             'locations' => $activeOperations,
-            'historicalOperations' => $historicalOperations->take(6)->values(),
-            'latestArticles' => $articles,
+            'historicalOperations' => $historicalOperations,
+            'feedItems' => $activeOperations->isNotEmpty() ? $activeOperations : $articles->take(6)->values(),
+            'latestItems' => $articles->take(3)->values(),
             'stats' => [
                 'articlesCount' => Article::query()->where('status', 'published')->count(),
                 'categoriesCount' => Category::query()->count(),
@@ -101,33 +100,38 @@ class HomeController extends Controller
         $categoryNames = $article->categories->pluck('name')->values();
         $summary = $this->articleInsightService->normalizeSummary(
             (string) $article->summary,
-            (string) $article->content,
+            '',
             (string) $article->title
         );
         $currentTension = $tension
             ? (int) ($this->geopoliticalTensionService->decaySnapshot($tension)['current_tension'] ?? $tension->risk_score ?? 0)
             : null;
+        $trendDirection = $tension
+            ? $this->geopoliticalTensionService->resolveTrendDirection($tension)
+            : 'stable';
 
         return [
             'id' => $article->id,
             'title' => $article->title,
             'slug' => $article->slug,
             'summary' => $summary,
-            'excerpt' => $summary !== '' ? $summary : Str::limit(strip_tags($article->content), 180),
+            'excerpt' => $summary !== '' ? $summary : Str::limit($article->title, 180),
             'topic' => $categoryNames->first() ?: null,
-            'categories' => $categoryNames,
             'published_at' => optional($article->published_at)->toISOString(),
             'cover_url' => $article->cover_path ? Storage::url($article->cover_path) : null,
             'thumb_url' => $article->thumb_path ? Storage::url($article->thumb_path) : null,
-            'quality_score' => $article->quality_score !== null ? (float) $article->quality_score : null,
+            'url' => route('blog.articles.show', [
+                'id' => $article->id,
+                'slug' => $article->slug,
+            ]),
             'operation_code' => sprintf('OP-%04d', $article->id),
             'severity' => $currentTension !== null
                 ? GeopoliticalSeverity::fromRiskScore($currentTension)
                 : 'low',
             'risk_score' => $tension?->risk_score,
             'current_tension' => $currentTension,
-            'trend_direction' => $tension?->trend_direction ?? 'stable',
-            'region_name' => $tension?->region_name,
+            'trend_direction' => $trendDirection,
+            'region_name' => $tension?->region_name ?? ($categoryNames->first() ?: 'Dossier globale'),
         ];
     }
 
@@ -137,8 +141,18 @@ class HomeController extends Controller
     private function commandLocations()
     {
         return GeopoliticalTension::query()
-            ->with('featuredArticle:id,title,slug,status,published_at,summary,content,quality_score,thumb_path,cover_path')
-            ->get()
+            ->with('featuredArticle:id,title,slug,status,published_at,summary,thumb_path,cover_path')
+            ->get([
+                'id',
+                'featured_article_id',
+                'region_name',
+                'latitude',
+                'longitude',
+                'risk_score',
+                'trend_direction',
+                'status_label',
+                'updated_at',
+            ])
             ->map(function (GeopoliticalTension $tension) {
                 $decay = $this->geopoliticalTensionService->decaySnapshot($tension);
                 $coordinates = $this->coordinatesForTension($tension);
@@ -161,7 +175,7 @@ class HomeController extends Controller
                     'initial_risk_score' => $decay['initial_risk_score'],
                     'current_tension' => $decay['current_tension'],
                     'severity' => \App\Support\GeopoliticalSeverity::fromRiskScore($decay['current_tension']),
-                    'trend_direction' => $tension->trend_direction,
+                    'trend_direction' => $this->geopoliticalTensionService->resolveTrendDirection($tension),
                     'status_label' => $tension->status_label,
                     'silence_hours' => $decay['silence_hours'],
                     'decay_days' => $decay['decay_days'],

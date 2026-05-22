@@ -1,7 +1,6 @@
 import { Link } from "@inertiajs/react";
 import { ArrowRight } from "lucide-react";
 import OperationIntelligenceCard from "@/Components/blog/home/OperationIntelligenceCard";
-import { normalizeOperations } from "@/lib/blog/operations";
 
 function EmptyState() {
     return (
@@ -11,9 +10,7 @@ function EmptyState() {
     );
 }
 
-export default function HomeLatestNewsSection({ articles = [] }) {
-    const items = normalizeOperations([], articles);
-
+export default function HomeLatestNewsSection({ items = [] }) {
     return (
         <section className="mt-10 sm:mt-14">
             <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
@@ -40,7 +37,7 @@ export default function HomeLatestNewsSection({ articles = [] }) {
 
             {items.length > 0 ? (
                 <div className="grid gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
-                    {items.slice(0, 6).map((item, index) => (
+                    {items.slice(0, 3).map((item, index) => (
                         <OperationIntelligenceCard
                             key={`${item.id}-${item.operation_code}`}
                             item={item}
