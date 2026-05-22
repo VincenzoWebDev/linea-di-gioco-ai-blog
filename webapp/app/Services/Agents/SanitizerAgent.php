@@ -65,7 +65,13 @@ class SanitizerAgent
                     $crewOutput['categories'] ?? [($crewOutput['topic'] ?? 'geopolitica')]
                 ),
                 'quality_score' => $crewScore,
-                'source_url' => ArticleContentNormalizer::preferNonEmptyString($crewOutput['source_url'] ?? null, $sourceUrl),
+                'source_url' => ArticleContentNormalizer::preferUsableUrl(
+                    $crewOutput['source_url'] ?? null,
+                    $sourceUrl
+                ) ?: ArticleContentNormalizer::preferNonEmptyString(
+                    $sourceUrl,
+                    $crewOutput['source_url'] ?? null
+                ),
                 'rewrite_mode' => 'crewai',
                 'language' => 'it',
             ];

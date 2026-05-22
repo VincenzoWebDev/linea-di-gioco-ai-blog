@@ -63,10 +63,16 @@ class CrewAiClient
             $content = ArticleContentNormalizer::stripSourceFooter(trim((string) ($article['content'] ?? '')));
             $topic = trim((string) ($article['topic'] ?? 'geopolitica'));
             $categories = ArticleContentNormalizer::normalizeCategories($article['categories'] ?? []);
-            $sourceUrl = ArticleContentNormalizer::preferNonEmptyString(
+            $sourceUrl = ArticleContentNormalizer::preferUsableUrl(
                 $article['source_url'] ?? null,
                 $payload['source_url'] ?? null
             );
+            if ($sourceUrl === '') {
+                $sourceUrl = ArticleContentNormalizer::preferNonEmptyString(
+                    $payload['source_url'] ?? null,
+                    $article['source_url'] ?? null
+                );
+            }
             $geopoliticalTension = is_array($article['geopolitical_tension'] ?? null)
                 ? $article['geopolitical_tension']
                 : null;

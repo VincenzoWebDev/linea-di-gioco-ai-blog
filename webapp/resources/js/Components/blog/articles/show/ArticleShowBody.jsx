@@ -16,7 +16,7 @@ export default function ArticleShowBody({ article, glossary }) {
                 />
             </div>
 
-            {article.source_url && (
+            {article.source_url ? (
                 <a
                     href={article.source_url}
                     target="_blank"
@@ -26,7 +26,12 @@ export default function ArticleShowBody({ article, glossary }) {
                     <ExternalLink className="h-4 w-4" />
                     Fonte
                 </a>
-            )}
+            ) : article.source_name ? (
+                <div className="mt-10 inline-flex items-center gap-2 border border-[#2A354D] bg-[#121722] px-4 py-2 font-mono text-xs uppercase tracking-[0.2em] text-[#AAB3C2]">
+                    <ExternalLink className="h-4 w-4" />
+                    Fonte: {article.source_name}
+                </div>
+            ) : null}
         </main>
     );
 }

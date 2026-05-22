@@ -24,13 +24,13 @@ class IncomingNewsIngestService
     public function ingest(array $payload, string $idempotencyKey): ?IncomingNews
     {
         $sourceName = trim((string) ($payload['source_name'] ?? 'CrewAI Dispatch'));
-        $sourceUrl = trim((string) ($payload['source_url'] ?? 'https://dispatch.local'));
+        $sourceUrl = trim((string) ($payload['source_url'] ?? ''));
 
         $source = NewsSource::query()->firstOrCreate(
             ['name' => $sourceName],
             [
                 'type' => 'api',
-                'endpoint' => $sourceUrl,
+                'endpoint' => $sourceUrl !== '' ? $sourceUrl : 'https://dispatch.local',
                 'is_active' => true,
                 'poll_interval_minutes' => 60,
             ]
@@ -104,7 +104,7 @@ class IncomingNewsIngestService
             'topic' => (string) ($payload['topic'] ?? 'geopolitica'),
             'categories' => ArticleContentNormalizer::normalizeCategories($payload['categories'] ?? []),
             'quality_score' => max($providedScore, $computedScore),
-            'source_url' => $sourceUrl,
+            'source_url' => ArticleContentNormalizer::preferUsableUrl($sourceUrl) ?: $sourceUrl,
             'rewrite_mode' => (string) ($payload['rewrite_mode'] ?? 'dispatch'),
             'language' => (string) ($payload['language'] ?? 'it'),
         ];

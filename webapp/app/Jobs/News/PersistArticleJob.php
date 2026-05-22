@@ -69,6 +69,12 @@ class PersistArticleJob implements ShouldQueue
         );
 
         $content = ArticleContentNormalizer::stripSourceFooter((string) ($payload['content'] ?? ''));
+        $resolvedSourceUrl = ArticleContentNormalizer::preferUsableUrl(
+            $incoming->url,
+            $payload['source_url'] ?? null,
+            $incoming->source?->endpoint
+        );
+        $fallbackSourceLabel = trim((string) ($incoming->source?->name ?? ''));
 
         $article = Article::query()->create([
             'incoming_news_id' => $incoming->id,
@@ -79,8 +85,12 @@ class PersistArticleJob implements ShouldQueue
             'status' => $autoPublish ? 'published' : 'review',
             'publication_status' => $publicationStatus,
             'created_by' => 'ai',
-            'source_url' => ArticleContentNormalizer::preferNonEmptyString($payload['source_url'] ?? null, $incoming->url),
-            'source_name' => (string) ($incoming->source?->name ?? 'unknown'),
+            'source_url' => $resolvedSourceUrl !== ''
+                ? $resolvedSourceUrl
+                : '',
+            'source_name' => $fallbackSourceLabel !== ''
+                ? $fallbackSourceLabel
+                : 'unknown',
             'ai_generated' => true,
             'quality_score' => (float) ($payload['quality_score'] ?? 0),
             'future_scenarios' => is_array($payload['future_scenarios'] ?? null) ? $payload['future_scenarios'] : null,
