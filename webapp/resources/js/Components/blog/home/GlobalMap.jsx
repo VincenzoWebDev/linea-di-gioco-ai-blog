@@ -10,8 +10,7 @@ import { severityClasses } from "@/lib/geopoliticalSeverity";
 import { ArrowRight, Clock3, Crosshair, MapPin, RadioTower, Satellite } from "lucide-react";
 import { Link } from "@inertiajs/react";
 import ArticleCoverImage from "@/Components/blog/articles/ArticleCoverImage";
-
-const geoUrl = "/vendor/world-atlas/countries-110m.json";
+import geoUrl from "@/assets/world-atlas/countries-110m.json?url";
 
 function formatCoordinate(value, axis) {
     const numeric = Number(value) || 0;
