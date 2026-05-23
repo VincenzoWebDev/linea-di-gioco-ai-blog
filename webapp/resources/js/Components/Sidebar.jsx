@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Link } from "@inertiajs/react";
+import { useState } from "react";
+import { Link, usePage } from "@inertiajs/react";
 import {
     LayoutDashboard,
     FileText,
@@ -12,23 +12,52 @@ import {
 
 export default function Sidebar() {
     const [isCollapsed, setIsCollapsed] = useState(false);
-
-    const items = useMemo(
-        () => [
-            {
-                label: "Dashboard",
-                href: route("admin.dashboard"),
-                Icon: LayoutDashboard,
-            },
-            { label: "Pagine", href: "/admin/pages", Icon: FileText },
-            { label: "Articoli", href: "/admin/posts", Icon: Newspaper },
-            { label: "Categorie", href: "/admin/categories", Icon: Tags },
-            { label: "Impostazioni", href: "/admin/settings", Icon: Settings },
-            { label: "Media", href: "/admin/media", Icon: ImageIcon },
-            { label: "Utenti", href: "/admin/users", Icon: Users },
-        ],
-        [],
-    );
+    const page = usePage();
+    const currentPath = normalizePath(page.url);
+    const items = [
+        {
+            label: "Dashboard",
+            href: route("admin.dashboard"),
+            Icon: LayoutDashboard,
+            isActive: (path) => path === "/admin/dashboard" || path === "/admin",
+        },
+        {
+            label: "Pagine",
+            href: route("admin.pages.index"),
+            Icon: FileText,
+            isActive: (path) => path.startsWith("/admin/pages"),
+        },
+        {
+            label: "Articoli",
+            href: route("admin.posts.index"),
+            Icon: Newspaper,
+            isActive: (path) => path.startsWith("/admin/posts"),
+        },
+        {
+            label: "Categorie",
+            href: route("admin.categories.index"),
+            Icon: Tags,
+            isActive: (path) => path.startsWith("/admin/categories"),
+        },
+        {
+            label: "Impostazioni",
+            href: route("admin.settings.index"),
+            Icon: Settings,
+            isActive: (path) => path.startsWith("/admin/settings"),
+        },
+        {
+            label: "Media",
+            href: route("admin.media.index"),
+            Icon: ImageIcon,
+            isActive: (path) => path.startsWith("/admin/media"),
+        },
+        {
+            label: "Utenti",
+            href: route("admin.users.index"),
+            Icon: Users,
+            isActive: (path) => path.startsWith("/admin/users"),
+        },
+    ];
 
     return (
         <aside
@@ -64,9 +93,7 @@ export default function Sidebar() {
 
             <nav className="flex-1 p-3 space-y-1">
                 {items.map((item) => {
-                    const isActive =
-                        item.label === "Dashboard" &&
-                        route().current("admin.dashboard");
+                    const isActive = item.isActive(currentPath);
                     return (
                         <Link
                             key={item.label}
@@ -87,4 +114,15 @@ export default function Sidebar() {
             </nav>
         </aside>
     );
+}
+
+function normalizePath(url) {
+    if (typeof url !== "string" || url.trim() === "") {
+        return "/";
+    }
+
+    const [path] = url.split("?");
+    const normalized = path.startsWith("/") ? path : `/${path}`;
+
+    return normalized.length > 1 ? normalized.replace(/\/+$/, "") : normalized;
 }

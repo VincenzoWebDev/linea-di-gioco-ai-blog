@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\AgentRun;
 use App\Models\Article;
 use App\Models\Category;
+use App\Models\GeopoliticalTension;
 use App\Models\IncomingNews;
 use App\Models\NewsSource;
 use App\Models\PublicationLog;
 use App\Models\User;
+use App\Services\GeopoliticalTensionService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -17,6 +19,10 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
+    public function __construct(
+        private readonly GeopoliticalTensionService $geopoliticalTensionService,
+    ) {}
+
     public function __invoke(): Response
     {
         $now = now();
@@ -105,6 +111,8 @@ class DashboardController extends Controller
                 'created_at' => optional($item->created_at)->toISOString(),
             ])
             ->values();
+        $topTensions = $this->geopoliticalTensionService->topForHeader()->all();
+        $latestTensionUpdate = GeopoliticalTension::query()->max('updated_at');
 
         return Inertia::render('Admin/Dashboard', [
             'stats' => [
@@ -175,6 +183,11 @@ class DashboardController extends Controller
                     'meta' => Category::query()->where('is_active', true)->count().' categorie attive',
                 ],
                 [
+                    'title' => 'Tensioni',
+                    'description' => 'Hotspot geopolitici attivi collegati agli articoli.',
+                    'meta' => GeopoliticalTension::query()->count().' scenari tracciati',
+                ],
+                [
                     'title' => 'Pipeline AI',
                     'description' => 'Stato di ingestione, sanificazione e pubblicazione.',
                     'meta' => $incomingLast30Days.' item processati / 30 giorni',
@@ -189,6 +202,14 @@ class DashboardController extends Controller
                     'description' => 'Accessi abilitati al pannello di amministrazione.',
                     'meta' => User::query()->count().' utenti',
                 ],
+            ],
+            'tensions' => [
+                'top' => $topTensions,
+                'total' => GeopoliticalTension::query()->count(),
+                'high' => GeopoliticalTension::query()->where('risk_score', '>=', 70)->count(),
+                'latest_update' => $latestTensionUpdate
+                    ? Carbon::parse($latestTensionUpdate)->toISOString()
+                    : null,
             ],
         ]);
     }

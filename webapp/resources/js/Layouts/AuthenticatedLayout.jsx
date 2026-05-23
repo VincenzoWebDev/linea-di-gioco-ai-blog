@@ -4,12 +4,14 @@ import Dropdown from "@/Components/Dropdown";
 import NavLink from "@/Components/NavLink";
 import ResponsiveNavLink from "@/Components/ResponsiveNavLink";
 import Sidebar from "@/Components/Sidebar";
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import SeoHead from "@/Components/Seo/SeoHead";
 
 export default function Authenticated({ user, header, children }) {
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
+    const page = usePage();
+    const currentPath = normalizePath(page.url);
 
     return (
         <div className="min-h-screen bg-gray-100">
@@ -131,9 +133,48 @@ export default function Authenticated({ user, header, children }) {
                     <div className="pt-2 pb-3 space-y-1">
                         <ResponsiveNavLink
                             href={route("admin.dashboard")}
-                            active={route().current("admin.dashboard")}
+                            active={
+                                currentPath === "/admin/dashboard" ||
+                                currentPath === "/admin"
+                            }
                         >
                             Dashboard
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route("admin.posts.index")}
+                            active={currentPath.startsWith("/admin/posts")}
+                        >
+                            Articoli
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route("admin.pages.index")}
+                            active={currentPath.startsWith("/admin/pages")}
+                        >
+                            Pagine
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route("admin.categories.index")}
+                            active={currentPath.startsWith("/admin/categories")}
+                        >
+                            Categorie
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route("admin.media.index")}
+                            active={currentPath.startsWith("/admin/media")}
+                        >
+                            Media
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route("admin.settings.index")}
+                            active={currentPath.startsWith("/admin/settings")}
+                        >
+                            Impostazioni
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route("admin.users.index")}
+                            active={currentPath.startsWith("/admin/users")}
+                        >
+                            Utenti
                         </ResponsiveNavLink>
                     </div>
 
@@ -175,4 +216,15 @@ export default function Authenticated({ user, header, children }) {
             </div>
         </div>
     );
+}
+
+function normalizePath(url) {
+    if (typeof url !== "string" || url.trim() === "") {
+        return "/";
+    }
+
+    const [path] = url.split("?");
+    const normalized = path.startsWith("/") ? path : `/${path}`;
+
+    return normalized.length > 1 ? normalized.replace(/\/+$/, "") : normalized;
 }

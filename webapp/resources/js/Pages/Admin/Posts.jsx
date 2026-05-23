@@ -12,12 +12,19 @@ const statusStyles = {
     published: 'bg-emerald-100 text-emerald-700',
 };
 
+const trendLabels = {
+    rising: 'In crescita',
+    falling: 'In calo',
+    stable: 'Stabile',
+};
+
 export default function Posts({
     auth,
     articles = { data: [], links: [] },
     filters = {},
     sort = { field: 'id', direction: 'desc' },
     categories = [],
+    tensions = { top: [], stats: { total: 0, high: 0 } },
 }) {
     const [showCreate, setShowCreate] = useState(false);
     const [showEdit, setShowEdit] = useState(false);
@@ -51,6 +58,10 @@ export default function Posts({
         published_at: '',
         cover: null,
         thumb: null,
+        tension_region_name: '',
+        tension_risk_score: '',
+        tension_trend_direction: 'stable',
+        tension_status_label: '',
     });
 
     const editForm = useForm({
@@ -65,6 +76,10 @@ export default function Posts({
         published_at: '',
         cover: null,
         thumb: null,
+        tension_region_name: '',
+        tension_risk_score: '',
+        tension_trend_direction: 'stable',
+        tension_status_label: '',
     });
 
     const articleRows = useMemo(() => articles?.data || [], [articles]);
@@ -89,6 +104,10 @@ export default function Posts({
             published_at: article.published_at ? article.published_at.slice(0, 10) : '',
             cover: null,
             thumb: null,
+            tension_region_name: article.tension?.region_name || '',
+            tension_risk_score: article.tension?.risk_score ? String(article.tension.risk_score) : '',
+            tension_trend_direction: article.tension?.trend_direction || 'stable',
+            tension_status_label: article.tension?.status_label || '',
         });
         setShowEdit(true);
     };
@@ -264,6 +283,38 @@ export default function Posts({
             <div className="py-10">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
                     <Card>
+                        <CardHeader>
+                            <CardTitle>Tensioni</CardTitle>
+                            <CardDescription>Scenario mostrato sotto l'header del blog.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                                <div className="rounded-md bg-slate-50 p-3">
+                                    <p className="text-xs text-slate-500">Tensioni totali</p>
+                                    <p className="text-lg font-semibold text-slate-900">{tensions?.stats?.total ?? 0}</p>
+                                </div>
+                                <div className="rounded-md bg-slate-50 p-3">
+                                    <p className="text-xs text-slate-500">Rischio alto (>=70)</p>
+                                    <p className="text-lg font-semibold text-slate-900">{tensions?.stats?.high ?? 0}</p>
+                                </div>
+                            </div>
+                            <div className="grid gap-3 lg:grid-cols-2">
+                                {(tensions?.top || []).length === 0 && (
+                                    <p className="text-sm text-slate-500">Nessuna tensione attiva.</p>
+                                )}
+                                {(tensions?.top || []).map((item) => (
+                                    <div key={`top-tension-${item.id}`} className="rounded-md border border-slate-200 p-3">
+                                        <div className="flex items-center justify-between">
+                                            <p className="font-medium text-slate-900">{item.region_name}</p>
+                                            <p className="text-sm text-slate-700">{item.risk_score}</p>
+                                        </div>
+                                        <p className="mt-1 text-xs text-slate-500">{item.status_label}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
                         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <CardTitle>Gestione articoli</CardTitle>
@@ -370,6 +421,7 @@ export default function Posts({
                                                 </button>
                                             </th>
                                             <th className="py-3 pr-4 font-medium">Categorie</th>
+                                            <th className="py-3 pr-4 font-medium">Tensione</th>
                                             <th className="py-3 pr-4 font-medium">
                                                 <button type="button" onClick={() => toggleSort('status')}>
                                                     Stato{sortLabel('status')}
@@ -391,7 +443,7 @@ export default function Posts({
                                     <tbody>
                                         {articleRows.length === 0 && (
                                             <tr>
-                                                <td className="py-6 text-slate-500" colSpan="7">
+                                                <td className="py-6 text-slate-500" colSpan="8">
                                                     Nessun articolo presente.
                                                 </td>
                                             </tr>
@@ -407,6 +459,18 @@ export default function Posts({
                                                     {Array.isArray(article.categories) && article.categories.length > 0
                                                         ? article.categories.map((category) => category.name).join(', ')
                                                         : '-'}
+                                                </td>
+                                                <td className="py-4 pr-4">
+                                                    {article.tension ? (
+                                                        <div className="text-xs">
+                                                            <p className="font-medium text-slate-800">{article.tension.region_name}</p>
+                                                            <p className="text-slate-500">
+                                                                {article.tension.current_tension ?? article.tension.risk_score} • {trendLabels[article.tension.trend_direction] || trendLabels.stable}
+                                                            </p>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-slate-400">-</span>
+                                                    )}
                                                 </td>
                                                 <td className="py-4 pr-4">
                                                     <span
@@ -679,6 +743,51 @@ export default function Posts({
                                 <InputError message={createForm.errors.thumb} className="mt-2" />
                             </label>
                         </div>
+                        <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-4">
+                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Tensione</p>
+                            <p className="mt-1 text-xs text-slate-500">Dati usati nella barra tensioni sotto l'header.</p>
+                            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                                <div>
+                                    <label className="text-xs font-medium text-slate-600">Regione</label>
+                                    <input
+                                        className="mt-2 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
+                                        value={createForm.data.tension_region_name}
+                                        onChange={(e) => createForm.setData('tension_region_name', e.target.value)}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-slate-600">Risk score (1-100)</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="100"
+                                        className="mt-2 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
+                                        value={createForm.data.tension_risk_score}
+                                        onChange={(e) => createForm.setData('tension_risk_score', e.target.value)}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-slate-600">Trend</label>
+                                    <select
+                                        className="mt-2 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
+                                        value={createForm.data.tension_trend_direction}
+                                        onChange={(e) => createForm.setData('tension_trend_direction', e.target.value)}
+                                    >
+                                        <option value="stable">Stabile</option>
+                                        <option value="rising">In crescita</option>
+                                        <option value="falling">In calo</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-slate-600">Etichetta stato</label>
+                                    <input
+                                        className="mt-2 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
+                                        value={createForm.data.tension_status_label}
+                                        onChange={(e) => createForm.setData('tension_status_label', e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
                         <div className="flex justify-end gap-3 pt-2">
                             <button
                                 type="button"
@@ -893,6 +1002,51 @@ export default function Posts({
                                 />
                                 <InputError message={editForm.errors.thumb} className="mt-2" />
                             </label>
+                        </div>
+                        <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-4">
+                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Tensione</p>
+                            <p className="mt-1 text-xs text-slate-500">Dati usati nella barra tensioni sotto l'header.</p>
+                            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                                <div>
+                                    <label className="text-xs font-medium text-slate-600">Regione</label>
+                                    <input
+                                        className="mt-2 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
+                                        value={editForm.data.tension_region_name}
+                                        onChange={(e) => editForm.setData('tension_region_name', e.target.value)}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-slate-600">Risk score (1-100)</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="100"
+                                        className="mt-2 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
+                                        value={editForm.data.tension_risk_score}
+                                        onChange={(e) => editForm.setData('tension_risk_score', e.target.value)}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-slate-600">Trend</label>
+                                    <select
+                                        className="mt-2 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
+                                        value={editForm.data.tension_trend_direction}
+                                        onChange={(e) => editForm.setData('tension_trend_direction', e.target.value)}
+                                    >
+                                        <option value="stable">Stabile</option>
+                                        <option value="rising">In crescita</option>
+                                        <option value="falling">In calo</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-slate-600">Etichetta stato</label>
+                                    <input
+                                        className="mt-2 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
+                                        value={editForm.data.tension_status_label}
+                                        onChange={(e) => editForm.setData('tension_status_label', e.target.value)}
+                                    />
+                                </div>
+                            </div>
                         </div>
                         <div className="flex justify-end gap-3 pt-2">
                             <button
