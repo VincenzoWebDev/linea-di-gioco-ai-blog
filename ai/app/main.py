@@ -1,4 +1,6 @@
 from pathlib import Path
+import os
+import secrets
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Header, HTTPException
@@ -22,7 +24,7 @@ def health() -> dict:
 
 @app.post('/process', response_model=ProcessResponse)
 def process(payload: ProcessRequest, authorization: str | None = Header(default=None)) -> ProcessResponse:
-    _ = authorization
+    _ensure_api_token(authorization)
     try:
         article, trace = run_pipeline(payload)
         return ProcessResponse(article=article, trace=trace)
@@ -39,3 +41,19 @@ def run_once_deprecated() -> None:
             'Avvia la pipeline con: php artisan ai-news:run'
         ),
     )
+
+
+def _ensure_api_token(authorization: str | None) -> None:
+    expected = os.getenv('CREWAI_API_KEY', '').strip()
+    if expected == '':
+        return
+
+    provided = (authorization or '').strip()
+    prefix = 'Bearer '
+
+    if not provided.startswith(prefix):
+        raise HTTPException(status_code=401, detail='unauthorized')
+
+    token = provided[len(prefix):].strip()
+    if token == '' or not secrets.compare_digest(expected, token):
+        raise HTTPException(status_code=401, detail='unauthorized')

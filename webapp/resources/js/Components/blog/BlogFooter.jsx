@@ -18,7 +18,7 @@ export default function BlogFooter() {
                     </div>
 
                     <div className="pt-2 text-xs text-[#4B5563]">
-                        Â© {new Date().getFullYear()} Linea di Gioco. Tutti i
+                        © {new Date().getFullYear()} Linea di Gioco. Tutti i
                         diritti riservati.
                     </div>
                 </div>

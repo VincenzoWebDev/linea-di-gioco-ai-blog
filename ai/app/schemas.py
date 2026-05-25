@@ -1,13 +1,13 @@
 from typing import Literal
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field
 
 
 class ProcessRequest(BaseModel):
     title: str = Field(default="")
     summary: str = Field(default="")
     source_content: str = Field(default="")
-    source_url: HttpUrl
+    source_url: str = Field(default="")
     language: str = Field(default="it")
     domain: str = Field(default="geopolitics")
 

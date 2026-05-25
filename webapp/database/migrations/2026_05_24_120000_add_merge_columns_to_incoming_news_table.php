@@ -25,6 +25,15 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('incoming_news', function (Blueprint $table) {
+            if (Schema::getConnection()->getDriverName() === 'sqlite') {
+                $table->dropColumn([
+                    'merged_into_incoming_news_id',
+                    'merged_into_article_id',
+                ]);
+
+                return;
+            }
+
             $table->dropConstrainedForeignId('merged_into_incoming_news_id');
             $table->dropConstrainedForeignId('merged_into_article_id');
         });

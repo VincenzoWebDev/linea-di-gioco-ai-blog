@@ -1,32 +1,23 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        if (Schema::getConnection()->getDriverName() !== 'mysql') {
-            return;
+        if (Schema::getConnection()->getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE `incoming_news` MODIFY `external_id` TEXT NULL, MODIFY `url` TEXT NULL');
         }
-
-        DB::statement('ALTER TABLE `incoming_news` MODIFY `external_id` TEXT NULL, MODIFY `url` TEXT NULL');
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        // No-op rollback: shrinking TEXT -> VARCHAR may fail if data exceeds 255 chars.
-        // To avoid destructive truncation during automated refreshes, keep down() non-destructive.
-        // If you need to revert to VARCHAR(255), manually truncate long values first, then alter.
+        // Non-destructive rollback: during migrate:refresh the table will be dropped by the
+        // original create migration, while shrinking TEXT back to VARCHAR(255) may fail on
+        // existing data and would risk silent truncation.
         return;
     }
 };

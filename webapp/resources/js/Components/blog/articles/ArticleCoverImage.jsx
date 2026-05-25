@@ -4,14 +4,8 @@ const THUMB_DIMENSIONS = { width: 384, height: 384 };
 const COVER_DIMENSIONS = { width: 1200, height: 630 };
 
 function resolveImageUrl(item, variant) {
-    const thumb =
-        item?.thumb_url ||
-        item?.article?.thumb_url ||
-        null;
-    const cover =
-        item?.cover_url ||
-        item?.article?.cover_url ||
-        null;
+    const thumb = item?.thumb_url || item?.article?.thumb_url || null;
+    const cover = item?.cover_url || item?.article?.cover_url || null;
 
     if (variant === "cover") {
         return cover || thumb;
@@ -34,8 +28,7 @@ export default function ArticleCoverImage({
     decoding = "async",
 }) {
     const imageUrl = resolveImageUrl(item, variant);
-    const defaults =
-        variant === "cover" ? COVER_DIMENSIONS : THUMB_DIMENSIONS;
+    const defaults = variant === "cover" ? COVER_DIMENSIONS : THUMB_DIMENSIONS;
     const resolvedWidth = width ?? defaults.width;
     const resolvedHeight = height ?? defaults.height;
 
