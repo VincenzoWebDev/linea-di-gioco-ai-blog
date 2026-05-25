@@ -49,7 +49,7 @@ class ArticleValidationServiceTest extends TestCase
         $this->assertContains('Traduzione non riuscita dal servizio AI', $result['errors']);
     }
 
-    public function test_accepts_in_scope_non_italian_content_for_rewrite_or_publication(): void
+    public function test_rejects_non_italian_content_for_publication_but_flags_it_for_rewrite(): void
     {
         config()->set('ai_news.min_quality_score', 70);
 
@@ -66,8 +66,8 @@ class ArticleValidationServiceTest extends TestCase
             'language' => 'en',
         ]);
 
-        $this->assertTrue($result['valid']);
-        $this->assertSame([], $result['errors']);
+        $this->assertFalse($result['valid']);
+        $this->assertContains('Contenuto non sufficientemente in italiano', $result['errors']);
         $this->assertTrue($service->needsItalianRewrite([
             'title' => 'Diplomatic tensions rise after the summit',
             'summary' => 'Officials said the agreement could change the regional balance.',

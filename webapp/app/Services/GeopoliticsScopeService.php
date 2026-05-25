@@ -11,28 +11,45 @@ class GeopoliticsScopeService
             return false;
         }
 
-        $block = config('ai_news.scope.block_keywords', []);
-        foreach ($block as $keyword) {
-            $needle = mb_strtolower(trim((string) $keyword));
-            if ($needle !== '' && str_contains($text, $needle)) {
-                return false;
-            }
+        if ($this->containsConfiguredKeyword($text, (array) config('ai_news.scope.block_keywords', []))) {
+            return false;
         }
 
-        $trustedDomains = config('ai_news.scope.trusted_domains', []);
-        if ($this->isTrustedDomain((string) $url, $trustedDomains)) {
+        $normalizedUrl = mb_strtolower(trim((string) $url));
+        $trusted = $this->isTrustedDomain($normalizedUrl, (array) config('ai_news.scope.trusted_domains', []));
+
+        if ($this->containsConfiguredKeyword($text, (array) config('ai_news.scope.allow_keywords', []))) {
             return true;
         }
 
-        $allow = config('ai_news.scope.allow_keywords', []);
-        foreach ($allow as $keyword) {
-            $needle = mb_strtolower(trim((string) $keyword));
-            if ($needle !== '' && str_contains($text, $needle)) {
-                return true;
-            }
+        if (! $trusted) {
+            return false;
         }
 
-        return false;
+        return $this->containsConfiguredKeyword($normalizedUrl, [
+            'world',
+            'politics',
+            'international',
+            'diplom',
+            'security',
+            'war',
+            'conflict',
+            'europe',
+            'middle-east',
+            'middle_east',
+            'china',
+            'taiwan',
+            'russia',
+            'ukraine',
+            'nato',
+            'sanctions',
+            'energy',
+            'election',
+            'elections',
+            'government',
+            'foreign-policy',
+            'foreign_policy',
+        ]);
     }
 
     /**
@@ -52,6 +69,21 @@ class GeopoliticsScopeService
         foreach ($trustedDomains as $domain) {
             $needle = mb_strtolower(trim($domain));
             if ($needle !== '' && str_ends_with($host, $needle)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array<int, string> $keywords
+     */
+    private function containsConfiguredKeyword(string $text, array $keywords): bool
+    {
+        foreach ($keywords as $keyword) {
+            $needle = mb_strtolower(trim((string) $keyword));
+            if ($needle !== '' && str_contains($text, $needle)) {
                 return true;
             }
         }

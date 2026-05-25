@@ -31,6 +31,10 @@ class ArticleValidationService
             $errors[] = 'Quality score sotto soglia';
         }
 
+        if (! $this->isPublishableItalianPayload($payload)) {
+            $errors[] = 'Contenuto non sufficientemente in italiano';
+        }
+
         foreach ($this->validateContentPolicy($payload)['errors'] as $error) {
             $errors[] = $error;
         }
@@ -204,5 +208,15 @@ class ArticleValidationService
         }
 
         return $italianScore > $englishScore + 1;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function isPublishableItalianPayload(array $payload): bool
+    {
+        $combinedText = $this->combinedText($payload);
+
+        return $combinedText !== '' && $this->looksItalian($combinedText, (string) ($payload['language'] ?? ''));
     }
 }
