@@ -25,6 +25,7 @@ class IncomingNewsStateMachine
         ],
         IncomingNewsStatus::SANITIZED => [
             IncomingNewsStatus::VALIDATED,
+            IncomingNewsStatus::PUBLISHED,
             IncomingNewsStatus::REJECTED,
         ],
         IncomingNewsStatus::VALIDATED => [

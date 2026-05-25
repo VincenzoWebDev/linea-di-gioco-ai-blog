@@ -5,6 +5,7 @@ namespace App\Jobs\News;
 use App\Enums\IncomingNewsStatus;
 use App\Models\IncomingNews;
 use App\Services\ArticleValidationService;
+use App\Services\News\IncomingNewsMergeService;
 use App\Services\News\IncomingNewsStateMachine;
 use App\Services\News\NewsPipelineOrchestrator;
 use App\Services\NewsDuplicateDetectionService;
@@ -27,6 +28,7 @@ class ValidateSanitizedArticleJob implements ShouldQueue
     public function handle(
         ArticleValidationService $validationService,
         NewsDuplicateDetectionService $duplicateDetectionService,
+        IncomingNewsMergeService $mergeService,
         IncomingNewsStateMachine $stateMachine,
         NewsPipelineOrchestrator $pipeline
     ): void {
@@ -37,6 +39,12 @@ class ValidateSanitizedArticleJob implements ShouldQueue
 
         $duplicate = $duplicateDetectionService->detect($incoming, $incoming->sanitized_payload ?? []);
         if (($duplicate['is_duplicate'] ?? false) === true) {
+            if (($duplicate['action'] ?? 'reject') === 'merge') {
+                $mergeService->absorbDuplicate($incoming, $duplicate);
+
+                return;
+            }
+
             $stateMachine->reject($incoming, $this->duplicateReason($duplicate));
 
             return;

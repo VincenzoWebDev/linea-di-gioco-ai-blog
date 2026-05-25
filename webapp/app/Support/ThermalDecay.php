@@ -20,13 +20,18 @@ class ThermalDecay
         $now ??= now();
 
         $initial = max(0, min(100, $initialRiskScore));
-        $silenceHours = $updatedAt ? max(0, $updatedAt->diffInHours($now)) : 0;
+        $rawSilenceHours = $updatedAt ? max(0, $updatedAt->diffInHours($now)) : 0;
+        $maxSilenceHours = max(1, (int) config('ai_news.thermal_decay.max_silence_hours', 168));
+        $silenceHours = min($rawSilenceHours, $maxSilenceHours);
+        $silenceCapped = $rawSilenceHours >= $maxSilenceHours;
         $graceHours = max(0, (int) config('ai_news.thermal_decay.grace_hours', 24));
         $penaltyPerDay = max(1, (int) config('ai_news.thermal_decay.penalty_per_day', 15));
         $decayDays = $silenceHours <= $graceHours
             ? 0
             : (int) ceil(($silenceHours - $graceHours) / 24);
-        $currentTension = max(0, $initial - ($decayDays * $penaltyPerDay));
+        $currentTension = $silenceCapped
+            ? 0
+            : max(0, $initial - ($decayDays * $penaltyPerDay));
 
         return [
             'initial_risk_score' => $initial,
@@ -40,6 +45,11 @@ class ThermalDecay
     public static function radioSilenceLabel(int $hours): string
     {
         $hours = max(0, $hours);
+        $maxSilenceHours = max(1, (int) config('ai_news.thermal_decay.max_silence_hours', 168));
+
+        if ($hours >= $maxSilenceHours) {
+            return 'Silenzio radio: 1 settimana';
+        }
 
         if ($hours < 24) {
             return sprintf(

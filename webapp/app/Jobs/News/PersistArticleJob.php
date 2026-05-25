@@ -37,7 +37,12 @@ class PersistArticleJob implements ShouldQueue
         $incoming = IncomingNews::query()
             ->with('source')
             ->find($this->incomingNewsId);
-        if (! $incoming || $incoming->article()->exists()) {
+        if (
+            ! $incoming
+            || $incoming->article()->exists()
+            || $incoming->merged_into_article_id
+            || $incoming->merged_into_incoming_news_id
+        ) {
             return;
         }
 
@@ -46,7 +51,8 @@ class PersistArticleJob implements ShouldQueue
         $slug = $this->uniqueSlug($baseSlug ?: 'news-'.$incoming->id, $incoming->id);
 
         $autoPublish = (bool) config('ai_news.auto_publish', false);
-        $publicationStatus = $autoPublish
+        $autoPublishNow = $autoPublish && $this->canAutoPublishNow();
+        $publicationStatus = $autoPublishNow
             ? ArticlePublicationStatus::PUBLISHED
             : ArticlePublicationStatus::PENDING_REVIEW;
         $suggestedCategories = collect((array) ($payload['categories'] ?? []))
@@ -82,7 +88,7 @@ class PersistArticleJob implements ShouldQueue
             'slug' => $slug,
             'summary' => (string) ($payload['summary'] ?? $incoming->summary),
             'content' => $content,
-            'status' => $autoPublish ? 'published' : 'review',
+            'status' => $autoPublishNow ? 'published' : 'review',
             'publication_status' => $publicationStatus,
             'created_by' => 'ai',
             'source_url' => $resolvedSourceUrl !== ''
@@ -94,7 +100,7 @@ class PersistArticleJob implements ShouldQueue
             'ai_generated' => true,
             'quality_score' => (float) ($payload['quality_score'] ?? 0),
             'future_scenarios' => is_array($payload['future_scenarios'] ?? null) ? $payload['future_scenarios'] : null,
-            'published_at' => $autoPublish ? ($incoming->published_at ?? now()) : null,
+            'published_at' => $autoPublishNow ? ($incoming->published_at ?? now()) : null,
         ]);
 
         PublicationLog::query()->create([
@@ -114,8 +120,12 @@ class PersistArticleJob implements ShouldQueue
         $geopoliticalTensionService->upsertFromAgentOutput($payload, $article);
 
         if ($autoPublish) {
-            PublishArticleJob::dispatch($article->id)
+            $publishJob = PublishArticleJob::dispatch($article->id)
                 ->onQueue(config('ai_news.queues.publish', 'news-publish'));
+
+            if (! $autoPublishNow) {
+                $publishJob = $publishJob->delay($this->nextPublishAttempt());
+            }
         }
 
         GenerateArticleImagesJob::dispatch($article->id)
@@ -127,7 +137,7 @@ class PersistArticleJob implements ShouldQueue
         GenerateArticleFutureScenariosJob::dispatch($article->id)
             ->onQueue(config('ai_news.queues.glossary', 'news-sanitize'));
 
-        if ($autoPublish) {
+        if ($autoPublishNow) {
             $stateMachine->transition($incoming, IncomingNewsStatus::PUBLISHED);
         }
     }
@@ -145,4 +155,22 @@ class PersistArticleJob implements ShouldQueue
         return $slug;
     }
 
+    private function canAutoPublishNow(): bool
+    {
+        $maxPerDay = (int) config('ai_news.max_articles_per_day', 10);
+
+        if ($maxPerDay <= 0) {
+            return true;
+        }
+
+        return Article::query()
+            ->where('status', 'published')
+            ->whereDate('published_at', now()->toDateString())
+            ->count() < $maxPerDay;
+    }
+
+    private function nextPublishAttempt(): \DateTimeInterface
+    {
+        return now()->tomorrow()->addSeconds(5);
+    }
 }

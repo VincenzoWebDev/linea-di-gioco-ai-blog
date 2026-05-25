@@ -28,6 +28,15 @@ class PublishArticleJob implements ShouldQueue
             return;
         }
 
+        if (($article->publication_status !== ArticlePublicationStatus::PUBLISHED || $article->status !== 'published')
+            && $this->shouldDelayPublication()) {
+            PublishArticleJob::dispatch($article->id)
+                ->delay($this->nextPublishAttempt())
+                ->onQueue(config('ai_news.queues.publish', 'news-publish'));
+
+            return;
+        }
+
         if ($article->publication_status !== ArticlePublicationStatus::PUBLISHED || $article->status !== 'published') {
             $article->update([
                 'publication_status' => ArticlePublicationStatus::PUBLISHED,
@@ -43,6 +52,25 @@ class PublishArticleJob implements ShouldQueue
                 'published_at' => optional($article->published_at)->toIso8601String(),
             ],
         ]);
+    }
+
+    private function shouldDelayPublication(): bool
+    {
+        $maxPerDay = (int) config('ai_news.max_articles_per_day', 10);
+
+        if ($maxPerDay <= 0) {
+            return false;
+        }
+
+        return Article::query()
+            ->where('status', 'published')
+            ->whereDate('published_at', now()->toDateString())
+            ->count() >= $maxPerDay;
+    }
+
+    private function nextPublishAttempt(): \DateTimeInterface
+    {
+        return now()->tomorrow()->addSeconds(5);
     }
 }
 

@@ -5,6 +5,7 @@ import {
     FileText,
     Newspaper,
     Tags,
+    Globe2,
     Settings,
     Image as ImageIcon,
     Users,
@@ -19,13 +20,8 @@ export default function Sidebar() {
             label: "Dashboard",
             href: route("admin.dashboard"),
             Icon: LayoutDashboard,
-            isActive: (path) => path === "/admin/dashboard" || path === "/admin",
-        },
-        {
-            label: "Pagine",
-            href: route("admin.pages.index"),
-            Icon: FileText,
-            isActive: (path) => path.startsWith("/admin/pages"),
+            isActive: (path) =>
+                path === "/admin/dashboard" || path === "/admin",
         },
         {
             label: "Articoli",
@@ -38,6 +34,19 @@ export default function Sidebar() {
             href: route("admin.categories.index"),
             Icon: Tags,
             isActive: (path) => path.startsWith("/admin/categories"),
+        },
+        {
+            label: "Tensioni",
+            href: route("admin.tensions.index"),
+            Icon: Globe2,
+            isActive: (path) => path.startsWith("/admin/tensions"),
+        },
+        
+        {
+            label: "Pagine",
+            href: route("admin.pages.index"),
+            Icon: FileText,
+            isActive: (path) => path.startsWith("/admin/pages"),
         },
         {
             label: "Impostazioni",
@@ -61,7 +70,7 @@ export default function Sidebar() {
 
     return (
         <aside
-            className={`hidden md:flex md:flex-col bg-white border-r border-gray-200 transition-all duration-200 h-screen ${
+            className={`hidden md:flex md:flex-col bg-white border-r border-gray-200 transition-all duration-200 ${
                 isCollapsed ? "w-16" : "w-64"
             }`}
         >

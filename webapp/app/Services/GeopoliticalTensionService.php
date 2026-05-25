@@ -42,17 +42,21 @@ class GeopoliticalTensionService
             return null;
         }
 
-        $existingTension = GeopoliticalTension::query()
-            ->where('region_name', Str::limit($regionName, 255, ''))
-            ->first();
+        $coordinates = $this->resolveCoordinates($regionName, $featuredArticle);
+        $existingTension = $this->findExistingTension(
+            Str::limit($regionName, 255, ''),
+            $coordinates
+        );
 
         $statusLabel = trim((string) ($payload['status_label'] ?? ''));
         $rawRisk = $this->normalizeRiskScore($payload['risk_score'] ?? 0);
         $riskScore = $this->riskScoreCalibration->calibrate($rawRisk, $context, $statusLabel);
-        $trendDirection = $this->scoreTrendDirection($existingTension?->risk_score, $riskScore);
+        $agentTrend = $this->normalizeTrendDirection($payload['trend_direction'] ?? 'stable');
+        $trendDirection = $this->scoreTrendDirection($existingTension?->risk_score, $riskScore, $agentTrend);
         $coordinates = $this->resolveCoordinates($regionName, $featuredArticle);
 
         $attributes = [
+            'region_name' => Str::limit($regionName, 255, ''),
             'risk_score' => $riskScore,
             'trend_direction' => $trendDirection,
             'status_label' => Str::limit($statusLabel !== '' ? $statusLabel : 'Tensione geopolitica', 255, ''),
@@ -62,10 +66,12 @@ class GeopoliticalTensionService
             'longitude' => $coordinates['long'] ?? null,
         ];
 
-        $tension = GeopoliticalTension::query()->updateOrCreate(
-            ['region_name' => Str::limit($regionName, 255, '')],
-            $attributes
-        );
+        if ($existingTension !== null) {
+            $existingTension->update($attributes);
+            $tension = $existingTension;
+        } else {
+            $tension = GeopoliticalTension::query()->create($attributes);
+        }
 
         $this->clearHeaderCache();
 
@@ -250,10 +256,10 @@ class GeopoliticalTensionService
         return in_array($trend, ['rising', 'falling', 'stable'], true) ? $trend : 'stable';
     }
 
-    private function scoreTrendDirection(mixed $previousScore, int $currentScore): string
+    private function scoreTrendDirection(mixed $previousScore, int $currentScore, string $agentTrend): string
     {
         if (! is_numeric($previousScore)) {
-            return 'stable';
+            return $agentTrend;
         }
 
         $previous = (int) $previousScore;
@@ -263,6 +269,22 @@ class GeopoliticalTensionService
             $currentScore < $previous => 'falling',
             default => 'stable',
         };
+    }
+
+    private function findExistingTension(string $regionName, ?array $coordinates): ?GeopoliticalTension
+    {
+        $query = GeopoliticalTension::query()->where(function ($query) use ($regionName, $coordinates) {
+            $query->where('region_name', $regionName);
+
+            if ($coordinates !== null) {
+                $query->orWhere(function ($subQuery) use ($coordinates) {
+                    $subQuery->where('latitude', $coordinates['lat'])
+                        ->where('longitude', $coordinates['long']);
+                });
+            }
+        });
+
+        return $query->first();
     }
 
     private function articleContext(?Article $article): string

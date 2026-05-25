@@ -12,7 +12,7 @@
     "/build/assets/DeleteUserForm-Uhkww5qD.mjs"
   ],
   "resources/js/Components/Dropdown.jsx": [
-    "/build/assets/AuthenticatedLayout-APLMBOY6.mjs"
+    "/build/assets/AuthenticatedLayout-Bc07UTqA.mjs"
   ],
   "resources/js/Components/InputError.jsx": [
     "/build/assets/InputError-cRVTeK4i.mjs"
@@ -24,13 +24,13 @@
     "/build/assets/Modal-BnFbDATV.mjs"
   ],
   "resources/js/Components/NavLink.jsx": [
-    "/build/assets/AuthenticatedLayout-APLMBOY6.mjs"
+    "/build/assets/AuthenticatedLayout-Bc07UTqA.mjs"
   ],
   "resources/js/Components/PrimaryButton.jsx": [
     "/build/assets/PrimaryButton-C-TDjBGq.mjs"
   ],
   "resources/js/Components/ResponsiveNavLink.jsx": [
-    "/build/assets/AuthenticatedLayout-APLMBOY6.mjs"
+    "/build/assets/AuthenticatedLayout-Bc07UTqA.mjs"
   ],
   "resources/js/Components/SecondaryButton.jsx": [
     "/build/assets/DeleteUserForm-Uhkww5qD.mjs"
@@ -39,73 +39,144 @@
     "/build/assets/SeoHead-9Gv-Y1Y7.mjs"
   ],
   "resources/js/Components/Sidebar.jsx": [
-    "/build/assets/AuthenticatedLayout-APLMBOY6.mjs"
+    "/build/assets/AuthenticatedLayout-Bc07UTqA.mjs"
   ],
   "resources/js/Components/TextInput.jsx": [
     "/build/assets/TextInput-Dmygz_uX.mjs"
   ],
+  "resources/js/Components/admin/dashboard/DashboardHero.jsx": [
+    "/build/assets/Dashboard-CghDuUc5.mjs"
+  ],
+  "resources/js/Components/admin/dashboard/PipelineSummary.jsx": [
+    "/build/assets/Dashboard-CghDuUc5.mjs"
+  ],
+  "resources/js/Components/admin/dashboard/QueueCard.jsx": [
+    "/build/assets/Dashboard-CghDuUc5.mjs"
+  ],
+  "resources/js/Components/admin/dashboard/RecentIncomingCard.jsx": [
+    "/build/assets/Dashboard-CghDuUc5.mjs"
+  ],
+  "resources/js/Components/admin/dashboard/SectionGrid.jsx": [
+    "/build/assets/Dashboard-CghDuUc5.mjs"
+  ],
+  "resources/js/Components/admin/dashboard/StatGrid.jsx": [
+    "/build/assets/Dashboard-CghDuUc5.mjs"
+  ],
+  "resources/js/Components/admin/dashboard/TensionsCard.jsx": [
+    "/build/assets/Dashboard-CghDuUc5.mjs"
+  ],
+  "resources/js/Components/admin/posts/CreateArticleModal.jsx": [
+    "/build/assets/Posts-DAuhT57Y.mjs"
+  ],
+  "resources/js/Components/admin/posts/EditArticleModal.jsx": [
+    "/build/assets/Posts-DAuhT57Y.mjs"
+  ],
+  "resources/js/Components/admin/posts/PostsFilters.jsx": [
+    "/build/assets/Posts-DAuhT57Y.mjs"
+  ],
+  "resources/js/Components/admin/posts/PostsManagementCard.jsx": [
+    "/build/assets/Posts-DAuhT57Y.mjs"
+  ],
+  "resources/js/Components/admin/posts/PostsTable.jsx": [
+    "/build/assets/Posts-DAuhT57Y.mjs"
+  ],
+  "resources/js/Components/admin/posts/PostsTableRow.jsx": [
+    "/build/assets/Posts-DAuhT57Y.mjs"
+  ],
+  "resources/js/Components/admin/posts/form/ArticleCategoryField.jsx": [
+    "/build/assets/Posts-DAuhT57Y.mjs"
+  ],
+  "resources/js/Components/admin/posts/form/ArticleForm.jsx": [
+    "/build/assets/Posts-DAuhT57Y.mjs"
+  ],
+  "resources/js/Components/admin/posts/form/ArticleImageField.jsx": [
+    "/build/assets/Posts-DAuhT57Y.mjs"
+  ],
+  "resources/js/Components/admin/shared/AdminPagination.jsx": [
+    "/build/assets/AdminPagination-D6_hrmXq.mjs"
+  ],
+  "resources/js/Components/admin/tensions/CreateTensionModal.jsx": [
+    "/build/assets/Tensions-BOOZPSnl.mjs"
+  ],
+  "resources/js/Components/admin/tensions/EditTensionModal.jsx": [
+    "/build/assets/Tensions-BOOZPSnl.mjs"
+  ],
+  "resources/js/Components/admin/tensions/TensionsManagementCard.jsx": [
+    "/build/assets/Tensions-BOOZPSnl.mjs"
+  ],
+  "resources/js/Components/admin/tensions/TensionsStatsCard.jsx": [
+    "/build/assets/Tensions-BOOZPSnl.mjs"
+  ],
+  "resources/js/Components/admin/tensions/TensionsTable.jsx": [
+    "/build/assets/Tensions-BOOZPSnl.mjs"
+  ],
+  "resources/js/Components/admin/tensions/TensionsTableRow.jsx": [
+    "/build/assets/Tensions-BOOZPSnl.mjs"
+  ],
+  "resources/js/Components/admin/tensions/form/TensionForm.jsx": [
+    "/build/assets/Tensions-BOOZPSnl.mjs"
+  ],
+  "resources/js/Components/admin/tensions/form/TensionFormField.jsx": [
+    "/build/assets/Tensions-BOOZPSnl.mjs"
+  ],
   "resources/js/Components/blog/BlogFooter.jsx": [
-    "/build/assets/BlogLayout-DH9CwkrL.mjs",
-    "/build/assets/linea-di-gioco-logo-CWRVHu89.webp"
+    "/build/assets/BlogFooter-CtqS51jt.mjs"
   ],
   "resources/js/Components/blog/BlogHeader.jsx": [
-    "/build/assets/BlogLayout-DH9CwkrL.mjs",
+    "/build/assets/BlogLayout-CcevzCzS.mjs",
     "/build/assets/linea-di-gioco-logo-CWRVHu89.webp"
   ],
   "resources/js/Components/blog/TensionHeader.jsx": [
-    "/build/assets/BlogLayout-DH9CwkrL.mjs",
+    "/build/assets/BlogLayout-CcevzCzS.mjs",
     "/build/assets/linea-di-gioco-logo-CWRVHu89.webp"
   ],
   "resources/js/Components/blog/archive/ArchiveEmptyState.jsx": [
-    "/build/assets/Index-8T9CzHXt.mjs"
+    "/build/assets/Index-BtKEQn3F.mjs"
   ],
   "resources/js/Components/blog/archive/ArchiveGrid.jsx": [
-    "/build/assets/Index-8T9CzHXt.mjs"
+    "/build/assets/Index-BtKEQn3F.mjs"
   ],
   "resources/js/Components/blog/archive/ArchiveHero.jsx": [
-    "/build/assets/Index-8T9CzHXt.mjs"
+    "/build/assets/Index-BtKEQn3F.mjs"
   ],
   "resources/js/Components/blog/archive/ArchivePagination.jsx": [
-    "/build/assets/Index-8T9CzHXt.mjs"
-  ],
-  "resources/js/Components/blog/articles/ArticleCard.jsx": [
-    "/build/assets/Welcome-tLKkYItx.mjs"
+    "/build/assets/Index-BtKEQn3F.mjs"
   ],
   "resources/js/Components/blog/articles/ArticleCoverImage.jsx": [
-    "/build/assets/ArticleIntelligenceCard-C-tTT0ik.mjs"
+    "/build/assets/ArticleIntelligenceCard-Dth2VJvG.mjs"
   ],
   "resources/js/Components/blog/articles/ArticleIntelligenceCard.jsx": [
-    "/build/assets/ArticleIntelligenceCard-C-tTT0ik.mjs"
+    "/build/assets/ArticleIntelligenceCard-Dth2VJvG.mjs"
   ],
   "resources/js/Components/blog/articles/ArticleMeta.jsx": [
-    "/build/assets/ArticleMeta-D89ShIt2.mjs"
+    "/build/assets/Show-DyMUeu_N.mjs"
   ],
   "resources/js/Components/blog/articles/show/ArticleDataPill.jsx": [
-    "/build/assets/Show-CJ95SX_8.mjs"
+    "/build/assets/Show-DyMUeu_N.mjs"
   ],
   "resources/js/Components/blog/articles/show/ArticleGlossaryContent.jsx": [
-    "/build/assets/Show-CJ95SX_8.mjs"
+    "/build/assets/Show-DyMUeu_N.mjs"
   ],
   "resources/js/Components/blog/articles/show/ArticleRelatedCard.jsx": [
-    "/build/assets/Show-CJ95SX_8.mjs"
+    "/build/assets/Show-DyMUeu_N.mjs"
   ],
   "resources/js/Components/blog/articles/show/ArticleShowBody.jsx": [
-    "/build/assets/Show-CJ95SX_8.mjs"
+    "/build/assets/Show-DyMUeu_N.mjs"
   ],
   "resources/js/Components/blog/articles/show/ArticleShowCover.jsx": [
-    "/build/assets/Show-CJ95SX_8.mjs"
+    "/build/assets/Show-DyMUeu_N.mjs"
   ],
   "resources/js/Components/blog/articles/show/ArticleShowHeader.jsx": [
-    "/build/assets/Show-CJ95SX_8.mjs"
+    "/build/assets/Show-DyMUeu_N.mjs"
   ],
   "resources/js/Components/blog/articles/show/ArticleShowIntelligenceSidebar.jsx": [
     "/build/assets/ArticleShowIntelligenceSidebar-q01Pav81.mjs"
   ],
   "resources/js/Components/blog/articles/show/ArticleShowRelatedSection.jsx": [
-    "/build/assets/Show-CJ95SX_8.mjs"
+    "/build/assets/Show-DyMUeu_N.mjs"
   ],
   "resources/js/Components/blog/articles/show/GlossaryTooltip.jsx": [
-    "/build/assets/Show-CJ95SX_8.mjs"
+    "/build/assets/Show-DyMUeu_N.mjs"
   ],
   "resources/js/Components/blog/articles/show/IntelligenceMetricBlock.jsx": [
     "/build/assets/ArticleShowIntelligenceSidebar-q01Pav81.mjs"
@@ -117,69 +188,72 @@
     "/build/assets/ArticleShowIntelligenceSidebar-q01Pav81.mjs"
   ],
   "resources/js/Components/blog/home/GlobalMap.jsx": [
-    "/build/assets/Welcome-tLKkYItx.mjs"
+    "/build/assets/GlobalMap-1F0qK9mY.mjs",
+    "/build/assets/countries-110m-B3KlhDC_.json"
   ],
   "resources/js/Components/blog/home/GlobalMapPlaceholder.jsx": [
-    "/build/assets/Welcome-tLKkYItx.mjs"
+    "/build/assets/Welcome-DIzK0Fh5.mjs"
   ],
   "resources/js/Components/blog/home/HomeBriefingSection.jsx": [
-    "/build/assets/Welcome-tLKkYItx.mjs"
+    "/build/assets/Welcome-DIzK0Fh5.mjs"
   ],
   "resources/js/Components/blog/home/HomeCommandCenter.jsx": [
-    "/build/assets/Welcome-tLKkYItx.mjs"
+    "/build/assets/Welcome-DIzK0Fh5.mjs"
   ],
   "resources/js/Components/blog/home/HomeFeedSection.jsx": [
-    "/build/assets/Welcome-tLKkYItx.mjs"
+    "/build/assets/Welcome-DIzK0Fh5.mjs"
   ],
   "resources/js/Components/blog/home/HomeLatestNewsSection.jsx": [
-    "/build/assets/Welcome-tLKkYItx.mjs"
+    "/build/assets/Welcome-DIzK0Fh5.mjs"
   ],
   "resources/js/Components/blog/home/HomeStatsSection.jsx": [
-    "/build/assets/Welcome-tLKkYItx.mjs"
+    "/build/assets/Welcome-DIzK0Fh5.mjs"
   ],
   "resources/js/Components/blog/home/OperationIntelligenceCard.jsx": [
-    "/build/assets/Welcome-tLKkYItx.mjs"
+    "/build/assets/Welcome-DIzK0Fh5.mjs"
   ],
   "resources/js/Components/blog/home/TacticalTicker.jsx": [
-    "/build/assets/Welcome-tLKkYItx.mjs"
+    "/build/assets/Welcome-DIzK0Fh5.mjs"
   ],
   "resources/js/Components/ui/CookieBanner.jsx": [
-    "/build/assets/BlogLayout-DH9CwkrL.mjs",
-    "/build/assets/linea-di-gioco-logo-CWRVHu89.webp"
+    "/build/assets/CookieBanner-CMSI6aoR.mjs"
   ],
   "resources/js/Components/ui/card.jsx": [
     "/build/assets/card-DRB3Bbat.mjs"
   ],
   "resources/js/Layouts/AuthenticatedLayout.jsx": [
-    "/build/assets/AuthenticatedLayout-APLMBOY6.mjs"
+    "/build/assets/AuthenticatedLayout-Bc07UTqA.mjs"
   ],
   "resources/js/Layouts/BlogLayout.jsx": [
-    "/build/assets/BlogLayout-DH9CwkrL.mjs",
+    "/build/assets/BlogLayout-CcevzCzS.mjs",
     "/build/assets/linea-di-gioco-logo-CWRVHu89.webp"
   ],
   "resources/js/Layouts/GuestLayout.jsx": [
     "/build/assets/GuestLayout-DW9rU1Jy.mjs"
   ],
   "resources/js/Pages/Admin/Categories.jsx": [
-    "/build/assets/Categories-CG3gItWO.mjs"
+    "/build/assets/Categories-BueHt5ie.mjs"
   ],
   "resources/js/Pages/Admin/Dashboard.jsx": [
-    "/build/assets/Dashboard-B-l83vrI.mjs"
+    "/build/assets/Dashboard-CghDuUc5.mjs"
   ],
   "resources/js/Pages/Admin/Media.jsx": [
-    "/build/assets/Media-ChYikmMr.mjs"
+    "/build/assets/Media-CsmuRck6.mjs"
   ],
   "resources/js/Pages/Admin/Pages.jsx": [
-    "/build/assets/Pages-Bwd-nwvq.mjs"
+    "/build/assets/Pages-CmNy6dgJ.mjs"
   ],
   "resources/js/Pages/Admin/Posts.jsx": [
-    "/build/assets/Posts-Csxtokkl.mjs"
+    "/build/assets/Posts-DAuhT57Y.mjs"
   ],
   "resources/js/Pages/Admin/Settings.jsx": [
-    "/build/assets/Settings-DU5nu7S_.mjs"
+    "/build/assets/Settings-vOQyCENs.mjs"
+  ],
+  "resources/js/Pages/Admin/Tensions.jsx": [
+    "/build/assets/Tensions-BOOZPSnl.mjs"
   ],
   "resources/js/Pages/Admin/Users.jsx": [
-    "/build/assets/Users-Dm_CuW97.mjs"
+    "/build/assets/Users-CDajgDeA.mjs"
   ],
   "resources/js/Pages/Auth/ConfirmPassword.jsx": [
     "/build/assets/ConfirmPassword-BmQwph0C.mjs"
@@ -200,25 +274,25 @@
     "/build/assets/VerifyEmail-ChTwwVN1.mjs"
   ],
   "resources/js/Pages/Blog/Articles/Index.jsx": [
-    "/build/assets/Index-8T9CzHXt.mjs"
+    "/build/assets/Index-BtKEQn3F.mjs"
   ],
   "resources/js/Pages/Blog/Articles/Show.jsx": [
-    "/build/assets/Show-CJ95SX_8.mjs"
+    "/build/assets/Show-DyMUeu_N.mjs"
   ],
   "resources/js/Pages/Blog/Contact.jsx": [
-    "/build/assets/Contact-BYDK5Uzj.mjs"
+    "/build/assets/Contact-DeO4pACF.mjs"
   ],
   "resources/js/Pages/Blog/Newsletter.jsx": [
-    "/build/assets/Newsletter-DojDZCAx.mjs"
+    "/build/assets/Newsletter-3WLvMAE4.mjs"
   ],
   "resources/js/Pages/Legal/CookiePolicy.jsx": [
-    "/build/assets/CookiePolicy-DlyKj5yR.mjs"
+    "/build/assets/CookiePolicy-8F8fQFVg.mjs"
   ],
   "resources/js/Pages/Legal/PrivacyPolicy.jsx": [
-    "/build/assets/PrivacyPolicy-b4Q5KY5e.mjs"
+    "/build/assets/PrivacyPolicy-Bj8dk6fR.mjs"
   ],
   "resources/js/Pages/Profile/Edit.jsx": [
-    "/build/assets/Edit-D8SypxL6.mjs"
+    "/build/assets/Edit-BWiS9YGE.mjs"
   ],
   "resources/js/Pages/Profile/Partials/DeleteUserForm.jsx": [
     "/build/assets/DeleteUserForm-Uhkww5qD.mjs"
@@ -230,43 +304,65 @@
     "/build/assets/UpdateProfileInformationForm-DwngIx5O.mjs"
   ],
   "resources/js/Pages/Welcome.jsx": [
-    "/build/assets/Welcome-tLKkYItx.mjs"
+    "/build/assets/Welcome-DIzK0Fh5.mjs"
   ],
   "resources/js/assets/linea-di-gioco-logo.webp": [
-    "/build/assets/BlogLayout-DH9CwkrL.mjs",
+    "/build/assets/BlogLayout-CcevzCzS.mjs",
     "/build/assets/linea-di-gioco-logo-CWRVHu89.webp"
   ],
+  "resources/js/assets/world-atlas/countries-110m.json?url": [
+    "/build/assets/GlobalMap-1F0qK9mY.mjs",
+    "/build/assets/countries-110m-B3KlhDC_.json"
+  ],
+  "resources/js/hooks/admin/useCategoryPicker.js": [
+    "/build/assets/Posts-DAuhT57Y.mjs"
+  ],
+  "resources/js/hooks/admin/useFilePreview.js": [
+    "/build/assets/Posts-DAuhT57Y.mjs"
+  ],
+  "resources/js/hooks/admin/usePostsFilters.js": [
+    "/build/assets/Posts-DAuhT57Y.mjs"
+  ],
+  "resources/js/hooks/admin/useTensionsSearch.js": [
+    "/build/assets/Tensions-BOOZPSnl.mjs"
+  ],
   "resources/js/hooks/useAnalytics.js": [
-    "/build/assets/BlogLayout-DH9CwkrL.mjs",
+    "/build/assets/BlogLayout-CcevzCzS.mjs",
     "/build/assets/linea-di-gioco-logo-CWRVHu89.webp"
   ],
   "resources/js/inertiaShared.js": [],
+  "resources/js/lib/admin/posts.js": [
+    "/build/assets/Posts-DAuhT57Y.mjs"
+  ],
+  "resources/js/lib/admin/tensions.js": [
+    "/build/assets/Tensions-BOOZPSnl.mjs"
+  ],
   "resources/js/lib/blog/archiveSeo.js": [
-    "/build/assets/Index-8T9CzHXt.mjs"
+    "/build/assets/Index-BtKEQn3F.mjs"
   ],
   "resources/js/lib/blog/articleChips.js": [
-    "/build/assets/Index-8T9CzHXt.mjs"
+    "/build/assets/Index-BtKEQn3F.mjs"
   ],
   "resources/js/lib/blog/formatters.js": [
     "/build/assets/geopoliticalSeverity-B4PJR-9p.mjs"
   ],
   "resources/js/lib/blog/glossary.js": [
-    "/build/assets/Show-CJ95SX_8.mjs"
+    "/build/assets/Show-DyMUeu_N.mjs"
   ],
   "resources/js/lib/blog/homeSeo.js": [
-    "/build/assets/Welcome-tLKkYItx.mjs"
+    "/build/assets/Welcome-DIzK0Fh5.mjs"
   ],
   "resources/js/lib/blog/intelligence.js": [
-    "/build/assets/Show-CJ95SX_8.mjs"
+    "/build/assets/Show-DyMUeu_N.mjs"
   ],
   "resources/js/lib/blog/operations.js": [
-    "/build/assets/Welcome-tLKkYItx.mjs"
+    "/build/assets/Welcome-DIzK0Fh5.mjs"
   ],
   "resources/js/lib/blog/regionCoordinates.js": [
-    "/build/assets/Show-CJ95SX_8.mjs"
+    "/build/assets/Show-DyMUeu_N.mjs"
   ],
   "resources/js/lib/blog/text.js": [
-    "/build/assets/Show-CJ95SX_8.mjs"
+    "/build/assets/Show-DyMUeu_N.mjs"
   ],
   "resources/js/lib/blog/trendCopy.js": [
     "/build/assets/trendCopy-BRLsGmW-.mjs"
@@ -278,12 +374,12 @@
     "/build/assets/card-DRB3Bbat.mjs"
   ],
   "resources/js/services/analytics.js": [
-    "/build/assets/BlogLayout-DH9CwkrL.mjs",
+    "/build/assets/BlogLayout-CcevzCzS.mjs",
     "/build/assets/linea-di-gioco-logo-CWRVHu89.webp"
   ],
   "resources/js/ssr.jsx": [],
   "resources/js/utils/consent.js": [
-    "/build/assets/BlogLayout-DH9CwkrL.mjs",
+    "/build/assets/BlogLayout-CcevzCzS.mjs",
     "/build/assets/linea-di-gioco-logo-CWRVHu89.webp"
   ],
   "vendor/tightenco/ziggy/dist/index.esm.js": []

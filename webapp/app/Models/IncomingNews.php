@@ -25,6 +25,8 @@ class IncomingNews extends Model
         'status',
         'quality_score',
         'rejection_reason',
+        'merged_into_article_id',
+        'merged_into_incoming_news_id',
     ];
 
     protected $casts = [
@@ -49,5 +51,15 @@ class IncomingNews extends Model
     public function article(): HasOne
     {
         return $this->hasOne(Article::class);
+    }
+
+    public function mergedIntoArticle(): BelongsTo
+    {
+        return $this->belongsTo(Article::class, 'merged_into_article_id');
+    }
+
+    public function mergedIntoIncoming(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'merged_into_incoming_news_id');
     }
 }

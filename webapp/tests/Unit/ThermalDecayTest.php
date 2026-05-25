@@ -50,4 +50,37 @@ class ThermalDecayTest extends TestCase
 
         $this->assertSame(0, $snapshot['current_tension']);
     }
+
+    public function test_it_caps_silence_hours_and_tension_after_one_week(): void
+    {
+        config()->set('ai_news.thermal_decay.grace_hours', 24);
+        config()->set('ai_news.thermal_decay.penalty_per_day', 15);
+        config()->set('ai_news.thermal_decay.max_silence_hours', 168);
+
+        $now = Carbon::parse('2026-05-21 12:00:00');
+        $updatedAt = Carbon::parse('2026-04-01 12:00:00');
+
+        $snapshot = ThermalDecay::snapshot(95, $updatedAt, $now);
+
+        $this->assertSame(168, $snapshot['silence_hours']);
+        $this->assertSame(0, $snapshot['current_tension']);
+        $this->assertSame(6, $snapshot['decay_days']);
+        $this->assertSame('Silenzio radio: 1 settimana', $snapshot['radio_silence_label']);
+    }
+
+    public function test_it_does_not_cap_silence_before_one_week(): void
+    {
+        config()->set('ai_news.thermal_decay.grace_hours', 24);
+        config()->set('ai_news.thermal_decay.penalty_per_day', 15);
+        config()->set('ai_news.thermal_decay.max_silence_hours', 168);
+
+        $now = Carbon::parse('2026-05-21 12:00:00');
+        $updatedAt = Carbon::parse('2026-05-18 12:00:00');
+
+        $snapshot = ThermalDecay::snapshot(78, $updatedAt, $now);
+
+        $this->assertSame(72, $snapshot['silence_hours']);
+        $this->assertSame(48, $snapshot['current_tension']);
+        $this->assertStringNotContainsString('1 settimana', $snapshot['radio_silence_label']);
+    }
 }

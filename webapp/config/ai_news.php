@@ -11,6 +11,7 @@ return [
     'auto_publish' => env('AI_NEWS_AUTO_PUBLISH', false),
     'min_quality_score' => env('AI_NEWS_MIN_QUALITY_SCORE', 70),
     'max_articles_per_hour' => env('AI_NEWS_MAX_ARTICLES_PER_HOUR', 12),
+    'max_articles_per_day' => env('AI_NEWS_MAX_ARTICLES_PER_DAY', 10),
     'sanitize_prompt_version' => env('AI_NEWS_SANITIZE_PROMPT_VERSION', 'v1'),
     'schedule_every_minutes' => env('AI_NEWS_SCHEDULE_EVERY_MINUTES', 60),
     'max_items_per_source' => env('AI_NEWS_MAX_ITEMS_PER_SOURCE', 10),
@@ -19,6 +20,11 @@ return [
         'similarity_threshold' => env('AI_NEWS_DEDUP_SIMILARITY_THRESHOLD', 0.72),
         'lookback_days' => env('AI_NEWS_DEDUP_LOOKBACK_DAYS', 14),
         'candidate_limit' => env('AI_NEWS_DEDUP_CANDIDATE_LIMIT', 80),
+        // Unisce solo coppie simili da fonti diverse ancora in pipeline nello stesso ciclo (non articoli già pubblicati).
+        'merge_similar' => env('AI_NEWS_DEDUP_MERGE_SIMILAR', true),
+        'merge_pending_incoming' => env('AI_NEWS_DEDUP_MERGE_PENDING_INCOMING', true),
+        // Finestra merge: default = intervallo scheduler (es. 60 min). Oltre questa soglia si pubblica un nuovo articolo.
+        'merge_workflow_window_minutes' => env('AI_NEWS_DEDUP_MERGE_WORKFLOW_WINDOW_MINUTES'),
     ],
     'scope' => [
         'store_rejected' => env('AI_NEWS_SCOPE_STORE_REJECTED', false),
@@ -86,6 +92,8 @@ return [
     'thermal_decay' => [
         'grace_hours' => env('AI_NEWS_THERMAL_DECAY_GRACE_HOURS', 24),
         'penalty_per_day' => env('AI_NEWS_THERMAL_DECAY_PENALTY_PER_DAY', 15),
+        // Dopo questo limite il silenzio radio non cresce e la tensione corrente è 0.
+        'max_silence_hours' => env('AI_NEWS_THERMAL_DECAY_MAX_SILENCE_HOURS', 168),
     ],
     'ingest' => [
         'token' => env('AI_NEWS_INGEST_TOKEN', ''),

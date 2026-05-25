@@ -24,7 +24,7 @@ class AiNewsIngestController extends Controller
             'source_name' => ['nullable', 'string', 'max:255'],
             'rewrite_mode' => ['nullable', 'string', 'max:40'],
             'language' => ['nullable', 'string', 'max:8'],
-            'external_id' => ['nullable', 'string', 'max:255'],
+            'external_id' => ['nullable', 'string', 'max:2048'],
             'published_at' => ['nullable', 'date'],
             'geopolitical_tension' => ['nullable', 'array'],
             'geopolitical_tension.region_name' => ['required_with:geopolitical_tension', 'string', 'max:120'],

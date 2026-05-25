@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\GeopoliticalTension;
+use App\Services\GeopoliticalTensionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -22,7 +23,11 @@ class TensionController extends Controller
                 $query->where(function ($q) use ($search) {
                     $q->where('region_name', 'like', "%{$search}%")
                         ->orWhere('status_label', 'like', "%{$search}%")
-                        ->orWhere('featured_article_id', is_numeric($search) ? (int) $search : -1);
+                        ->orWhere('featured_article_id', is_numeric($search) ? (int) $search : -1)
+                        ->orWhereHas('featuredArticle', function ($articleQuery) use ($search) {
+                            $articleQuery->where('title', 'like', "%{$search}%")
+                                ->orWhere('slug', 'like', "%{$search}%");
+                        });
                 });
             })
             ->orderByDesc('updated_at')
@@ -30,10 +35,9 @@ class TensionController extends Controller
             ->withQueryString();
 
         $articles = Article::query()
-            ->where('status', 'published')
-            ->orderByDesc('published_at')
-            ->limit(200)
-            ->get(['id', 'title']);
+            ->orderByDesc('updated_at')
+            ->limit(500)
+            ->get(['id', 'title', 'status']);
 
         return Inertia::render('Admin/Tensions', [
             'tensions' => $tensions,
@@ -54,12 +58,13 @@ class TensionController extends Controller
             'risk_score' => ['required', 'integer', 'min:1', 'max:100'],
             'trend_direction' => ['required', 'in:rising,falling,stable'],
             'status_label' => ['required', 'string', 'max:80'],
-            'featured_article_id' => ['nullable', 'integer', 'exists:articles,id'],
+            'featured_article_id' => ['required', 'integer', 'exists:articles,id'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
         ]);
 
         GeopoliticalTension::query()->create($validated);
+        app(GeopoliticalTensionService::class)->clearHeaderCache();
 
         return redirect()->route('admin.tensions.index');
     }
@@ -71,12 +76,13 @@ class TensionController extends Controller
             'risk_score' => ['required', 'integer', 'min:1', 'max:100'],
             'trend_direction' => ['required', 'in:rising,falling,stable'],
             'status_label' => ['required', 'string', 'max:80'],
-            'featured_article_id' => ['nullable', 'integer', 'exists:articles,id'],
+            'featured_article_id' => ['required', 'integer', 'exists:articles,id'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
         ]);
 
         $tension->update($validated);
+        app(GeopoliticalTensionService::class)->clearHeaderCache();
 
         return redirect()->route('admin.tensions.index');
     }
@@ -84,6 +90,7 @@ class TensionController extends Controller
     public function destroy(GeopoliticalTension $tension): RedirectResponse
     {
         $tension->delete();
+        app(GeopoliticalTensionService::class)->clearHeaderCache();
 
         return redirect()->route('admin.tensions.index');
     }

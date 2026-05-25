@@ -159,6 +159,12 @@ export default function Authenticated({ user, header, children }) {
                             Categorie
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
+                            href={route("admin.tensions.index")}
+                            active={currentPath.startsWith("/admin/tensions")}
+                        >
+                            Tensioni
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
                             href={route("admin.media.index")}
                             active={currentPath.startsWith("/admin/media")}
                         >
