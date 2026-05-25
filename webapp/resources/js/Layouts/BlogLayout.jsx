@@ -1,11 +1,10 @@
-import { lazy, Suspense, useEffect } from "react";
+import { useEffect } from "react";
 import BlogHeader from "@/Components/blog/BlogHeader";
+import BlogFooter from "@/Components/blog/BlogFooter";
+import CookieBanner from "@/Components/ui/CookieBanner";
 import { usePage } from "@inertiajs/react";
 import useAnalytics from "@/hooks/useAnalytics";
 import { loadGA } from "@/services/analytics";
-
-const BlogFooter = lazy(() => import("@/Components/blog/BlogFooter"));
-const CookieBanner = lazy(() => import("@/Components/ui/CookieBanner"));
 
 export default function BlogLayout({ children }) {
     const { auth } = usePage().props;
@@ -40,15 +39,11 @@ export default function BlogLayout({ children }) {
                 <main className="mx-auto w-full max-w-6xl px-4 pb-16 pt-8 text-base leading-[1.7] sm:px-6 sm:pb-20 sm:pt-12 sm:text-[17px]">
                     {children}
                     {auth?.isLogged ? null : (
-                        <Suspense fallback={null}>
-                            <CookieBanner />
-                        </Suspense>
+                        <CookieBanner />
                     )}
                 </main>
 
-                <Suspense fallback={null}>
-                    <BlogFooter />
-                </Suspense>
+                <BlogFooter />
             </div>
         </div>
     );
