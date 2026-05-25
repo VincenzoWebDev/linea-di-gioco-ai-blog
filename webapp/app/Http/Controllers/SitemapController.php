@@ -33,13 +33,31 @@ class SitemapController extends Controller
                 'changefreq' => 'weekly',
                 'priority' => '0.5',
             ],
+            [
+                'loc' => route('contact'),
+                'lastmod' => now()->toAtomString(),
+                'changefreq' => 'weekly',
+                'priority' => '0.5',
+            ],
+            [
+                'loc' => route('privacy-policy'),
+                'lastmod' => now()->toAtomString(),
+                'changefreq' => 'yearly',
+                'priority' => '0.3',
+            ],
+            [
+                'loc' => route('cookie-policy'),
+                'lastmod' => now()->toAtomString(),
+                'changefreq' => 'yearly',
+                'priority' => '0.3',
+            ]
         ]);
 
         $articles = Article::query()
             ->where('status', 'published')
             ->orderByDesc('published_at')
             ->get(['id', 'slug', 'published_at', 'updated_at'])
-            ->map(fn (Article $article) => [
+            ->map(fn(Article $article) => [
                 'loc' => route('blog.articles.show', [
                     'id' => $article->id,
                     'slug' => $article->slug,
