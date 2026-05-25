@@ -27,7 +27,7 @@ export default function Contact() {
                     <h1 className="text-3xl font-bold text-white">Contatti</h1>
 
                     <p className="mt-4 text-sm leading-relaxed text-zinc-300">
-                        Per segnalazioni, richieste o informazioni e possibile
+                        Per segnalazioni, richieste o informazioni è possibile
                         contattare la redazione tramite email.
                     </p>
 
