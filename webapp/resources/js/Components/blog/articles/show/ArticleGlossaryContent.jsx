@@ -1,9 +1,10 @@
+import { useEffect, useState } from "react";
 import GlossaryTooltip from "@/Components/blog/articles/show/GlossaryTooltip";
 import { glossaryRegex, splitContentBlocks } from "@/lib/blog/glossary";
 import { safeText } from "@/lib/blog/text";
 
-function renderGlossaryText(text, glossary) {
-    const regex = glossaryRegex(glossary);
+function renderGlossaryText(text, glossary, enableInteractiveGlossary) {
+    const regex = enableInteractiveGlossary ? glossaryRegex(glossary) : null;
     const normalizedText = safeText(text);
 
     if (!regex) {
@@ -34,6 +35,12 @@ function renderGlossaryText(text, glossary) {
 }
 
 export default function ArticleGlossaryContent({ content, glossary = {} }) {
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
     return splitContentBlocks(content).map((text, index) => {
         const isHeading =
             text.length < 90 && !text.includes(".") && index > 0;
@@ -44,7 +51,7 @@ export default function ArticleGlossaryContent({ content, glossary = {} }) {
                     key={`${text}-${index}`}
                     className="mt-10 font-serif text-3xl leading-tight text-[#F3F4F6]"
                 >
-                    {renderGlossaryText(text, glossary)}
+                    {renderGlossaryText(text, glossary, isClient)}
                 </h2>
             );
         }
@@ -54,7 +61,7 @@ export default function ArticleGlossaryContent({ content, glossary = {} }) {
                 key={`${text}-${index}`}
                 className="mt-6 whitespace-pre-line leading-[1.9] text-[#D7DEE8]"
             >
-                {renderGlossaryText(text, glossary)}
+                {renderGlossaryText(text, glossary, isClient)}
             </p>
         );
     });

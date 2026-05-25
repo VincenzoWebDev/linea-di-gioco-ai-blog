@@ -1,6 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Link } from "@inertiajs/react";
-import { Provider as TooltipProvider } from "@radix-ui/react-tooltip";
 import { ArrowLeft } from "lucide-react";
 import BlogLayout from "@/Layouts/BlogLayout";
 import ArticleShowBody from "@/Components/blog/articles/show/ArticleShowBody";
@@ -72,42 +71,40 @@ export default function ArticlesShow({
                 structuredData={newsArticleSchema}
             />
             <BlogLayout>
-                <TooltipProvider>
-                    <article>
-                        <Link
-                            href={route("blog.articles.index")}
-                            className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-[#9CA3AF] transition hover:text-[#E5E7EB]"
-                        >
-                            <ArrowLeft className="h-3.5 w-3.5" />
-                            Torna agli articoli
-                        </Link>
+                <article>
+                    <Link
+                        href={route("blog.articles.index")}
+                        className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-[#9CA3AF] transition hover:text-[#E5E7EB]"
+                    >
+                        <ArrowLeft className="h-3.5 w-3.5" />
+                        Torna agli articoli
+                    </Link>
 
-                        <ArticleShowHeader
+                    <ArticleShowHeader
+                        article={article}
+                        intelligence={intelligence}
+                    />
+                    <ArticleShowCover article={article} />
+
+                    <div className="mt-8 grid gap-8 lg:mt-10 lg:grid-cols-[minmax(0,1fr)_minmax(280px,400px)] lg:gap-10 xl:grid-cols-[minmax(0,1fr)_430px]">
+                        <ArticleShowBody
                             article={article}
-                            intelligence={intelligence}
+                            glossary={glossary}
                         />
-                        <ArticleShowCover article={article} />
+                        {isClient ? (
+                            <Suspense fallback={sidebarFallback}>
+                                <ArticleShowIntelligenceSidebar
+                                    article={article}
+                                    intelligence={intelligence}
+                                />
+                            </Suspense>
+                        ) : (
+                            sidebarFallback
+                        )}
+                    </div>
+                </article>
 
-                        <div className="mt-8 grid gap-8 lg:mt-10 lg:grid-cols-[minmax(0,1fr)_minmax(280px,400px)] lg:gap-10 xl:grid-cols-[minmax(0,1fr)_430px]">
-                            <ArticleShowBody
-                                article={article}
-                                glossary={glossary}
-                            />
-                            {isClient ? (
-                                <Suspense fallback={sidebarFallback}>
-                                    <ArticleShowIntelligenceSidebar
-                                        article={article}
-                                        intelligence={intelligence}
-                                    />
-                                </Suspense>
-                            ) : (
-                                sidebarFallback
-                            )}
-                        </div>
-                    </article>
-
-                    <ArticleShowRelatedSection related={related} />
-                </TooltipProvider>
+                <ArticleShowRelatedSection related={related} />
             </BlogLayout>
         </>
     );
