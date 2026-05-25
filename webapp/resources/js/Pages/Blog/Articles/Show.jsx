@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Link } from "@inertiajs/react";
-import * as Tooltip from "@radix-ui/react-tooltip";
+import { Provider as TooltipProvider } from "@radix-ui/react-tooltip";
 import { ArrowLeft } from "lucide-react";
 import BlogLayout from "@/Layouts/BlogLayout";
 import ArticleShowBody from "@/Components/blog/articles/show/ArticleShowBody";
@@ -72,7 +72,7 @@ export default function ArticlesShow({
                 structuredData={newsArticleSchema}
             />
             <BlogLayout>
-                <Tooltip.Provider>
+                <TooltipProvider>
                     <article>
                         <Link
                             href={route("blog.articles.index")}
@@ -107,7 +107,7 @@ export default function ArticlesShow({
                     </article>
 
                     <ArticleShowRelatedSection related={related} />
-                </Tooltip.Provider>
+                </TooltipProvider>
             </BlogLayout>
         </>
     );

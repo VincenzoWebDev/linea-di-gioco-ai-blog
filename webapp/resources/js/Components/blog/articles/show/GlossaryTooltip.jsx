@@ -1,4 +1,10 @@
-import * as Tooltip from "@radix-ui/react-tooltip";
+import {
+    Arrow as TooltipArrow,
+    Content as TooltipContent,
+    Portal as TooltipPortal,
+    Root as TooltipRoot,
+    Trigger as TooltipTrigger,
+} from "@radix-ui/react-tooltip";
 import { motion } from "framer-motion";
 import { Info } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -123,22 +129,22 @@ export default function GlossaryTooltip({ term, entry }) {
     }
 
     return (
-        <Tooltip.Root delayDuration={120}>
-            <Tooltip.Trigger asChild>{trigger}</Tooltip.Trigger>
-            <Tooltip.Portal>
-                <Tooltip.Content
+        <TooltipRoot delayDuration={120}>
+            <TooltipTrigger asChild>{trigger}</TooltipTrigger>
+            <TooltipPortal>
+                <TooltipContent
                     side="top"
                     align="center"
                     sideOffset={10}
                     collisionPadding={16}
-                    asChild
+                    className="z-50"
                 >
-                    <>
+                    <div className="relative">
                         <TooltipPanel term={term} entry={entry} />
-                        <Tooltip.Arrow className="fill-[#D7B56D]/40" />
-                    </>
-                </Tooltip.Content>
-            </Tooltip.Portal>
-        </Tooltip.Root>
+                        <TooltipArrow className="fill-[#D7B56D]/40" />
+                    </div>
+                </TooltipContent>
+            </TooltipPortal>
+        </TooltipRoot>
     );
 }
