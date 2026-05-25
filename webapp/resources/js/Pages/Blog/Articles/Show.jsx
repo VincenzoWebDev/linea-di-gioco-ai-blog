@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Link } from "@inertiajs/react";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { ArrowLeft } from "lucide-react";
@@ -35,11 +35,25 @@ export default function ArticlesShow({
     riskThresholds = {},
     newsArticleSchema = null,
 }) {
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
     const intelligence = buildIntelligence(article, riskThresholds);
     const canonicalUrl = route("blog.articles.show", {
         id: article.id,
         slug: article.slug,
     });
+
+    const sidebarFallback = (
+        <aside className="min-w-0 max-w-full lg:sticky lg:top-8 lg:self-start">
+            <div className="border border-[#202A3D] bg-[#0B0F15]/90 p-4 shadow-2xl shadow-black/20 sm:p-5">
+                <div className="h-[420px] animate-pulse border border-[#182234] bg-[#121722]" />
+            </div>
+        </aside>
+    );
 
     return (
         <>
@@ -79,20 +93,16 @@ export default function ArticlesShow({
                                 article={article}
                                 glossary={glossary}
                             />
-                            <Suspense
-                                fallback={
-                                    <aside className="min-w-0 max-w-full lg:sticky lg:top-8 lg:self-start">
-                                        <div className="border border-[#202A3D] bg-[#0B0F15]/90 p-4 shadow-2xl shadow-black/20 sm:p-5">
-                                            <div className="h-[420px] animate-pulse border border-[#182234] bg-[#121722]" />
-                                        </div>
-                                    </aside>
-                                }
-                            >
-                                <ArticleShowIntelligenceSidebar
-                                    article={article}
-                                    intelligence={intelligence}
-                                />
-                            </Suspense>
+                            {isClient ? (
+                                <Suspense fallback={sidebarFallback}>
+                                    <ArticleShowIntelligenceSidebar
+                                        article={article}
+                                        intelligence={intelligence}
+                                    />
+                                </Suspense>
+                            ) : (
+                                sidebarFallback
+                            )}
                         </div>
                     </article>
 
