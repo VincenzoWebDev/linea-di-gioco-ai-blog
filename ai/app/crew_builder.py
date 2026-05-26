@@ -308,12 +308,24 @@ def _calibrate_risk_score(raw_score: int, context: str, status_label: str = "") 
         "offensiva",
         "caduti",
     )
-    medium_signals = ("sanzioni", "embargo", "escalation", "truppe", "drone", "artiglieria")
+    medium_signals = (
+        "sanzioni", "embargo", "escalation", "truppe", "drone", "artiglieria",
+        "violazione del cessate il fuoco", "rottura diplomatica", "intercett",
+        "minaccia", "attacco", "conflitto", "fronte", "deterrenza",
+    )
     routine_signals = ("vertice", "summit", "trattativa", "accordo", "comunicato", "monitoraggio")
     speculative_signals = ("potrebbe", "rischia", "timori", "non confermato", "specul")
+    general_geo_signals = (
+        "sicurezza", "difesa", "confine", "militare", "diplomatic", "negoziati",
+        "colloqui", "cessate il fuoco", "nato", "onu", "missile", "drone",
+        "truppe", "raid", "deterrenza", "conflitto",
+    )
 
     high_count = sum(1 for signal in high_signals if signal in text)
     medium_count = sum(1 for signal in medium_signals if signal in text)
+    has_routine = any(signal in text for signal in routine_signals)
+    has_speculative = any(signal in text for signal in speculative_signals)
+    general_geo_count = sum(1 for signal in general_geo_signals if signal in text)
 
     if score >= 70:
         if high_count == 0 and medium_count == 0:
@@ -323,14 +335,35 @@ def _calibrate_risk_score(raw_score: int, context: str, status_label: str = "") 
         elif high_count == 0 and score >= 80:
             score = min(score, 65)
 
-    if score >= 55 and high_count == 0 and any(signal in text for signal in routine_signals):
+    if score >= 55 and high_count == 0 and has_routine:
         score = min(score, 48)
 
-    if score >= 60 and high_count == 0 and any(signal in text for signal in speculative_signals):
+    if score >= 60 and high_count == 0 and has_speculative:
         score = min(score, 52)
 
     if score < 35 and high_count >= 2:
         score = max(score, 55)
+
+    if score <= 5:
+        if high_count >= 2:
+            score = max(score, 65)
+        elif high_count >= 1 and medium_count >= 1:
+            score = max(score, 60)
+        elif high_count >= 1:
+            score = max(score, 50)
+        elif medium_count >= 2:
+            score = max(score, 42)
+        elif medium_count >= 1:
+            score = max(score, 30)
+        elif general_geo_count >= 2 and not has_routine:
+            score = max(score, 22)
+    elif score < 20:
+        if high_count >= 1:
+            score = max(score, 50)
+        elif medium_count >= 2:
+            score = max(score, 38)
+        elif medium_count >= 1 and not has_routine:
+            score = max(score, 26)
 
     return max(1, min(100, score))
 

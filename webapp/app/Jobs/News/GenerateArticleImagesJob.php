@@ -6,6 +6,8 @@ use App\Services\ArticleImageFallbackService;
 use App\Services\ArticleImageVariantService;
 use App\Services\GeminiImageService;
 use App\Models\Article;
+use App\Models\PublicationLog;
+use App\Services\News\AiNewsWorkflowService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -32,7 +34,8 @@ class GenerateArticleImagesJob implements ShouldQueue
     public function handle(
         GeminiImageService $geminiImageService,
         ArticleImageFallbackService $articleImageFallbackService,
-        ArticleImageVariantService $articleImageVariantService
+        ArticleImageVariantService $articleImageVariantService,
+        AiNewsWorkflowService $workflowService
     ): void
     {
         $article = Article::query()->find($this->articleId);
@@ -40,9 +43,15 @@ class GenerateArticleImagesJob implements ShouldQueue
             return;
         }
 
+        $workflowService->synchronizeSessionAssignments($article);
+        $article->refresh();
+
+        $shouldAttemptAi = $article->image_generation_mode === 'ai'
+            && $article->ai_image_generated_at === null;
+
         $coverIsPlaceholder = $this->isPlaceholderAsset($article->cover_path);
         $thumbIsPlaceholder = $this->isPlaceholderAsset($article->thumb_path);
-        $coverNeedsOptimization = $this->needsOptimization($article->cover_path, $coverIsPlaceholder);
+        $coverNeedsOptimization = $this->needsOptimization($article->cover_path, $coverIsPlaceholder) || $shouldAttemptAi;
         $thumbNeedsOptimization = $this->needsOptimization($article->thumb_path, $thumbIsPlaceholder);
 
         if (! $coverNeedsOptimization && ! $thumbNeedsOptimization) {
@@ -66,11 +75,13 @@ class GenerateArticleImagesJob implements ShouldQueue
             $generatedImage = null;
             $sourceBytes = null;
             $sourceMime = 'image/png';
+            $generatedWithAi = false;
 
             if ($coverNeedsOptimization) {
-                if ($aiImagesEnabled && $provider === 'gemini') {
+                if ($shouldAttemptAi && $aiImagesEnabled && $provider === 'gemini') {
                     try {
                         $generatedImage = $geminiImageService->generate($article->title, (string) $article->summary, 'cover');
+                        $generatedWithAi = is_array($generatedImage);
                     } catch (\Throwable $geminiError) {
                         Log::warning('ai_news_image_generation_failed', [
                             'article_id' => $article->id,
@@ -114,7 +125,22 @@ class GenerateArticleImagesJob implements ShouldQueue
             }
 
             if ($updates !== []) {
+                if ($generatedWithAi) {
+                    $updates['ai_image_generated_at'] = now();
+                }
+
                 $article->update($updates);
+
+                if ($generatedWithAi) {
+                    PublicationLog::query()->create([
+                        'article_id' => $article->id,
+                        'event' => 'ai_image_generated',
+                        'meta' => [
+                            'mode' => $article->image_generation_mode,
+                            'generated_at' => now()->toIso8601String(),
+                        ],
+                    ]);
+                }
             }
         } catch (\Throwable $e) {
             Log::warning('ai_news_image_generation_failed', [

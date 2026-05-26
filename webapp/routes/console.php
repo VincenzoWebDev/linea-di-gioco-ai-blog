@@ -37,8 +37,9 @@ Artisan::command('ai-news:run {--force : Ignora il poll interval delle source}',
     FetchNewsJob::dispatch((bool) $this->option('force'))
         ->onQueue(config('ai_news.queues.ingest', 'news-ingest'));
 
-    $this->info('Pipeline avviata: fetch RSS da news_sources (DB) → extract → CrewAI (/process) → publish.');
+    $this->info('Pipeline avviata: fetch RSS da news_sources (DB) -> extract -> CrewAI (/process) -> publish.');
     $this->line('Assicurati che code e scheduler siano attivi (queue:work, schedule:work).');
+    $this->line('Finestre standard: 07:00, 14:00, 21:00 timezone app. --force bypassa il blocco orario per debug.');
     $this->line('Servizio Python: POST /process su ' . config('ai_news.crewai.base_url', 'http://127.0.0.1:8001'));
 })->purpose('Avvia il ciclo completo news (alias raccomandato di ai-news:dispatch)');
 

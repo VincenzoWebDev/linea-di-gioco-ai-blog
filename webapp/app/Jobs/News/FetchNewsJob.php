@@ -4,6 +4,7 @@ namespace App\Jobs\News;
 
 use App\Models\NewsSource;
 use App\Services\Agents\NewsScoutAgent;
+use App\Services\News\AiNewsWorkflowService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Bus\Queueable;
@@ -20,10 +21,28 @@ class FetchNewsJob implements ShouldQueue
 
     public array $backoff = [30, 120, 300];
 
-    public function __construct(private readonly bool $forcePoll = false) {}
+    public function __construct(
+        private readonly bool $forcePoll = false,
+        private readonly ?string $triggeredAt = null
+    ) {
+    }
 
-    public function handle(NewsScoutAgent $newsScoutAgent): void
+    public function handle(
+        NewsScoutAgent $newsScoutAgent,
+        AiNewsWorkflowService $workflowService
+    ): void
     {
+        $workflow = $workflowService->sessionMetadata($this->triggeredAt);
+
+        if (! $this->forcePoll && ! $workflowService->isAllowedTriggerTime($workflow['triggered_at'])) {
+            Log::info('ai_news_fetch_rejected_outside_trigger_window', [
+                'triggered_at' => $workflow['triggered_at'],
+                'allowed_hours' => $workflowService->allowedTriggerHours(),
+            ]);
+
+            return;
+        }
+
         $sources = NewsSource::query()
             ->where('is_active', true)
             ->get();
@@ -55,6 +74,8 @@ class FetchNewsJob implements ShouldQueue
             ]);
 
             foreach ($items as $item) {
+                $item['_workflow'] = $workflow;
+
                 ParseAndStoreIncomingJob::dispatch($source->id, $item)
                     ->onQueue(config('ai_news.queues.ingest', 'news-ingest'));
                 $dispatchedItems++;
@@ -68,6 +89,9 @@ class FetchNewsJob implements ShouldQueue
             'processed_sources' => $processedSources,
             'skipped_sources' => $skippedSources,
             'dispatched_items' => $dispatchedItems,
+            'workflow_session_key' => $workflow['session_key'],
+            'workflow_triggered_at' => $workflow['triggered_at'],
+            'workflow_session_ai_quota' => $workflow['session_ai_quota'],
             'queue_ingest' => config('ai_news.queues.ingest', 'news-ingest'),
         ]);
     }

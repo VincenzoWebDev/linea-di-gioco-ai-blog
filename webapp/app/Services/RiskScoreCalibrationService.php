@@ -16,7 +16,9 @@ class RiskScoreCalibrationService
     private const MEDIUM_SIGNALS = [
         'sanzioni', 'embargo', 'blocco navale', 'escalation',
         'truppe', 'dispiegamento', 'drone', 'artiglieria', 'raid',
-        'cessate il fuoco violato', 'rottura diplomatica', 'espulsione ambasciator',
+        'cessate il fuoco violato', 'violazione del cessate il fuoco', 'rottura diplomatica',
+        'espulsione ambasciator', 'intercett', 'minaccia', 'attacco', 'offensiva',
+        'conflitto', 'fronte', 'deterrenza', 'ultimatum', 'annessione',
     ];
 
     /** @var list<string> */
@@ -32,6 +34,13 @@ class RiskScoreCalibrationService
         'secondo fonti', 'non confermato', 'voci di corridoio', 'specul',
     ];
 
+    /** @var list<string> */
+    private const GENERAL_GEO_SIGNALS = [
+        'sicurezza', 'difesa', 'confine', 'confini', 'militare', 'diplomatic', 'negoziati',
+        'colloqui', 'ceasefire', 'cessate il fuoco', 'sanzioni', 'embargo', 'nato', 'onu',
+        'missile', 'drone', 'truppe', 'raid', 'deterrenza', 'conflitto',
+    ];
+
     public function calibrate(int $rawScore, string $context, string $statusLabel = ''): int
     {
         $text = mb_strtolower(trim($context . ' ' . $statusLabel));
@@ -39,6 +48,9 @@ class RiskScoreCalibrationService
 
         $highCount = $this->countSignals($text, self::HIGH_SIGNALS);
         $mediumCount = $this->countSignals($text, self::MEDIUM_SIGNALS);
+        $hasRoutineSignals = $this->hasAny($text, self::ROUTINE_SIGNALS);
+        $hasSpeculativeSignals = $this->hasAny($text, self::SPECULATIVE_SIGNALS);
+        $generalGeoCount = $this->countSignals($text, self::GENERAL_GEO_SIGNALS);
 
         if ($score >= 70) {
             if ($highCount === 0 && $mediumCount === 0) {
@@ -50,16 +62,40 @@ class RiskScoreCalibrationService
             }
         }
 
-        if ($score >= 55 && $this->hasAny($text, self::ROUTINE_SIGNALS) && $highCount === 0) {
+        if ($score >= 55 && $hasRoutineSignals && $highCount === 0) {
             $score = min($score, 48);
         }
 
-        if ($score >= 60 && $this->hasAny($text, self::SPECULATIVE_SIGNALS) && $highCount === 0) {
+        if ($score >= 60 && $hasSpeculativeSignals && $highCount === 0) {
             $score = min($score, 52);
         }
 
         if ($score < 35 && $highCount >= 2) {
             $score = max($score, 55);
+        }
+
+        if ($score <= 5) {
+            if ($highCount >= 2) {
+                $score = max($score, 65);
+            } elseif ($highCount >= 1 && $mediumCount >= 1) {
+                $score = max($score, 60);
+            } elseif ($highCount >= 1) {
+                $score = max($score, 50);
+            } elseif ($mediumCount >= 2) {
+                $score = max($score, 42);
+            } elseif ($mediumCount >= 1) {
+                $score = max($score, 30);
+            } elseif ($generalGeoCount >= 2 && ! $hasRoutineSignals) {
+                $score = max($score, 22);
+            }
+        } elseif ($score < 20) {
+            if ($highCount >= 1) {
+                $score = max($score, 50);
+            } elseif ($mediumCount >= 2) {
+                $score = max($score, 38);
+            } elseif ($mediumCount >= 1 && ! $hasRoutineSignals) {
+                $score = max($score, 26);
+            }
         }
 
         return max(1, min(100, $score));

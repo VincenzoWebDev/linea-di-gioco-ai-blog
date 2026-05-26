@@ -13,54 +13,82 @@ class NewsSourceSeeder extends Seeder
     public function run(): void
     {
         $sources = [
+            // === ANALISI DI ALTO LIVELLO ===
             [
                 'name' => 'Foreign Affairs Geopolitics',
                 'type' => 'rss',
                 'endpoint' => 'https://www.foreignaffairs.com/feeds/topic/Geopolitics/rss.xml',
                 'is_active' => true,
-                'poll_interval_minutes' => 20,
+                'poll_interval_minutes' => 40,
             ],
             [
-                'name' => 'Geopolitical Futures',
+                'name' => 'SIPRI',
                 'type' => 'rss',
-                'endpoint' => 'https://geopoliticalfutures.com/feed/',
+                'endpoint' => 'https://www.sipri.org/rss/combined.xml',
+                'is_active' => true,
+                'poll_interval_minutes' => 90,
+            ],
+            [
+                'name' => 'International Crisis Group',
+                'type' => 'rss',
+                'endpoint' => 'https://www.crisisgroup.org/rss/139',
+                'is_active' => true,
+                'poll_interval_minutes' => 70,
+            ],
+            [
+                'name' => 'CFR',
+                'type' => 'rss',
+                'endpoint' => 'https://www.cfr.org/feed',
+                'is_active' => true,
+                'poll_interval_minutes' => 50,
+            ],
+
+            // === NEWS VELOCI E BREAKING ===
+            [
+                'name' => 'BBC World News',
+                'type' => 'rss',
+                'endpoint' => 'http://feeds.bbci.co.uk/news/world/rss.xml',
                 'is_active' => true,
                 'poll_interval_minutes' => 20,
             ],
             [
-                'name' => 'Google News - Guerra e conflitti globali',
+                'name' => 'Al Jazeera English',
                 'type' => 'rss',
-                'endpoint' => 'https://news.google.com/rss/search?q=war+OR+conflict+OR+military+OR+invasion+OR+ceasefire&hl=en&gl=US&ceid=US:en',
+                'endpoint' => 'https://www.aljazeera.com/xml/rss/all.xml',
                 'is_active' => true,
-                'poll_interval_minutes' => 20,
+                'poll_interval_minutes' => 25,
+            ],
+
+            // === FOCUS GEOPOLITICO REGIONALE ===
+            [
+                'name' => 'The Diplomat (Asia-Pacific)',
+                'type' => 'rss',
+                'endpoint' => 'https://thediplomat.com/feed/',
+                'is_active' => true,
+                'poll_interval_minutes' => 40,
             ],
             [
-                'name' => 'Google News - Russia / Ucraina / Est Europa',
+                'name' => 'ECFR',
                 'type' => 'rss',
-                'endpoint' => 'https://news.google.com/rss/search?q=ukraine+OR+russia+OR+kiev+OR+moscow+OR+eastern+europe+war&hl=en&gl=US&ceid=US:en',
+                'endpoint' => 'https://ecfr.eu/feed/',
                 'is_active' => true,
-                'poll_interval_minutes' => 20,
+                'poll_interval_minutes' => 50,
+            ],
+
+            // === MEDIO ORIENTE e AFRICA ===
+            [
+                'name' => 'Crisis Group - Middle East & North Africa',
+                'type' => 'rss',
+                'endpoint' => 'https://www.crisisgroup.org/rss/81',
+                'is_active' => true,
+                'poll_interval_minutes' => 60,
             ],
             [
-                'name' => 'Google News - Medio Oriente',
+                'name' => 'Crisis Group - Africa',
                 'type' => 'rss',
-                'endpoint' => 'https://news.google.com/rss/search?q=gaza+OR+israel+OR+palestine+OR+iran+OR+syria+OR+lebanon&hl=en&gl=US&ceid=US:en',
+                'endpoint' => 'https://www.crisisgroup.org/rss/1',
                 'is_active' => true,
-                'poll_interval_minutes' => 20,
-            ],
-            [
-                'name' => 'Google News - Cina / Taiwan / Asia-Pacific',
-                'type' => 'rss',
-                'endpoint' => 'https://news.google.com/rss/search?q=china+OR+taiwan+OR+south+china+sea+OR+xi+jinping+OR+asia+security&hl=en&gl=US&ceid=US:en',
-                'is_active' => true,
-                'poll_interval_minutes' => 20,
-            ],
-            [
-                'name' => 'Google News - USA / NATO / Occidente',
-                'type' => 'rss',
-                'endpoint' => 'https://news.google.com/rss/search?q=usa+OR+nato+OR+washington+OR+pentagon+OR+europe+security+policy&hl=en&gl=US&ceid=US:en',
-                'is_active' => true,
-                'poll_interval_minutes' => 20,
+                'poll_interval_minutes' => 60,
             ],
         ];
 

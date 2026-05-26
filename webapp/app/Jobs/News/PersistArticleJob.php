@@ -9,6 +9,7 @@ use App\Models\IncomingNews;
 use App\Models\PublicationLog;
 use App\Services\CategoryAssignmentService;
 use App\Services\GeopoliticalTensionService;
+use App\Services\News\AiNewsWorkflowService;
 use App\Services\News\IncomingNewsStateMachine;
 use App\Support\ArticleContentNormalizer;
 use Illuminate\Bus\Queueable;
@@ -31,6 +32,7 @@ class PersistArticleJob implements ShouldQueue
     public function handle(
         CategoryAssignmentService $categoryAssignmentService,
         GeopoliticalTensionService $geopoliticalTensionService,
+        AiNewsWorkflowService $workflowService,
         IncomingNewsStateMachine $stateMachine
     ): void
     {
@@ -47,11 +49,14 @@ class PersistArticleJob implements ShouldQueue
         }
 
         $payload = $incoming->sanitized_payload ?? [];
+        $workflowPayload = is_array($incoming->raw_payload['_workflow'] ?? null)
+            ? $incoming->raw_payload['_workflow']
+            : $workflowService->sessionMetadata();
         $baseSlug = Str::slug((string) ($payload['title'] ?? 'news-'.$incoming->id));
         $slug = $this->uniqueSlug($baseSlug ?: 'news-'.$incoming->id, $incoming->id);
 
         $autoPublish = (bool) config('ai_news.auto_publish', false);
-        $autoPublishNow = $autoPublish && $this->canAutoPublishNow();
+        $autoPublishNow = $autoPublish;
         $publicationStatus = $autoPublishNow
             ? ArticlePublicationStatus::PUBLISHED
             : ArticlePublicationStatus::PENDING_REVIEW;
@@ -101,6 +106,11 @@ class PersistArticleJob implements ShouldQueue
             'quality_score' => (float) ($payload['quality_score'] ?? 0),
             'future_scenarios' => is_array($payload['future_scenarios'] ?? null) ? $payload['future_scenarios'] : null,
             'published_at' => $autoPublishNow ? ($incoming->published_at ?? now()) : null,
+            'workflow_session_key' => (string) ($workflowPayload['session_key'] ?? ''),
+            'workflow_triggered_at' => $workflowPayload['triggered_at'] ?? null,
+            'workflow_trigger_hour' => isset($workflowPayload['trigger_hour']) ? (int) $workflowPayload['trigger_hour'] : null,
+            'workflow_session_ai_quota' => isset($workflowPayload['session_ai_quota']) ? (int) $workflowPayload['session_ai_quota'] : 0,
+            'image_generation_mode' => 'fallback',
         ]);
 
         PublicationLog::query()->create([
@@ -118,14 +128,12 @@ class PersistArticleJob implements ShouldQueue
         }
 
         $geopoliticalTensionService->upsertFromAgentOutput($payload, $article);
+        $workflowService->synchronizeSessionAssignments($article);
 
         if ($autoPublish) {
             $publishJob = PublishArticleJob::dispatch($article->id)
                 ->onQueue(config('ai_news.queues.publish', 'news-publish'));
 
-            if (! $autoPublishNow) {
-                $publishJob = $publishJob->delay($this->nextPublishAttempt());
-            }
         }
 
         GenerateArticleImagesJob::dispatch($article->id)
@@ -155,22 +163,4 @@ class PersistArticleJob implements ShouldQueue
         return $slug;
     }
 
-    private function canAutoPublishNow(): bool
-    {
-        $maxPerDay = (int) config('ai_news.max_articles_per_day', 10);
-
-        if ($maxPerDay <= 0) {
-            return true;
-        }
-
-        return Article::query()
-            ->where('status', 'published')
-            ->whereDate('published_at', now()->toDateString())
-            ->count() < $maxPerDay;
-    }
-
-    private function nextPublishAttempt(): \DateTimeInterface
-    {
-        return now()->tomorrow()->addSeconds(5);
-    }
 }

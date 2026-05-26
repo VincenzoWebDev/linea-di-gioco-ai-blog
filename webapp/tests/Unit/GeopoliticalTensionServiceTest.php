@@ -147,4 +147,80 @@ class GeopoliticalTensionServiceTest extends TestCase
             'status_label' => 'Escalation diplomatica',
         ]);
     }
+
+    public function test_it_raises_implausibly_low_risk_scores_when_article_contains_clear_escalation_signals(): void
+    {
+        $article = Article::query()->create([
+            'title' => 'Missili e raid al confine tra Israele e Iran',
+            'slug' => 'missili-e-raid-al-confine',
+            'summary' => 'Nuove minacce e raid alimentano la crisi regionale.',
+            'content' => 'Fonti ufficiali parlano di missili, raid, truppe mobilitate e rischio di escalation militare.',
+            'status' => 'published',
+            'publication_status' => 'published',
+            'created_by' => 'ai',
+            'source_url' => 'https://example.com/escalation',
+            'source_name' => 'test',
+            'ai_generated' => true,
+            'quality_score' => 88,
+        ]);
+
+        $service = new GeopoliticalTensionService(
+            new RegionCoordinateResolver(),
+            new RiskScoreCalibrationService(),
+        );
+
+        $service->upsertFromAgentOutput([
+            'geopolitical_tension' => [
+                'region_name' => 'Medio Oriente',
+                'risk_score' => 1,
+                'trend_direction' => 'rising',
+                'status_label' => 'Escalation militare',
+            ],
+        ], $article);
+
+        $this->assertDatabaseHas('geopolitical_tensions', [
+            'region_name' => 'Medio Oriente',
+            'risk_score' => 60,
+            'trend_direction' => 'rising',
+            'status_label' => 'Escalation militare',
+        ]);
+    }
+
+    public function test_it_keeps_low_scores_for_routine_diplomatic_updates_without_escalation_signals(): void
+    {
+        $article = Article::query()->create([
+            'title' => 'Vertice bilaterale sulla sicurezza energetica europea',
+            'slug' => 'vertice-bilaterale-sicurezza-energetica',
+            'summary' => 'I leader rilanciano il dialogo in un comunicato congiunto.',
+            'content' => 'Il summit si chiude con un comunicato stampa e nuovi colloqui tecnici senza segnali di crisi immediata.',
+            'status' => 'published',
+            'publication_status' => 'published',
+            'created_by' => 'ai',
+            'source_url' => 'https://example.com/routine',
+            'source_name' => 'test',
+            'ai_generated' => true,
+            'quality_score' => 74,
+        ]);
+
+        $service = new GeopoliticalTensionService(
+            new RegionCoordinateResolver(),
+            new RiskScoreCalibrationService(),
+        );
+
+        $service->upsertFromAgentOutput([
+            'geopolitical_tension' => [
+                'region_name' => 'Europa',
+                'risk_score' => 1,
+                'trend_direction' => 'stable',
+                'status_label' => 'Monitoraggio diplomatico',
+            ],
+        ], $article);
+
+        $this->assertDatabaseHas('geopolitical_tensions', [
+            'region_name' => 'Unione Europea',
+            'risk_score' => 1,
+            'trend_direction' => 'stable',
+            'status_label' => 'Monitoraggio diplomatico',
+        ]);
+    }
 }

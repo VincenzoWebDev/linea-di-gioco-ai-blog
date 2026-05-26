@@ -13,10 +13,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $interval = min(max((int) config('ai_news.schedule_every_minutes', 60), 1), 60);
-
         $schedule->job(new FetchNewsJob(), config('ai_news.queues.ingest', 'news-ingest'))
-            ->cron("*/{$interval} * * * *")
+            ->cron('0 7,14,21 * * *')
             ->withoutOverlapping();
     }
 

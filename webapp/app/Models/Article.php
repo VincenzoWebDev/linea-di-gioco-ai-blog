@@ -22,6 +22,13 @@ class Article extends Model
         'publication_status',
         'created_by',
         'published_at',
+        'workflow_session_key',
+        'workflow_triggered_at',
+        'workflow_trigger_hour',
+        'workflow_session_ai_quota',
+        'workflow_session_rank',
+        'image_generation_mode',
+        'ai_image_generated_at',
         'cover_path',
         'thumb_path',
         'source_url',
@@ -34,6 +41,8 @@ class Article extends Model
 
     protected $casts = [
         'published_at' => 'datetime',
+        'workflow_triggered_at' => 'datetime',
+        'ai_image_generated_at' => 'datetime',
         'ai_generated' => 'boolean',
         'quality_score' => 'decimal:2',
         'glossary' => 'array',

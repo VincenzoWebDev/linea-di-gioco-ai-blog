@@ -15,6 +15,11 @@ return [
     'sanitize_prompt_version' => env('AI_NEWS_SANITIZE_PROMPT_VERSION', 'v1'),
     'schedule_every_minutes' => env('AI_NEWS_SCHEDULE_EVERY_MINUTES', 60),
     'max_items_per_source' => env('AI_NEWS_MAX_ITEMS_PER_SOURCE', 10),
+    'workflow' => [
+        'trigger_hours' => [7, 14, 21],
+        'daily_ai_image_budget' => env('AI_NEWS_DAILY_AI_IMAGE_BUDGET', 10),
+        'max_ai_images_per_session' => env('AI_NEWS_MAX_AI_IMAGES_PER_SESSION', 3),
+    ],
     'deduplication' => [
         'enabled' => env('AI_NEWS_DEDUP_ENABLED', true),
         'similarity_threshold' => env('AI_NEWS_DEDUP_SIMILARITY_THRESHOLD', 0.72),

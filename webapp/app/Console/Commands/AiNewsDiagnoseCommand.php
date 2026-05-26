@@ -18,6 +18,9 @@ class AiNewsDiagnoseCommand extends Command
         $this->line('Queue connection: '.config('queue.default'));
         $this->line('Auto publish: '.($this->boolLabel((bool) config('ai_news.auto_publish', false))));
         $this->line('Schedule every minutes: '.config('ai_news.schedule_every_minutes'));
+        $this->line('Workflow trigger hours: '.implode(', ', config('ai_news.workflow.trigger_hours', [7, 14, 21])));
+        $this->line('Workflow AI budget/day: '.(int) config('ai_news.workflow.daily_ai_image_budget', 10));
+        $this->line('Workflow AI budget/session: '.(int) config('ai_news.workflow.max_ai_images_per_session', 3));
         $this->line('');
         $this->info('AI services');
         $this->line('  ai enabled: '.$this->boolLabel((bool) config('ai_news.ai.enabled', false)));
