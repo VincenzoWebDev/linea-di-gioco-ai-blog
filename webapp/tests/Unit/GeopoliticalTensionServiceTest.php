@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Models\Article;
 use App\Models\GeopoliticalTension;
+use App\Services\GeopoliticalEventWeightService;
 use App\Services\GeopoliticalTensionService;
 use App\Services\RegionCoordinateResolver;
 use App\Services\RiskScoreCalibrationService;
@@ -31,6 +32,7 @@ class GeopoliticalTensionServiceTest extends TestCase
         $service = new GeopoliticalTensionService(
             new RegionCoordinateResolver(),
             new RiskScoreCalibrationService(),
+            new GeopoliticalEventWeightService(),
         );
 
         $this->assertSame('falling', $service->resolveTrendDirection($tension));
@@ -54,6 +56,7 @@ class GeopoliticalTensionServiceTest extends TestCase
         $service = new GeopoliticalTensionService(
             new RegionCoordinateResolver(),
             new RiskScoreCalibrationService(),
+            new GeopoliticalEventWeightService(),
         );
 
         $this->assertSame('stable', $service->resolveTrendDirection($tension));
@@ -90,6 +93,7 @@ class GeopoliticalTensionServiceTest extends TestCase
         $service = new GeopoliticalTensionService(
             new RegionCoordinateResolver(),
             new RiskScoreCalibrationService(),
+            new GeopoliticalEventWeightService(),
         );
 
         $service->upsertFromAgentOutput([
@@ -104,7 +108,7 @@ class GeopoliticalTensionServiceTest extends TestCase
         $this->assertDatabaseCount('geopolitical_tensions', 1);
         $this->assertDatabaseHas('geopolitical_tensions', [
             'region_name' => 'Ucraina',
-            'risk_score' => 65,
+            'risk_score' => 70,
             'trend_direction' => 'rising',
             'status_label' => 'Escalation militare',
             'featured_article_id' => $article->id,
@@ -130,6 +134,7 @@ class GeopoliticalTensionServiceTest extends TestCase
         $service = new GeopoliticalTensionService(
             new RegionCoordinateResolver(),
             new RiskScoreCalibrationService(),
+            new GeopoliticalEventWeightService(),
         );
 
         $service->upsertFromAgentOutput([
@@ -167,6 +172,7 @@ class GeopoliticalTensionServiceTest extends TestCase
         $service = new GeopoliticalTensionService(
             new RegionCoordinateResolver(),
             new RiskScoreCalibrationService(),
+            new GeopoliticalEventWeightService(),
         );
 
         $service->upsertFromAgentOutput([
@@ -180,7 +186,7 @@ class GeopoliticalTensionServiceTest extends TestCase
 
         $this->assertDatabaseHas('geopolitical_tensions', [
             'region_name' => 'Medio Oriente',
-            'risk_score' => 60,
+            'risk_score' => 30,
             'trend_direction' => 'rising',
             'status_label' => 'Escalation militare',
         ]);
@@ -205,6 +211,7 @@ class GeopoliticalTensionServiceTest extends TestCase
         $service = new GeopoliticalTensionService(
             new RegionCoordinateResolver(),
             new RiskScoreCalibrationService(),
+            new GeopoliticalEventWeightService(),
         );
 
         $service->upsertFromAgentOutput([
@@ -218,9 +225,150 @@ class GeopoliticalTensionServiceTest extends TestCase
 
         $this->assertDatabaseHas('geopolitical_tensions', [
             'region_name' => 'Unione Europea',
-            'risk_score' => 1,
-            'trend_direction' => 'stable',
+            'risk_score' => 5,
+            'trend_direction' => 'rising',
             'status_label' => 'Monitoraggio diplomatico',
+        ]);
+    }
+
+    public function test_it_assigns_more_elastic_scores_to_low_agent_outputs_with_different_medium_signal_strength(): void
+    {
+        $service = new GeopoliticalTensionService(
+            new RegionCoordinateResolver(),
+            new RiskScoreCalibrationService(),
+            new GeopoliticalEventWeightService(),
+        );
+
+        $lighterArticle = Article::query()->create([
+            'title' => 'Nuove sanzioni e minacce al confine orientale',
+            'slug' => 'nuove-sanzioni-e-minacce-al-confine-orientale',
+            'summary' => 'Pressioni diplomatiche in aumento.',
+            'content' => 'Le parti parlano di sanzioni, minacce e tensioni al confine senza conferma di attacchi.',
+            'status' => 'published',
+            'publication_status' => 'published',
+            'created_by' => 'ai',
+            'source_url' => 'https://example.com/lighter',
+            'source_name' => 'test',
+            'ai_generated' => true,
+            'quality_score' => 71,
+        ]);
+
+        $strongerArticle = Article::query()->create([
+            'title' => 'Sanzioni, truppe, raid e ultimatum nella crisi regionale',
+            'slug' => 'sanzioni-truppe-raid-e-ultimatum',
+            'summary' => 'La pressione strategica cresce su piu fronti.',
+            'content' => 'La crisi registra sanzioni, truppe, raid, ultimatum, deterrenza e nuove minacce lungo il fronte.',
+            'status' => 'published',
+            'publication_status' => 'published',
+            'created_by' => 'ai',
+            'source_url' => 'https://example.com/stronger',
+            'source_name' => 'test',
+            'ai_generated' => true,
+            'quality_score' => 79,
+        ]);
+
+        $service->upsertFromAgentOutput([
+            'geopolitical_tension' => [
+                'region_name' => 'Europa orientale',
+                'risk_score' => 1,
+                'trend_direction' => 'stable',
+                'status_label' => 'Pressione diplomatica',
+            ],
+        ], $lighterArticle);
+
+        $service->upsertFromAgentOutput([
+            'geopolitical_tension' => [
+                'region_name' => 'Mar Nero',
+                'risk_score' => 1,
+                'trend_direction' => 'rising',
+                'status_label' => 'Escalation strategica',
+            ],
+        ], $strongerArticle);
+
+        $lighterScore = (int) GeopoliticalTension::query()
+            ->where('featured_article_id', $lighterArticle->id)
+            ->value('risk_score');
+
+        $strongerScore = (int) GeopoliticalTension::query()
+            ->where('featured_article_id', $strongerArticle->id)
+            ->value('risk_score');
+
+        $this->assertGreaterThanOrEqual(10, $lighterScore);
+        $this->assertGreaterThan($lighterScore, $strongerScore);
+        $this->assertNotSame(42, $lighterScore);
+        $this->assertNotSame(42, $strongerScore);
+    }
+
+    public function test_it_accumulates_pressure_and_allows_decompression_on_the_same_area(): void
+    {
+        $olderArticle = Article::query()->create([
+            'title' => 'Prima crisi nel Mar Rosso',
+            'slug' => 'prima-crisi-mar-rosso',
+            'summary' => 'Sintesi',
+            'content' => 'Raid e minacce lungo le rotte marittime.',
+            'status' => 'published',
+            'publication_status' => 'published',
+            'created_by' => 'ai',
+            'source_url' => 'https://example.com/older',
+            'source_name' => 'test',
+            'ai_generated' => true,
+            'quality_score' => 76,
+        ]);
+
+        $newerArticle = Article::query()->create([
+            'title' => 'Nuovo dossier sul Mar Rosso',
+            'slug' => 'nuovo-dossier-mar-rosso',
+            'summary' => 'Sintesi',
+            'content' => 'Missili, truppe e nuove minacce sulle rotte commerciali.',
+            'status' => 'published',
+            'publication_status' => 'published',
+            'created_by' => 'ai',
+            'source_url' => 'https://example.com/newer',
+            'source_name' => 'test',
+            'ai_generated' => true,
+            'quality_score' => 83,
+        ]);
+
+        $service = new GeopoliticalTensionService(
+            new RegionCoordinateResolver(),
+            new RiskScoreCalibrationService(),
+            new GeopoliticalEventWeightService(),
+        );
+
+        $service->upsertFromAgentOutput([
+            'geopolitical_tension' => [
+                'region_name' => 'Mar Rosso',
+                'risk_score' => 58,
+                'trend_direction' => 'stable',
+                'status_label' => 'Pressione regionale',
+            ],
+        ], $olderArticle);
+
+        $service->upsertFromAgentOutput([
+            'geopolitical_tension' => [
+                'region_name' => 'Red Sea',
+                'risk_score' => 72,
+                'trend_direction' => 'rising',
+                'status_label' => 'Escalation marittima',
+            ],
+        ], $newerArticle);
+
+        $service->upsertFromAgentOutput([
+            'geopolitical_tension' => [
+                'region_name' => 'Mar Rosso',
+                'risk_score' => 49,
+                'trend_direction' => 'falling',
+                'status_label' => 'Cessate il fuoco e ritiro delle truppe',
+            ],
+        ], $olderArticle);
+
+        $this->assertDatabaseCount('geopolitical_tensions', 1);
+        $this->assertDatabaseHas('geopolitical_tensions', [
+            'region_name' => 'Mar Rosso',
+            'risk_score' => 40,
+            'trend_direction' => 'falling',
+            'status_label' => 'Cessate il fuoco e ritiro delle truppe',
+            'featured_article_id' => $olderArticle->id,
         ]);
     }
 }

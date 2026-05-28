@@ -4,9 +4,9 @@ namespace App\Jobs\News;
 
 use App\Services\ArticleImageFallbackService;
 use App\Services\ArticleImageVariantService;
-use App\Services\GeminiImageService;
 use App\Models\Article;
 use App\Models\PublicationLog;
+use App\Services\GoogleImageService;
 use App\Services\News\AiNewsWorkflowService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -27,17 +27,15 @@ class GenerateArticleImagesJob implements ShouldQueue
     /**
      * @param  int  $articleId
      */
-    public function __construct(public int $articleId)
-    {
-    }
+    public function __construct(public int $articleId) {}
 
     public function handle(
-        GeminiImageService $geminiImageService,
+        // GeminiImageService $geminiImageService, deprecator in favore di GoogleImageService, ma lasciato per eventuale fallback o test A/B
+        GoogleImageService $googleImageService,
         ArticleImageFallbackService $articleImageFallbackService,
         ArticleImageVariantService $articleImageVariantService,
         AiNewsWorkflowService $workflowService
-    ): void
-    {
+    ): void {
         $article = Article::query()->find($this->articleId);
         if (! $article) {
             return;
@@ -59,9 +57,9 @@ class GenerateArticleImagesJob implements ShouldQueue
         }
 
         $basePath = "articles/{$article->id}";
-        $slug = $article->slug ?: 'article-'.$article->id;
+        $slug = $article->slug ?: 'article-' . $article->id;
         $updates = [];
-        $provider = (string) config('ai_news.images.provider', 'gemini');
+        // $provider = (string) config('ai_news.images.provider', 'gemini'); 
         $aiImagesEnabled = (bool) config('ai_news.images.enabled', false);
 
         if (! $articleImageVariantService->supportsWebpConversion()) {
@@ -78,14 +76,15 @@ class GenerateArticleImagesJob implements ShouldQueue
             $generatedWithAi = false;
 
             if ($coverNeedsOptimization) {
-                if ($shouldAttemptAi && $aiImagesEnabled && $provider === 'gemini') {
+                if ($shouldAttemptAi && $aiImagesEnabled) {
                     try {
-                        $generatedImage = $geminiImageService->generate($article->title, (string) $article->summary, 'cover');
-                        $generatedWithAi = is_array($generatedImage);
-                    } catch (\Throwable $geminiError) {
+                        $generatedImage = $googleImageService->generate($article->title, (string) $article->summary);
+                        // $generatedWithAi = is_array($generatedImage);
+                        $generatedWithAi = isset($generatedImage['bytes']) && $generatedImage['bytes'] !== '';
+                    } catch (\Throwable $e) {
                         Log::warning('ai_news_image_generation_failed', [
                             'article_id' => $article->id,
-                            'error' => $geminiError->getMessage(),
+                            'error' => $e->getMessage(),
                             'fallback' => 'svg_placeholder',
                         ]);
                     }
@@ -106,14 +105,33 @@ class GenerateArticleImagesJob implements ShouldQueue
             }
 
             if ($thumbNeedsOptimization) {
-                if (is_string($sourceBytes) && $sourceBytes !== '') {
-                    // Reuse the generated placeholder/AI bytes to avoid re-encoding the stored cover.
-                }
-
                 if (! is_string($sourceBytes) || $sourceBytes === '') {
-                    $placeholder = $articleImageFallbackService->placeholder($article->title, 'thumb');
-                    $sourceBytes = $placeholder['bytes'];
-                    $sourceMime = $placeholder['mime'];
+                    $storedCoverPath = $article->cover_path;
+
+                    if (
+                        is_string($storedCoverPath)
+                        && trim($storedCoverPath) !== ''
+                        && Storage::disk('public')->exists($storedCoverPath)
+                    ) {
+                        $storedCoverBytes = Storage::disk('public')->get($storedCoverPath);
+
+                        if (is_string($storedCoverBytes) && $storedCoverBytes !== '') {
+                            $sourceBytes = $storedCoverBytes;
+                            $sourceMime = match (strtolower(pathinfo($storedCoverPath, PATHINFO_EXTENSION))) {
+                                'jpg', 'jpeg' => 'image/jpeg',
+                                'png' => 'image/png',
+                                'svg' => 'image/svg+xml',
+                                'webp' => 'image/webp',
+                                default => 'image/webp',
+                            };
+                        }
+                    }
+
+                    if (! is_string($sourceBytes) || $sourceBytes === '') {
+                        $placeholder = $articleImageFallbackService->placeholder($article->title, 'thumb');
+                        $sourceBytes = $placeholder['bytes'];
+                        $sourceMime = $placeholder['mime'];
+                    }
                 }
 
                 $thumbData = $articleImageVariantService->makeThumb($sourceBytes, $sourceMime);
@@ -205,5 +223,4 @@ class GenerateArticleImagesJob implements ShouldQueue
 
         Storage::disk('public')->delete($currentPath);
     }
-
 }

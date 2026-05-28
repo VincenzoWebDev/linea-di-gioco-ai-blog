@@ -11,7 +11,7 @@ return [
         ['label' => 'Israele e Libano', 'aliases' => ['israel lebanon', 'israele libano', 'libano israele', 'lebanon israel'], 'lat' => 33.3, 'long' => 35.3],
         ['label' => 'Mar Rosso', 'aliases' => ['red sea', 'mar rosso', 'houthi', 'huthi', 'yemen red sea'], 'lat' => 15.5, 'long' => 42.5],
         ['label' => 'Stretto di Taiwan', 'aliases' => ['taiwan strait', 'stretto di taiwan'], 'lat' => 24.0, 'long' => 119.5],
-        ['label' => 'Mar Cinese Meridionale', 'aliases' => ['south china sea', 'mar cinese meridionale', 'mar del sud cina'], 'lat' => 12.0, 'long' => 114.0],
+        ['label' => 'Mar Cinese Meridionale', 'aliases' => ['south china sea', 'mar cinese meridionale', 'mare cinese meridionale', 'mar cinese', 'mare della cina meridionale', 'mar del sud cina'], 'lat' => 12.0, 'long' => 114.0],
         ['label' => 'Indo-Pacifico', 'aliases' => ['indo pacific', 'indo-pacific', 'indo pacifico'], 'lat' => 5.0, 'long' => 115.0],
         ['label' => 'Corno d\'Africa', 'aliases' => ['horn of africa', 'corno d africa', 'corno dell africa'], 'lat' => 9.0, 'long' => 45.0],
         ['label' => 'Balcani Occidentali', 'aliases' => ['western balkans', 'balcani occidentali', 'balcani'], 'lat' => 43.5, 'long' => 20.5],

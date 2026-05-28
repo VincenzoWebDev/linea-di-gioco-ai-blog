@@ -16,17 +16,19 @@ class AiNewsWorkflowServiceTest extends TestCase
     {
         $service = app(AiNewsWorkflowService::class);
 
-        $this->assertTrue($service->isAllowedTriggerTime('2026-05-26 07:00:00'));
-        $this->assertTrue($service->isAllowedTriggerTime('2026-05-26 14:00:00'));
+        $this->assertTrue($service->isAllowedTriggerTime('2026-05-26 05:00:00'));
+        $this->assertTrue($service->isAllowedTriggerTime('2026-05-26 09:00:00'));
+        $this->assertTrue($service->isAllowedTriggerTime('2026-05-26 13:00:00'));
+        $this->assertTrue($service->isAllowedTriggerTime('2026-05-26 17:00:00'));
         $this->assertTrue($service->isAllowedTriggerTime('2026-05-26 21:00:00'));
         $this->assertFalse($service->isAllowedTriggerTime('2026-05-26 08:00:00'));
-        $this->assertFalse($service->isAllowedTriggerTime('2026-05-26 07:15:00'));
+        $this->assertFalse($service->isAllowedTriggerTime('2026-05-26 05:15:00'));
     }
 
     public function test_it_calculates_session_quota_from_the_remaining_daily_ai_budget(): void
     {
         config()->set('ai_news.workflow.daily_ai_image_budget', 10);
-        config()->set('ai_news.workflow.max_ai_images_per_session', 3);
+        config()->set('ai_news.workflow.max_ai_images_per_session', 2);
 
         for ($i = 1; $i <= 8; $i++) {
             Article::query()->create([
@@ -45,16 +47,16 @@ class AiNewsWorkflowServiceTest extends TestCase
             ]);
         }
 
-        $metadata = app(AiNewsWorkflowService::class)->sessionMetadata('2026-05-26 14:00:00');
+        $metadata = app(AiNewsWorkflowService::class)->sessionMetadata('2026-05-26 13:00:00');
 
-        $this->assertSame('2026052614', $metadata['session_key']);
+        $this->assertSame('2026052613', $metadata['session_key']);
         $this->assertSame(2, $metadata['session_ai_quota']);
     }
 
     public function test_it_assigns_ai_only_to_the_highest_ranked_articles_in_the_session(): void
     {
         $service = app(AiNewsWorkflowService::class);
-        $sessionKey = '2026052614';
+        $sessionKey = '2026052613';
 
         $articles = collect([
             ['slug' => 'alpha', 'risk' => 91],
@@ -75,9 +77,9 @@ class AiNewsWorkflowServiceTest extends TestCase
                 'ai_generated' => true,
                 'quality_score' => 80 - $index,
                 'workflow_session_key' => $sessionKey,
-                'workflow_triggered_at' => '2026-05-26 14:00:00',
-                'workflow_trigger_hour' => 14,
-                'workflow_session_ai_quota' => 3,
+                'workflow_triggered_at' => '2026-05-26 13:00:00',
+                'workflow_trigger_hour' => 13,
+                'workflow_session_ai_quota' => 2,
                 'image_generation_mode' => 'fallback',
             ]);
 
@@ -107,7 +109,7 @@ class AiNewsWorkflowServiceTest extends TestCase
         $this->assertDatabaseHas('articles', [
             'slug' => 'charlie',
             'workflow_session_rank' => 3,
-            'image_generation_mode' => 'ai',
+            'image_generation_mode' => 'fallback',
         ]);
         $this->assertDatabaseHas('articles', [
             'slug' => 'delta',

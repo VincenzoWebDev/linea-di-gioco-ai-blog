@@ -17,12 +17,16 @@ class GeopoliticalTension extends Model
         'trend_direction',
         'status_label',
         'featured_article_id',
+        'last_event_at',
+        'last_decay_at',
     ];
 
     protected $casts = [
         'latitude' => 'float',
         'longitude' => 'float',
         'risk_score' => 'integer',
+        'last_event_at' => 'datetime',
+        'last_decay_at' => 'datetime',
     ];
 
     public function hasMapCoordinates(): bool

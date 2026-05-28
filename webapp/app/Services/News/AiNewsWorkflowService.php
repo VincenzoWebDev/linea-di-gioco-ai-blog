@@ -97,7 +97,7 @@ class AiNewsWorkflowService
      */
     public function allowedTriggerHours(): array
     {
-        return collect(config('ai_news.workflow.trigger_hours', [7, 14, 21]))
+        return collect(config('ai_news.workflow.trigger_hours', [5, 9, 13, 17, 21]))
             ->map(fn ($hour) => (int) $hour)
             ->filter(fn ($hour) => $hour >= 0 && $hour <= 23)
             ->unique()

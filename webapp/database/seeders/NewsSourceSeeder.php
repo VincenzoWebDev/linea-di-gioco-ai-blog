@@ -13,82 +13,95 @@ class NewsSourceSeeder extends Seeder
     public function run(): void
     {
         $sources = [
-            // === ANALISI DI ALTO LIVELLO ===
-            [
-                'name' => 'Foreign Affairs Geopolitics',
-                'type' => 'rss',
-                'endpoint' => 'https://www.foreignaffairs.com/feeds/topic/Geopolitics/rss.xml',
-                'is_active' => true,
-                'poll_interval_minutes' => 40,
-            ],
-            [
-                'name' => 'SIPRI',
-                'type' => 'rss',
-                'endpoint' => 'https://www.sipri.org/rss/combined.xml',
-                'is_active' => true,
-                'poll_interval_minutes' => 90,
-            ],
-            [
-                'name' => 'International Crisis Group',
-                'type' => 'rss',
-                'endpoint' => 'https://www.crisisgroup.org/rss/139',
-                'is_active' => true,
-                'poll_interval_minutes' => 70,
-            ],
-            [
-                'name' => 'CFR',
-                'type' => 'rss',
-                'endpoint' => 'https://www.cfr.org/feed',
-                'is_active' => true,
-                'poll_interval_minutes' => 50,
-            ],
 
-            // === NEWS VELOCI E BREAKING ===
+            // =========================
+            // 🔴 BREAKING GLOBAL NEWS
+            // =========================
             [
                 'name' => 'BBC World News',
                 'type' => 'rss',
                 'endpoint' => 'http://feeds.bbci.co.uk/news/world/rss.xml',
                 'is_active' => true,
-                'poll_interval_minutes' => 20,
+                'poll_interval_minutes' => 15,
             ],
             [
                 'name' => 'Al Jazeera English',
                 'type' => 'rss',
                 'endpoint' => 'https://www.aljazeera.com/xml/rss/all.xml',
                 'is_active' => true,
+                'poll_interval_minutes' => 15,
+            ],
+
+            // =========================
+            // 🌍 GLOBAL / EUROPE MEDIA
+            // =========================
+            [
+                'name' => 'Deutsche Welle',
+                'type' => 'rss',
+                'endpoint' => 'https://rss.dw.com/rdf/rss-en-all',
+                'is_active' => true,
+                'poll_interval_minutes' => 20,
+            ],
+            [
+                'name' => 'France 24 English',
+                'type' => 'rss',
+                'endpoint' => 'https://www.france24.com/en/rss',
+                'is_active' => true,
+                'poll_interval_minutes' => 20,
+            ],
+            [
+                'name' => 'Euronews',
+                'type' => 'rss',
+                'endpoint' => 'https://www.euronews.com/rss?level=theme&name=news',
+                'is_active' => true,
                 'poll_interval_minutes' => 25,
             ],
 
-            // === FOCUS GEOPOLITICO REGIONALE ===
+            // =========================
+            // 🟡 POLITICS / POWER CENTERS
+            // =========================
             [
-                'name' => 'The Diplomat (Asia-Pacific)',
+                'name' => 'Politico Europe',
+                'type' => 'rss',
+                'endpoint' => 'https://www.politico.eu/feed/',
+                'is_active' => true,
+                'poll_interval_minutes' => 30,
+            ],
+            [
+                'name' => 'The Guardian World',
+                'type' => 'rss',
+                'endpoint' => 'https://www.theguardian.com/world/rss',
+                'is_active' => true,
+                'poll_interval_minutes' => 30,
+            ],
+
+            // =========================
+            // 🔵 ASIA / CINA
+            // =========================
+            [
+                'name' => 'South China Morning Post (Asia)',
+                'type' => 'rss',
+                'endpoint' => 'https://www.scmp.com/rss/91/feed',
+                'is_active' => true,
+                'poll_interval_minutes' => 30,
+            ],
+
+            // =========================
+            // 🧠 GEOPOLITICAL ANALYSIS
+            // =========================
+            [
+                'name' => 'International Crisis Group',
+                'type' => 'rss',
+                'endpoint' => 'https://www.crisisgroup.org/rss/139',
+                'is_active' => true,
+                'poll_interval_minutes' => 120,
+            ],
+            [
+                'name' => 'The Diplomat',
                 'type' => 'rss',
                 'endpoint' => 'https://thediplomat.com/feed/',
                 'is_active' => true,
-                'poll_interval_minutes' => 40,
-            ],
-            [
-                'name' => 'ECFR',
-                'type' => 'rss',
-                'endpoint' => 'https://ecfr.eu/feed/',
-                'is_active' => true,
-                'poll_interval_minutes' => 50,
-            ],
-
-            // === MEDIO ORIENTE e AFRICA ===
-            [
-                'name' => 'Crisis Group - Middle East & North Africa',
-                'type' => 'rss',
-                'endpoint' => 'https://www.crisisgroup.org/rss/81',
-                'is_active' => true,
-                'poll_interval_minutes' => 60,
-            ],
-            [
-                'name' => 'Crisis Group - Africa',
-                'type' => 'rss',
-                'endpoint' => 'https://www.crisisgroup.org/rss/1',
-                'is_active' => true,
-                'poll_interval_minutes' => 60,
+                'poll_interval_minutes' => 90,
             ],
         ];
 

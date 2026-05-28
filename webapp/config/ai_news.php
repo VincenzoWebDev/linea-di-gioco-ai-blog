@@ -16,9 +16,9 @@ return [
     'schedule_every_minutes' => env('AI_NEWS_SCHEDULE_EVERY_MINUTES', 60),
     'max_items_per_source' => env('AI_NEWS_MAX_ITEMS_PER_SOURCE', 10),
     'workflow' => [
-        'trigger_hours' => [7, 14, 21],
+        'trigger_hours' => [5, 9, 13, 17, 21],
         'daily_ai_image_budget' => env('AI_NEWS_DAILY_AI_IMAGE_BUDGET', 10),
-        'max_ai_images_per_session' => env('AI_NEWS_MAX_AI_IMAGES_PER_SESSION', 3),
+        'max_ai_images_per_session' => env('AI_NEWS_MAX_AI_IMAGES_PER_SESSION', 2),
     ],
     'deduplication' => [
         'enabled' => env('AI_NEWS_DEDUP_ENABLED', true),
@@ -96,8 +96,10 @@ return [
     ],
     'thermal_decay' => [
         'grace_hours' => env('AI_NEWS_THERMAL_DECAY_GRACE_HOURS', 24),
+        'model' => env('AI_NEWS_THERMAL_DECAY_MODEL', 'exponential'),
+        'decay_percent_per_day' => env('AI_NEWS_THERMAL_DECAY_PERCENT_PER_DAY', 10),
         'penalty_per_day' => env('AI_NEWS_THERMAL_DECAY_PENALTY_PER_DAY', 15),
-        // Dopo questo limite il silenzio radio non cresce e la tensione corrente è 0.
+        // Limita solo il contatore mostrato in UI; il modello esponenziale non forza la tensione a zero.
         'max_silence_hours' => env('AI_NEWS_THERMAL_DECAY_MAX_SILENCE_HOURS', 168),
     ],
     'ingest' => [

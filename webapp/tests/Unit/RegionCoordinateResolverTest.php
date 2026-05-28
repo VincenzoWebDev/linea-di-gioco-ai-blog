@@ -24,4 +24,16 @@ class RegionCoordinateResolverTest extends TestCase
         $this->assertSame(38.9072, $coordinates['lat']);
         $this->assertSame(-77.0369, $coordinates['long']);
     }
+
+    public function test_it_prefers_south_china_sea_when_context_is_more_specific_than_china(): void
+    {
+        $resolver = app(RegionCoordinateResolver::class);
+
+        $label = $resolver->canonicalRegionName(
+            'Cina',
+            'Pechino contesta le nuove manovre nel Mar Cinese Meridionale e rafforza la presenza navale nell area.'
+        );
+
+        $this->assertSame('Mar Cinese Meridionale', $label);
+    }
 }
