@@ -29,7 +29,10 @@ export function buildHomeSeo(canonicalUrl) {
                 "@type": "Organization",
                 name: organizationName,
                 url: canonicalUrl,
-                logo: `${canonicalUrl.replace(/\/$/, "")}/favicon.ico`,
+                logo: {
+                    "@type": "ImageObject",
+                    "url": `${canonicalUrl.replace(/\/$/, "")}/images/logo-schema.png`,
+                }
             },
             {
                 "@context": "https://schema.org",

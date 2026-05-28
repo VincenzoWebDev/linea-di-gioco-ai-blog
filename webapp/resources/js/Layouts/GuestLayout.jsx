@@ -1,5 +1,5 @@
-import ApplicationLogo from '@/Components/ApplicationLogo';
-import { Link } from '@inertiajs/react';
+import ApplicationLogo from "@/Components/ApplicationLogo";
+import { Link } from "@inertiajs/react";
 import SeoHead from "@/Components/Seo/SeoHead";
 
 export default function Guest({ children }) {

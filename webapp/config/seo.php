@@ -15,7 +15,7 @@ return [
     'default_type' => 'website',
     'twitter_card' => 'summary_large_image',
     'twitter_site' => env('SEO_TWITTER_SITE'),
-    'default_image' => env('SEO_DEFAULT_IMAGE', '/images/seo-default.svg'),
+    'default_image' => env('SEO_DEFAULT_IMAGE', '/images/seo-default.webp'),
     'default_image_alt' => env(
         'SEO_DEFAULT_IMAGE_ALT',
         'Linea di gioco, analisi geopolitiche e dossier internazionali'
