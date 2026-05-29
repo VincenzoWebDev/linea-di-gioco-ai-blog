@@ -32,6 +32,17 @@ class LoginRequest extends FormRequest
         ];
     }
 
+    public function messages(): array
+    {
+        return [
+            'email.required' => 'Il campo email è obbligatorio.',
+            'email.string' => 'Il campo email deve essere una stringa.',
+            'email.email' => 'Il campo email deve essere un indirizzo email valido.',
+            'password.required' => 'Il campo password è obbligatorio.',
+            'password.string' => 'Il campo password deve essere una stringa.',
+        ];
+    }
+
     /**
      * Attempt to authenticate the request's credentials.
      *
@@ -80,6 +91,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        return Str::transliterate(Str::lower($this->string('email')) . '|' . $this->ip());
     }
 }

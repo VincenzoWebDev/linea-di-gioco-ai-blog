@@ -23,8 +23,8 @@ class PostController extends Controller
         $publication = trim((string) $request->query('publication', ''));
         $categoryIdsInput = trim((string) $request->query('category_ids', ''));
         $categoryIds = collect(explode(',', $categoryIdsInput))
-            ->map(fn ($id) => (int) trim($id))
-            ->filter(fn ($id) => $id > 0)
+            ->map(fn($id) => (int) trim($id))
+            ->filter(fn($id) => $id > 0)
             ->values()
             ->all();
 
@@ -56,15 +56,15 @@ class PostController extends Controller
                     });
                 });
             })
-            ->when($status !== '', fn ($query) => $query->where('status', $status))
-            ->when($createdBy !== '', fn ($query) => $query->where('created_by', $createdBy))
+            ->when($status !== '', fn($query) => $query->where('status', $status))
+            ->when($createdBy !== '', fn($query) => $query->where('created_by', $createdBy))
             ->when($categoryIds !== [], function ($query) use ($categoryIds) {
                 $query->whereHas('categories', function ($q) use ($categoryIds) {
                     $q->whereIn('categories.id', $categoryIds);
                 });
             })
-            ->when($publication === 'published', fn ($query) => $query->whereNotNull('published_at'))
-            ->when($publication === 'unpublished', fn ($query) => $query->whereNull('published_at'))
+            ->when($publication === 'published', fn($query) => $query->whereNotNull('published_at'))
+            ->when($publication === 'unpublished', fn($query) => $query->whereNull('published_at'))
             ->with('categories:id,name,slug')
             ->orderBy($sort, $direction)
             ->orderBy('id', 'desc')
@@ -114,9 +114,10 @@ class PostController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $this->authorize('create', Article::class);
         $categoryIds = collect((array) $request->input('category_ids', []))
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0)
+            ->map(fn($id) => (int) $id)
+            ->filter(fn($id) => $id > 0)
             ->values()
             ->all();
         $request->merge(['category_ids' => $categoryIds]);
@@ -165,9 +166,10 @@ class PostController extends Controller
 
     public function update(Request $request, Article $post): RedirectResponse
     {
+        $this->authorize('update', $post);
         $categoryIds = collect((array) $request->input('category_ids', []))
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0)
+            ->map(fn($id) => (int) $id)
+            ->filter(fn($id) => $id > 0)
             ->values()
             ->all();
         $request->merge(['category_ids' => $categoryIds]);
@@ -205,6 +207,7 @@ class PostController extends Controller
 
     public function destroy(Article $post): RedirectResponse
     {
+        $this->authorize('delete', $post);
         if ($post->cover_path) {
             Storage::disk('public')->delete($post->cover_path);
         }
