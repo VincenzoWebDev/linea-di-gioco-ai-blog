@@ -5,7 +5,7 @@ import { Link } from "@inertiajs/react";
 export default function About() {
     const canonicalUrl = route("about");
     const description =
-        "Linea di Gioco è un blog di informazione geopolitica dedicato ad analisi, tensioni internazionali e principali sviluppi globali.";
+        "Linea di Gioco è un progetto editoriale dedicato all’analisi geopolitica globale, con focus su sicurezza internazionale, energia e intelligence open source.";
 
     return (
         <>
@@ -29,22 +29,30 @@ export default function About() {
 
                     <p className="mt-4 text-sm leading-relaxed text-zinc-300">
                         Linea di Gioco è un progetto editoriale indipendente
-                        dedicato all’informazione geopolitica e agli equilibri
-                        internazionali.
+                        dedicato all’analisi della geopolitica globale. Il suo
+                        obiettivo è offrire una lettura chiara e strutturata
+                        degli eventi internazionali che influenzano gli
+                        equilibri tra Stati e regioni del mondo.
                     </p>
 
                     <p className="mt-4 text-sm leading-relaxed text-zinc-300">
-                        Il blog pubblica notizie, analisi e aggiornamenti sui
-                        principali eventi globali, con particolare attenzione a
-                        conflitti, diplomazia, sicurezza internazionale,
-                        tensioni regionali ed evoluzioni strategiche tra Stati.
+                        Il sistema editoriale combina automazione nella raccolta
+                        e rielaborazione delle notizie con una supervisione
+                        umana che verifica coerenza, rilevanza e qualità dei
+                        contenuti prima della pubblicazione.
                     </p>
 
                     <p className="mt-4 text-sm leading-relaxed text-zinc-300">
-                        I contenuti vengono rielaborati a scopo informativo ed
-                        editoriale utilizzando fonti pubbliche e internazionali,
-                        mantenendo uno stile sintetico, accessibile e orientato
-                        alla comprensione dei fatti.
+                        Il focus del progetto riguarda geopolitica, sicurezza
+                        internazionale, dinamiche energetiche e intelligence
+                        open source (OSINT), con particolare attenzione ai
+                        contesti di crisi e alle evoluzioni strategiche globali.
+                    </p>
+
+                    <p className="mt-4 text-sm leading-relaxed text-zinc-300">
+                        Lo stile editoriale è pensato per essere informativo e
+                        accessibile, evitando tecnicismi e mantenendo un taglio
+                        giornalistico chiaro e diretto.
                     </p>
 
                     <div className="mt-10 flex gap-4 text-xs text-zinc-400">
