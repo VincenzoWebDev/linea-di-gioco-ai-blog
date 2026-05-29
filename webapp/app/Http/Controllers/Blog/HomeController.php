@@ -95,6 +95,11 @@ class HomeController extends Controller
         return Inertia::render('Blog/Contact');
     }
 
+    public function about(): Response
+    {
+        return Inertia::render('Blog/About');
+    }
+
     private function toArticleCardData(Article $article, ?GeopoliticalTension $tension = null): array
     {
         $categoryNames = $article->categories->pluck('name')->values();

@@ -25,6 +25,16 @@ export default function BlogHeader() {
             href: route("blog.articles.index"),
             active: isArticlesActive,
         },
+        {
+            label: "Chi Siamo",
+            href: route("about"),
+            active: currentPath === "/chi-siamo",
+        },
+        {
+            label: "Contatti",
+            href: route("contact"),
+            active: currentPath === "/contatti",
+        },
     ];
 
     return (
