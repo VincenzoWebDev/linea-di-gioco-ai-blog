@@ -41,6 +41,8 @@ class CrewAiClient
                     'write_only_in_italian' => true,
                     'allowed_scope' => 'geopolitics, diplomacy, security, war, energy, elections, international institutions',
                     'blocked_scope' => 'sports, football, basketball, entertainment, gossip, lifestyle',
+                    'title_style_rule' => 'Titles must be sober, editorial and contextual. Include the relevant area, actor, or geopolitical dossier when supported. Avoid clickbait, sensationalism, rhetorical questions, and alarmist words.',
+                    'introduction_rule' => 'The first paragraph must explain the event context, why it matters, and its likely geopolitical impact before moving into details.',
                     'geopolitical_tension_region_rule' => 'Return the most specific stable geopolitical area supported by the article context. Avoid generic labels like "Area non specificata" when a country, sea, strait, border, or subregion can be inferred.',
                     'geopolitical_tension_risk_rule' => 'Risk score must be evidence-based and dynamic on a 1-100 scale. Use lower values for routine diplomacy, mid values for sanctions or force posture, and high values only for active escalation, strikes, mobilization, or severe crisis signals. Do not default to the same score across different stories.',
                 ],

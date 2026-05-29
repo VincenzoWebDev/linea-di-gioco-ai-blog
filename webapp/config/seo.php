@@ -8,7 +8,7 @@ return [
     ),
     'default_description' => env(
         'SEO_DEFAULT_DESCRIPTION',
-        'Linea di gioco pubblica analisi geopolitiche, dossier internazionali e briefing AI su crisi, sicurezza, energia e scenari globali.'
+        'Linea di gioco pubblica analisi geopolitiche, dossier internazionali e report strategici su crisi, sicurezza, energia e scenari globali.'
     ),
     'default_author' => env('SEO_DEFAULT_AUTHOR', 'Linea di gioco'),
     'default_locale' => 'it_IT',
@@ -21,4 +21,6 @@ return [
         'Linea di gioco, analisi geopolitiche e dossier internazionali'
     ),
     'organization_name' => env('SEO_ORGANIZATION_NAME', 'Linea di gioco'),
+    'news_sitemap_language' => env('SEO_NEWS_SITEMAP_LANGUAGE', 'it'),
+    'news_sitemap_window_hours' => env('SEO_NEWS_SITEMAP_WINDOW_HOURS', 48),
 ];

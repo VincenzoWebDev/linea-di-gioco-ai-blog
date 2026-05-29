@@ -5,8 +5,7 @@ import OperationIntelligenceCard from "@/Components/blog/home/OperationIntellige
 function EmptyState() {
     return (
         <div className="border border-dashed border-[#2A354D] bg-[#101620] p-8 text-[#9CA3AF]">
-            La sala operativa si popolerà automaticamente con le prime analisi
-            pubblicate.
+            La sala operativa resta pronta per le prime analisi pubblicate.
         </div>
     );
 }

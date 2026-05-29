@@ -144,6 +144,7 @@ class ArticleController extends Controller
             : null;
         $futureScenarios = $articleInsightService->normalizeStoredFutureScenarios($article->future_scenarios);
         $related = $this->buildRelatedArticles($article, $tension);
+        $internalLinks = $this->buildInternalLinkGroups($article, $tension);
 
         return Inertia::render('Blog/Articles/Show', [
             'article' => [
@@ -180,6 +181,7 @@ class ArticleController extends Controller
                 ] : null,
             ],
             'related' => $related,
+            'internalLinks' => $internalLinks,
             'glossary' => $this->resolveGlossary($article),
             'riskThresholds' => [
                 'severityHigh' => (int) config('ai_news.risk.severity_high', 80),
@@ -269,6 +271,122 @@ class ArticleController extends Controller
             })
             ->values()
             ->all();
+    }
+
+    /**
+     * @return array<string, array<int, array<string, mixed>>>
+     */
+    private function buildInternalLinkGroups(Article $article, ?GeopoliticalTension $tension): array
+    {
+        $currentCategoryNames = $article->categories
+            ->pluck('name')
+            ->map(fn ($value) => mb_strtolower((string) $value))
+            ->values();
+        $currentRegion = mb_strtolower(trim((string) $tension?->region_name));
+
+        $tensionsByArticleId = GeopoliticalTension::query()
+            ->whereNotNull('featured_article_id')
+            ->get(['featured_article_id', 'region_name'])
+            ->keyBy('featured_article_id');
+
+        $candidates = Article::query()
+            ->where('status', 'published')
+            ->where('id', '!=', $article->id)
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now())
+            ->with('categories:id,name')
+            ->latest('published_at')
+            ->limit(60)
+            ->get(['id', 'title', 'slug', 'summary', 'content', 'published_at'])
+            ->map(function (Article $candidate) use ($currentCategoryNames, $currentRegion, $tensionsByArticleId) {
+                $categoryNames = $candidate->categories->pluck('name')->values();
+                $candidateRegion = trim((string) ($tensionsByArticleId->get($candidate->id)?->region_name ?? ''));
+                $candidateRegionKey = mb_strtolower($candidateRegion);
+                $candidateText = implode(' ', array_filter([
+                    $candidate->title,
+                    $candidate->summary,
+                    Str::limit(strip_tags((string) $candidate->content), 900, ''),
+                ]));
+                $sharedCategories = $categoryNames
+                    ->map(fn ($value) => mb_strtolower((string) $value))
+                    ->filter(fn ($value) => $currentCategoryNames->contains($value))
+                    ->values();
+
+                return [
+                    'id' => $candidate->id,
+                    'title' => $candidate->title,
+                    'slug' => $candidate->slug,
+                    'summary' => Str::limit((string) $candidate->summary, 130),
+                    'published_at' => optional($candidate->published_at)->toISOString(),
+                    'region_name' => $candidateRegion !== '' ? $candidateRegion : null,
+                    'topic' => $categoryNames->first() ?: null,
+                    '_same_region' => $this->matchesRegion($currentRegion, $candidateRegionKey, $candidateText),
+                    '_shared_categories' => $sharedCategories->all(),
+                ];
+            });
+
+        $sameArea = $candidates
+            ->filter(fn (array $item) => $item['_same_region'])
+            ->take(3)
+            ->map(fn (array $item) => $this->cleanInternalLinkItem($item, 'Stessa area geopolitica'))
+            ->values()
+            ->all();
+
+        $sameCategory = $candidates
+            ->filter(fn (array $item) => $item['_shared_categories'] !== [])
+            ->take(3)
+            ->map(fn (array $item) => $this->cleanInternalLinkItem(
+                $item,
+                'Categoria: '.Str::title((string) $item['_shared_categories'][0])
+            ))
+            ->values()
+            ->all();
+
+        $previousEvents = $candidates
+            ->filter(fn (array $item) => $item['_same_region'])
+            ->filter(fn (array $item) => $article->published_at === null || ($item['published_at'] ?? null) < $article->published_at->toISOString())
+            ->take(3)
+            ->map(fn (array $item) => $this->cleanInternalLinkItem($item, 'Evento precedente'))
+            ->values()
+            ->all();
+
+        return [
+            'area' => $sameArea,
+            'categories' => $sameCategory,
+            'previous' => $previousEvents,
+        ];
+    }
+
+    private function matchesRegion(string $currentRegion, string $candidateRegion, string $candidateText): bool
+    {
+        if ($currentRegion === '') {
+            return false;
+        }
+
+        if ($candidateRegion !== '' && $currentRegion === $candidateRegion) {
+            return true;
+        }
+
+        $text = Str::lower($candidateText);
+        $regionTokens = collect(preg_split('/[^\pL\pN]+/u', $currentRegion) ?: [])
+            ->map(fn ($value) => trim((string) $value))
+            ->filter(fn ($value) => mb_strlen($value) >= 4)
+            ->values();
+
+        return $regionTokens->contains(fn ($token) => str_contains($text, $token));
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     * @return array<string, mixed>
+     */
+    private function cleanInternalLinkItem(array $item, string $reason): array
+    {
+        unset($item['_same_region'], $item['_shared_categories']);
+
+        $item['match_reason'] = $reason;
+
+        return $item;
     }
 
     /**

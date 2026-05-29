@@ -24,7 +24,10 @@ Route::get('/newsletter', [HomeController::class, 'newsletter'])->name('newslett
 Route::get('/contatti', [HomeController::class, 'contact'])->name('contact');
 Route::get('/chi-siamo', [HomeController::class, 'about'])->name('about');
 Route::get('/robots.txt', RobotsController::class)->name('robots');
-Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+Route::get('/sitemap-pages.xml', [SitemapController::class, 'pages'])->name('sitemap.pages');
+Route::get('/sitemap-posts.xml', [SitemapController::class, 'posts'])->name('sitemap.posts');
+Route::get('/news-sitemap.xml', [SitemapController::class, 'news'])->name('sitemap.news');
 Route::get('/privacy-policy', function () {
     return inertia('Legal/PrivacyPolicy');
 })->name('privacy-policy');

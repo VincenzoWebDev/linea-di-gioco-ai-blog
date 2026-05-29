@@ -1,5 +1,5 @@
 const HOME_DESCRIPTION =
-    "Analisi geopolitiche, dossier internazionali e briefing AI su crisi, sicurezza, energia e hotspot globali monitorati in tempo reale.";
+    "Analisi geopolitiche, dossier internazionali e report strategici su crisi, sicurezza, energia e hotspot globali monitorati in tempo reale.";
 
 export function buildHomeSeo(canonicalUrl) {
     const organizationName = "Linea di gioco";

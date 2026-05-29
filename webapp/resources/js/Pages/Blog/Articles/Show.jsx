@@ -30,6 +30,7 @@ function buildMetaDescription(article) {
 export default function ArticlesShow({
     article,
     related = [],
+    internalLinks = {},
     glossary = {},
     riskThresholds = {},
     newsArticleSchema = null,
@@ -104,7 +105,10 @@ export default function ArticlesShow({
                     </div>
                 </article>
 
-                <ArticleShowRelatedSection related={related} />
+                <ArticleShowRelatedSection
+                    related={related}
+                    internalLinks={internalLinks}
+                />
             </BlogLayout>
         </>
     );

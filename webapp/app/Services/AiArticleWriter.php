@@ -32,12 +32,12 @@ class AiArticleWriter
         $sourceContent = trim((string) ($payload['source_content'] ?? ''));
         $sourceUrl = trim((string) ($payload['source_url'] ?? $payload['url'] ?? ''));
 
-        $systemPrompt = 'Sei l\'editor di un blog di geopolitica. Scrivi solo in italiano, con tono giornalistico chiaro, senza copiare la fonte e senza uscire dal perimetro geopolitico-internazionale.';
+        $systemPrompt = 'Sei l\'editor di un blog di geopolitica. Scrivi solo in italiano, con tono giornalistico sobrio, analitico e contestuale, senza copiare la fonte e senza uscire dal perimetro geopolitico-internazionale.';
         $userPrompt = <<<PROMPT
 Genera un articolo in JSON con chiavi:
-- title (max 120 chars)
+- title (max 105 chars)
 - summary (max 240 chars, frase completa che termina con un punto)
-- content (500-1500 chars, in italiano, con struttura fluida)
+- content (800-1800 chars, in italiano, con struttura fluida)
 - topic (1-3 parole, es: geopolitica, diplomazia, sicurezza, energia)
 - categories (array di 1-3 categorie in italiano coerenti con il contenuto)
 - future_scenarios (array di 2 frasi brevi, ciascuna chiusa da un punto)
@@ -46,7 +46,11 @@ Regole:
 - Mantieni i fatti principali della notizia.
 - Testo originale e personalizzato, no traduzione letterale.
 - Tutto l'output deve essere in italiano corretto.
+- Il titolo deve essere editoriale, sobrio e contestuale: cita area geografica, attore o dossier quando rilevante.
+- Evita titoli sensazionalistici, clickbait o allarmistici. Non usare formule come "shock", "caos", "allarme", "svolta clamorosa", "cosa succede ora" o punti interrogativi retorici.
 - Il summary deve essere un sottotitolo completo, non spezzato, e deve finire con il punto.
+- Il primo paragrafo del content deve funzionare da introduzione e includere sempre: contesto dell'evento, perché è rilevante e possibile impatto geopolitico.
+- L'articolo deve spiegare nessi con equilibri regionali, interessi strategici, sicurezza, diplomazia, energia, istituzioni o competizione tra potenze quando pertinenti.
 - L'articolo deve essere coerente con geopolitica, relazioni internazionali, sicurezza, diplomazia, guerra, energia, elezioni, istituzioni internazionali.
 - Se la notizia riguarda sport, gossip, intrattenimento, lifestyle o temi fuori scope, restituisci JSON con title, summary, content vuoti e topic "scarto".
 - Se manca un dato, non inventarlo.

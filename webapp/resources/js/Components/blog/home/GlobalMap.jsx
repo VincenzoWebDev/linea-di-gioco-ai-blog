@@ -41,7 +41,7 @@ export default function GlobalMap({ operations }) {
                         </div>
                         <div className="flex items-center gap-3 border border-[#2A354D] bg-[#101620]/90 px-4 py-3 font-mono text-xs uppercase tracking-[0.18em] text-[#AAB3C2]">
                             <Satellite className="h-4 w-4 text-[#D7B56D]" />
-                            Monitoraggio AI attivo
+                            Monitoraggio geopolitico attivo
                         </div>
                     </div>
 
