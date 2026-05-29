@@ -45,6 +45,8 @@ class HomeController extends Controller
                 'risk_score',
                 'trend_direction',
                 'region_name',
+                'last_event_at',
+                'last_decay_at',
                 'updated_at',
             ])
             ->keyBy('featured_article_id');
@@ -156,6 +158,8 @@ class HomeController extends Controller
                 'risk_score',
                 'trend_direction',
                 'status_label',
+                'last_event_at',
+                'last_decay_at',
                 'updated_at',
             ])
             ->map(function (GeopoliticalTension $tension) {

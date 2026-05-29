@@ -10,6 +10,9 @@ class RiskScoreCalibrationService
         'missile', 'missili', 'mobilitazione militare', 'mobilitazione di truppe',
         'casualt', 'vittime', 'massacro', 'genocidio', 'armi nucleari', 'nucleare',
         'attacco militare', 'offensiva militare', 'caduti', 'uccisi in combattimento',
+        'attacca', 'attaccato', 'colpisce', 'base usa', 'base statunitense',
+        'base americana', 'forze statunitensi', 'us base', 'american base',
+        'strike', 'strikes', 'missile strike', 'air strike',
     ];
 
     /** @var list<string> */
@@ -19,6 +22,8 @@ class RiskScoreCalibrationService
         'cessate il fuoco violato', 'violazione del cessate il fuoco', 'rottura diplomatica',
         'espulsione ambasciator', 'intercett', 'minaccia', 'attacco', 'offensiva',
         'conflitto', 'fronte', 'deterrenza', 'ultimatum', 'annessione',
+        'attacchi', 'base militare', 'military base', 'attack', 'attacks',
+        'retaliation', 'ritorsione',
     ];
 
     /** @var list<string> */
@@ -39,6 +44,7 @@ class RiskScoreCalibrationService
         'sicurezza', 'difesa', 'confine', 'confini', 'militare', 'diplomatic', 'negoziati',
         'colloqui', 'ceasefire', 'cessate il fuoco', 'sanzioni', 'embargo', 'nato', 'onu',
         'missile', 'drone', 'truppe', 'raid', 'deterrenza', 'conflitto',
+        'base usa', 'base statunitense', 'forze statunitensi', 'us base',
     ];
 
     public function calibrate(int $rawScore, string $context, string $statusLabel = '', string $trendDirection = 'stable'): int

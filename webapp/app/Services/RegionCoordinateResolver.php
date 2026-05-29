@@ -74,6 +74,10 @@ class RegionCoordinateResolver
                 : null;
         }
 
+        $regionMatch = $regionName !== ''
+            ? $this->matchHaystack($this->normalize($regionName))
+            : null;
+
         $haystack = $this->normalize(trim($regionName.' '.$context));
 
         if ($this->isGenericRegion($haystack)) {
@@ -82,7 +86,28 @@ class RegionCoordinateResolver
                 : null;
         }
 
-        return $this->matchHaystack($haystack);
+        $haystackMatch = $this->matchHaystack($haystack);
+
+        if (
+            $regionMatch !== null
+            && $haystackMatch !== null
+            && ($haystackMatch['label'] ?? '') === 'Stati Uniti'
+            && ($regionMatch['label'] ?? '') !== 'Stati Uniti'
+            && $this->mentionsUnitedStatesBaseOrForces($haystack)
+        ) {
+            return $regionMatch;
+        }
+
+        if (
+            $regionMatch !== null
+            && $haystackMatch !== null
+            && ($haystackMatch['label'] ?? '') !== ($regionMatch['label'] ?? '')
+            && mb_strlen((string) ($haystackMatch['label'] ?? '')) <= mb_strlen((string) ($regionMatch['label'] ?? ''))
+        ) {
+            return $regionMatch;
+        }
+
+        return $haystackMatch ?? $regionMatch;
     }
 
     /**
@@ -165,6 +190,16 @@ class RegionCoordinateResolver
         $pattern = '/(?:^|\s)'.preg_quote($alias, '/').'(?:\s|$)/u';
 
         return preg_match($pattern, $haystack) === 1;
+    }
+
+    private function mentionsUnitedStatesBaseOrForces(string $haystack): bool
+    {
+        return str_contains($haystack, 'base usa')
+            || str_contains($haystack, 'base statunitense')
+            || str_contains($haystack, 'base americana')
+            || str_contains($haystack, 'forze statunitensi')
+            || str_contains($haystack, 'us base')
+            || str_contains($haystack, 'american base');
     }
 
     /**

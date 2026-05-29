@@ -44,6 +44,8 @@ class ArticleController extends Controller
                 'risk_score',
                 'trend_direction',
                 'region_name',
+                'last_event_at',
+                'last_decay_at',
                 'updated_at',
             ])
             ->keyBy('featured_article_id');
@@ -136,7 +138,7 @@ class ArticleController extends Controller
 
         $tension = GeopoliticalTension::query()
             ->where('featured_article_id', $article->id)
-            ->first(['region_name', 'risk_score', 'trend_direction', 'status_label', 'updated_at']);
+            ->first(['region_name', 'risk_score', 'trend_direction', 'status_label', 'last_event_at', 'last_decay_at', 'updated_at']);
         $decay = $tension ? $geopoliticalTensionService->decaySnapshot($tension) : null;
         $trendDirection = $tension ? $geopoliticalTensionService->resolveTrendDirection($tension) : 'stable';
         $resolvedRegionName = $tension

@@ -231,6 +231,59 @@ class GeopoliticalTensionServiceTest extends TestCase
         ]);
     }
 
+    public function test_it_does_not_keep_a_decayed_area_at_zero_when_clear_attack_signals_arrive_with_falling_agent_trend(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-29 09:00:00'));
+
+        GeopoliticalTension::query()->create([
+            'region_name' => 'Iran',
+            'risk_score' => 0,
+            'trend_direction' => 'falling',
+            'status_label' => 'Silenzio operativo',
+            'last_event_at' => Carbon::parse('2026-05-20 09:00:00'),
+            'last_decay_at' => Carbon::parse('2026-05-28 15:00:00'),
+        ]);
+
+        $article = Article::query()->create([
+            'title' => 'Iran attacca una base USA in Iraq',
+            'slug' => 'iran-attacca-base-usa-iraq',
+            'summary' => 'Missili e droni colpiscono una base statunitense nella regione.',
+            'content' => 'Fonti di sicurezza parlano di un attacco contro forze statunitensi e di possibile ritorsione militare.',
+            'status' => 'published',
+            'publication_status' => 'published',
+            'created_by' => 'ai',
+            'source_url' => 'https://example.com/iran-base-usa',
+            'source_name' => 'test',
+            'ai_generated' => true,
+            'quality_score' => 90,
+        ]);
+
+        $service = new GeopoliticalTensionService(
+            new RegionCoordinateResolver(),
+            new RiskScoreCalibrationService(),
+            new GeopoliticalEventWeightService(),
+        );
+
+        $service->upsertFromAgentOutput([
+            'geopolitical_tension' => [
+                'region_name' => 'Iran',
+                'risk_score' => 1,
+                'trend_direction' => 'falling',
+                'status_label' => 'Attacco contro forze statunitensi',
+            ],
+        ], $article);
+
+        $this->assertDatabaseHas('geopolitical_tensions', [
+            'region_name' => 'Iran',
+            'risk_score' => 40,
+            'trend_direction' => 'rising',
+            'status_label' => 'Attacco contro forze statunitensi',
+            'featured_article_id' => $article->id,
+        ]);
+
+        Carbon::setTestNow();
+    }
+
     public function test_it_assigns_more_elastic_scores_to_low_agent_outputs_with_different_medium_signal_strength(): void
     {
         $service = new GeopoliticalTensionService(
