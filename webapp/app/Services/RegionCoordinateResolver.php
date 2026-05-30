@@ -69,6 +69,15 @@ class RegionCoordinateResolver
         }
 
         if ($regionName !== '' && $this->isGenericRegion($this->normalize($regionName))) {
+            $hints = $this->extractGeopoliticalHints($this->normalize($regionName . ' ' . $context));
+
+            foreach ($hints as $hint) {
+                $match = $this->matchHaystack($this->normalize($hint));
+                if ($match !== null) {
+                    return $match;
+                }
+            }
+
             return $context !== ''
                 ? $this->matchHaystack($this->normalize($context))
                 : null;
@@ -78,12 +87,31 @@ class RegionCoordinateResolver
             ? $this->matchHaystack($this->normalize($regionName))
             : null;
 
-        $haystack = $this->normalize(trim($regionName.' '.$context));
+        $haystack = $this->normalize(trim($regionName . ' ' . $context));
+        $hints = $this->extractGeopoliticalHints($haystack);
 
-        if ($this->isGenericRegion($haystack)) {
-            return $context !== ''
-                ? $this->matchHaystack($this->normalize($context))
-                : null;
+        if (!empty($hints)) {
+            $haystack .= ' ' . implode(' ', $hints);
+        }
+
+        /**
+         * 🔥 NUOVO: estrazione intelligente dei luoghi dal testo
+         */
+        $hints = $this->extractGeopoliticalHints($haystack);
+
+        foreach ($hints as $hint) {
+            $match = $this->matchHaystack($this->normalize($hint));
+
+            if ($match !== null) {
+                return $match;
+            }
+        }
+
+        /**
+         * fallback vecchio (solo se tutto fallisce)
+         */
+        if ($this->isGenericRegion($haystack) && $context !== '') {
+            return $this->matchHaystack($this->normalize($context));
         }
 
         $haystackMatch = $this->matchHaystack($haystack);
@@ -187,7 +215,7 @@ class RegionCoordinateResolver
             return false;
         }
 
-        $pattern = '/(?:^|\s)'.preg_quote($alias, '/').'(?:\s|$)/u';
+        $pattern = '/(?:^|\s)' . preg_quote($alias, '/') . '(?:\s|$)/u';
 
         return preg_match($pattern, $haystack) === 1;
     }
@@ -242,5 +270,91 @@ class RegionCoordinateResolver
             ->value();
 
         return preg_replace('/\s+/', ' ', $normalized) ?? $normalized;
+    }
+
+    private function extractGeopoliticalHints(string $text): array
+    {
+        $keywords = [
+            // super potenze
+            'usa',
+            'u.s.',
+            'u.s.a',
+            'united states',
+            'stati uniti',
+            'russia',
+            'russian',
+            'ukraine',
+            'ukrainian',
+            'china',
+            'chinese',
+
+            // medio oriente
+            'iran',
+            'iraq',
+            'israel',
+            'palestine',
+            'gaza',
+            'west bank',
+            'syria',
+            'lebanon',
+            'yemen',
+
+            // asia
+            'taiwan',
+            'north korea',
+            'south korea',
+            'japan',
+
+            // europa
+            'nato',
+            'eu',
+            'european union',
+
+            // africa
+            'africa',
+            'sudan',
+            'ethiopia',
+
+            // geografie strategiche
+            'red sea',
+            'strait',
+            'straits',
+            'mediterranean',
+            'persian gulf',
+            'arabian sea',
+
+            // militare (importantissimo per il tuo problema)
+            'base militare',
+            'military base',
+            'us base',
+            'american base',
+            'forze statunitensi',
+            'forces',
+            'troops',
+            'soldiers',
+            'missile',
+            'airstrike',
+            'strike',
+            'raid',
+            'drone',
+
+            // politica / escalation
+            'sanctions',
+            'sanzioni',
+            'tensions',
+            'escalation',
+            'war',
+            'guerra',
+        ];
+
+        $found = [];
+
+        foreach ($keywords as $k) {
+            if (str_contains($text, $this->normalize($k))) {
+                $found[] = $k;
+            }
+        }
+
+        return array_values(array_unique($found));
     }
 }

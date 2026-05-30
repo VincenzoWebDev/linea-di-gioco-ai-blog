@@ -6,45 +6,121 @@ class RiskScoreCalibrationService
 {
     /** @var list<string> */
     private const HIGH_SIGNALS = [
-        'guerra', 'invasione', 'invaso', 'bombardamento', 'bombardamenti', 'raid aereo',
-        'missile', 'missili', 'mobilitazione militare', 'mobilitazione di truppe',
-        'casualt', 'vittime', 'massacro', 'genocidio', 'armi nucleari', 'nucleare',
-        'attacco militare', 'offensiva militare', 'caduti', 'uccisi in combattimento',
-        'attacca', 'attaccato', 'colpisce', 'base usa', 'base statunitense',
-        'base americana', 'forze statunitensi', 'us base', 'american base',
-        'strike', 'strikes', 'missile strike', 'air strike',
+        'guerra',
+        'invasione',
+        'invaso',
+        'bombardamento',
+        'bombardamenti',
+        'raid aereo',
+        'missile',
+        'missili',
+        'mobilitazione militare',
+        'mobilitazione di truppe',
+        'casualt',
+        'vittime',
+        'massacro',
+        'genocidio',
+        'armi nucleari',
+        'nucleare',
+        'attacco militare',
+        'offensiva militare',
+        'caduti',
+        'uccisi in combattimento',
+        'base usa',
+        'base statunitense',
+        'base americana',
+        'forze statunitensi',
+        'us base',
+        'american base',
+        'missile strike',
+        'air strike',
     ];
 
     /** @var list<string> */
     private const MEDIUM_SIGNALS = [
-        'sanzioni', 'embargo', 'blocco navale', 'escalation',
-        'truppe', 'dispiegamento', 'drone', 'artiglieria', 'raid',
-        'cessate il fuoco violato', 'violazione del cessate il fuoco', 'rottura diplomatica',
-        'espulsione ambasciator', 'intercett', 'minaccia', 'attacco', 'offensiva',
-        'conflitto', 'fronte', 'deterrenza', 'ultimatum', 'annessione',
-        'attacchi', 'base militare', 'military base', 'attack', 'attacks',
-        'retaliation', 'ritorsione',
+        'sanzioni',
+        'embargo',
+        'blocco navale',
+        'escalation',
+        'truppe',
+        'dispiegamento',
+        'drone',
+        'artiglieria',
+        'raid',
+        'cessate il fuoco violato',
+        'violazione del cessate il fuoco',
+        'rottura diplomatica',
+        'espulsione ambasciator',
+        'intercett',
+        'minaccia',
+        'offensiva',
+        'conflitto',
+        'fronte',
+        'deterrenza',
+        'ultimatum',
+        'annessione',
+        'base militare',
+        'military base',
+        'retaliation',
+        'ritorsione',
     ];
 
     /** @var list<string> */
     private const ROUTINE_SIGNALS = [
-        'vertice', 'summit', 'incontro bilaterale', 'talks', 'trattativa',
-        'accordo commerciale', 'nomina', 'elezioni locali', 'dichiarazione congiunta',
-        'comunicato stampa', 'monitoraggio', 'relazione annuale',
+        'vertice',
+        'summit',
+        'incontro bilaterale',
+        'talks',
+        'trattativa',
+        'accordo commerciale',
+        'nomina',
+        'elezioni locali',
+        'dichiarazione congiunta',
+        'comunicato stampa',
+        'monitoraggio',
+        'relazione annuale',
     ];
 
     /** @var list<string> */
     private const SPECULATIVE_SIGNALS = [
-        'potrebbe', 'rischia di', 'temuto', 'timori', 'scenario', 'ipotesi',
-        'secondo fonti', 'non confermato', 'voci di corridoio', 'specul',
+        'potrebbe',
+        'rischia di',
+        'temuto',
+        'timori',
+        'scenario',
+        'ipotesi',
+        'secondo fonti',
+        'non confermato',
+        'voci di corridoio',
+        'specul',
     ];
 
     /** @var list<string> */
     private const GENERAL_GEO_SIGNALS = [
-        'sicurezza', 'difesa', 'confine', 'confini', 'militare', 'diplomatic', 'negoziati',
-        'colloqui', 'ceasefire', 'cessate il fuoco', 'sanzioni', 'embargo', 'nato', 'onu',
-        'missile', 'drone', 'truppe', 'raid', 'deterrenza', 'conflitto',
-        'base usa', 'base statunitense', 'forze statunitensi', 'us base',
+        'sicurezza',
+        'difesa',
+        'confine',
+        'confini',
+        'militare',
+        'diplomatic',
+        'negoziati',
+        'colloqui',
+        'ceasefire',
+        'cessate il fuoco',
+        'sanzioni',
+        'embargo',
+        'nato',
+        'onu',
+        'missile',
+        'drone',
+        'truppe',
+        'raid',
+        'deterrenza',
+        'conflitto',
+        'base usa',
+        'base statunitense',
+        'forze statunitensi',
+        'us base',
     ];
 
     public function calibrate(int $rawScore, string $context, string $statusLabel = '', string $trendDirection = 'stable'): int
@@ -79,7 +155,7 @@ class RiskScoreCalibrationService
         }
 
         if ($score < 35 && $highCount >= 2) {
-            $score = max($score, 55);
+            $score = max($score, 45);
         }
 
         if ($score <= 5) {
@@ -116,7 +192,7 @@ class RiskScoreCalibrationService
             }
         } elseif ($score < 20) {
             if ($highCount >= 1) {
-                $score = max($score, 50);
+                $score = max($score, 35);
             } elseif ($mediumCount >= 2) {
                 $score = max($score, 38);
             } elseif ($mediumCount >= 1 && ! $hasRoutineSignals) {

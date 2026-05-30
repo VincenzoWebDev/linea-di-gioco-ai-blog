@@ -19,18 +19,21 @@ class GeopoliticalEventWeightService
 
     /** @var list<string> */
     private const ESCALATION_SIGNALS = [
-        'attacca',
-        'attaccato',
-        'attacco',
-        'attacchi',
-        'colpisce',
+        'attacco militare',
+        'attacco missilistico',
+        'attacco aereo',
+        'bombardamento',
+        'bombardamenti',
+        'offensiva militare',
+        'invasione',
+        'incursione armata',
+        'raid aereo',
         'missile',
         'missili',
-        'raid',
-        'strike',
-        'strikes',
-        'attack',
-        'attacks',
+        'strike on',
+        'military strike',
+        'air strike',
+        'drone strike',
         'base usa',
         'base statunitense',
         'base americana',
@@ -47,7 +50,7 @@ class GeopoliticalEventWeightService
     public function delta(int $calibratedRiskScore, string $trendDirection, string $context, string $statusLabel = ''): int
     {
         $weight = $this->baseWeight($calibratedRiskScore);
-        $text = mb_strtolower(trim($context.' '.$statusLabel));
+        $text = mb_strtolower(trim($context . ' ' . $statusLabel));
         $statusText = mb_strtolower(trim($statusLabel));
         $trendDirection = strtolower(trim($trendDirection));
         $hasEscalationSignal = $this->hasEscalationSignal($text);
@@ -72,12 +75,12 @@ class GeopoliticalEventWeightService
         $score = max(0, min(100, $score));
 
         return match (true) {
-            $score >= 85 => 50,
-            $score >= 70 => 40,
-            $score >= 55 => 30,
-            $score >= 40 => 20,
-            $score >= 25 => 10,
-            default => 5,
+            $score >= 85 => 15,
+            $score >= 70 => 10,
+            $score >= 55 => 7,
+            $score >= 40 => 5,
+            $score >= 25 => 3,
+            default => 1,
         };
     }
 
@@ -116,13 +119,14 @@ class GeopoliticalEventWeightService
             return false;
         }
 
-        return str_contains($text, 'attacca')
-            || str_contains($text, 'attacco')
-            || str_contains($text, 'attacchi')
-            || str_contains($text, 'colpisce')
-            || str_contains($text, 'missile')
+        return str_contains($text, 'missile')
             || str_contains($text, 'missili')
-            || str_contains($text, 'strike')
-            || str_contains($text, 'attack');
+            || str_contains($text, 'attacco missilistico')
+            || str_contains($text, 'attacco militare')
+            || str_contains($text, 'raid aereo')
+            || str_contains($text, 'air strike')
+            || str_contains($text, 'military strike')
+            || str_contains($text, 'drone strike')
+            || str_contains($text, 'bombardamento');
     }
 }

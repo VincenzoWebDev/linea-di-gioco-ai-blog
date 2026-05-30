@@ -21,8 +21,7 @@ class GeopoliticalTensionService
         private readonly RegionCoordinateResolver $coordinateResolver,
         private readonly RiskScoreCalibrationService $riskScoreCalibration,
         private readonly GeopoliticalEventWeightService $eventWeightService
-    ) {
-    }
+    ) {}
 
     /**
      * @param array<string, mixed> $agentOutput
@@ -55,12 +54,19 @@ class GeopoliticalTensionService
         $rawRisk = $this->normalizeRiskScore($payload['risk_score'] ?? 0);
         $agentTrend = $this->normalizeTrendDirection($payload['trend_direction'] ?? 'stable');
         $calibratedRiskScore = $this->riskScoreCalibration->calibrate($rawRisk, $context, $statusLabel, $agentTrend);
-        $currentRiskScore = $existingTension
-            ? (int) $this->decaySnapshot($existingTension)['current_tension']
-            : 0;
+        $currentRiskScore = $existingTension?->risk_score ?? 0;
         $eventDelta = $this->eventWeightService->delta($calibratedRiskScore, $agentTrend, $context, $statusLabel);
+        $shouldTriggerEventTime = $eventDelta >= 3;
         $riskScore = max(0, min(100, $currentRiskScore + $eventDelta));
-        $trendDirection = $this->scoreTrendDirection($currentRiskScore, $riskScore, $agentTrend);
+        // $trendDirection = $this->scoreTrendDirection($currentRiskScore, $riskScore, $agentTrend);
+        $decayedRiskScore = $existingTension
+            ? (int) $this->decaySnapshot($existingTension)['current_tension']
+            : $currentRiskScore;
+        $trendDirection = $this->scoreTrendDirection(
+            $decayedRiskScore,
+            $riskScore,
+            $agentTrend
+        );
         $coordinates = $this->resolveCoordinates($regionName, $featuredArticle);
 
         $attributes = [
@@ -71,7 +77,10 @@ class GeopoliticalTensionService
             'trend_direction' => $trendDirection,
             'status_label' => Str::limit($statusLabel !== '' ? $statusLabel : 'Tensione geopolitica', 255, ''),
             'featured_article_id' => $featuredArticle?->id,
-            'last_event_at' => now(),
+            // 'last_event_at' => now(),
+            'last_event_at' => $shouldTriggerEventTime
+                ? now()
+                : ($existingTension->last_event_at ?? now()),
             'last_decay_at' => null,
             'updated_at' => now(),
             'latitude' => $coordinates['lat'] ?? null,
@@ -101,7 +110,7 @@ class GeopoliticalTensionService
         return collect(Cache::remember(
             self::HEADER_CACHE_KEY,
             now()->addMinutes(1),
-            fn () => $this->queryTopForHeader(5)->all()
+            fn() => $this->queryTopForHeader(5)->all()
         ));
     }
 
@@ -272,7 +281,7 @@ class GeopoliticalTensionService
                     'article_url' => $this->articleUrl($tension),
                 ];
             })
-            ->filter(fn (array $tension) => $tension['current_tension'] > 0)
+            ->filter(fn(array $tension) => $tension['current_tension'] > 0)
             ->sortBy([
                 ['current_tension', 'desc'],
                 ['region_name', 'asc'],
