@@ -18,6 +18,7 @@ class GeopoliticalTensionService
 
     public function __construct(
         private readonly RegionCoordinateResolver $coordinateResolver,
+        private readonly GeopoliticalAreaExtractionService $areaExtractionService,
         private readonly RiskScoreCalibrationService $riskScoreCalibration,
         private readonly GeopoliticalEventWeightService $eventWeightService
     ) {}
@@ -36,8 +37,14 @@ class GeopoliticalTensionService
             return null;
         }
 
-        $rawRegionName = trim((string) ($payload['region_name'] ?? ''));
-        $rawDisplayRegionName = trim((string) ($payload['display_region_name'] ?? $payload['region_display_name'] ?? ''));
+        $area = $this->areaExtractionService->extractFromArticle($featuredArticle, $payload);
+        $rawRegionName = trim((string) ($area['region_name'] ?? $payload['region_name'] ?? ''));
+        $rawDisplayRegionName = trim((string) (
+            $area['display_region_name']
+            ?? $payload['display_region_name']
+            ?? $payload['region_display_name']
+            ?? $rawRegionName
+        ));
         $context = $this->articleContext($featuredArticle);
         $regionName = $this->normalizeRegionName($rawRegionName, $featuredArticle);
         if ($regionName === '') {
@@ -51,7 +58,10 @@ class GeopoliticalTensionService
         );
         $regionKey = $this->buildRegionKey($regionName, $displayRegionName);
 
-        $coordinates = $this->resolveCoordinates($displayRegionName !== '' ? $displayRegionName : $regionName, $featuredArticle);
+        $coordinates = $this->resolveCoordinates(
+            trim(implode(' ', array_filter([$displayRegionName, $regionName]))),
+            $featuredArticle
+        );
         $existingTension = $this->findExistingTension($featuredArticle, $regionKey);
 
         $statusLabel = trim((string) ($payload['status_label'] ?? ''));
@@ -162,8 +172,24 @@ class GeopoliticalTensionService
             $context = $this->articleContext($article);
         }
 
-        if ($regionName !== '' && ! $this->coordinateResolver->isGenericRegionName($regionName)) {
-            return Str::limit($regionName, 255, '');
+        if ($regionName !== '') {
+            $configuredRegionName = $this->coordinateResolver->canonicalConfiguredRegionName($regionName);
+            if ($configuredRegionName !== null) {
+                $configuredRegionName = trim($configuredRegionName);
+                if ($configuredRegionName !== '' && ! $this->coordinateResolver->isGenericRegionName($configuredRegionName)) {
+                    return Str::limit($configuredRegionName, 255, '');
+                }
+            }
+        }
+
+        if ($context !== '') {
+            $contextRegionName = $this->coordinateResolver->canonicalRegionNameFromText($context);
+            if ($contextRegionName !== null) {
+                $contextRegionName = trim($contextRegionName);
+                if ($contextRegionName !== '' && ! $this->coordinateResolver->isGenericRegionName($contextRegionName)) {
+                    return Str::limit($contextRegionName, 255, '');
+                }
+            }
         }
 
         if ($context !== '') {
@@ -191,22 +217,22 @@ class GeopoliticalTensionService
             $context = $this->articleContext($article);
         }
 
-        if ($displayRegionName !== '' && ! $this->coordinateResolver->isGenericRegionName($displayRegionName)) {
-            return Str::limit($displayRegionName, 255, '');
+        if ($displayRegionName !== '') {
+            $configuredDisplayRegionName = $this->coordinateResolver->canonicalConfiguredRegionName($displayRegionName);
+            if ($configuredDisplayRegionName !== null) {
+                $configuredDisplayRegionName = trim($configuredDisplayRegionName);
+                if ($configuredDisplayRegionName !== '' && ! $this->coordinateResolver->isGenericRegionName($configuredDisplayRegionName)) {
+                    return Str::limit($configuredDisplayRegionName, 255, '');
+                }
+            }
+
+            if (! $this->coordinateResolver->isGenericRegionName($displayRegionName)) {
+                return Str::limit($displayRegionName, 255, '');
+            }
         }
 
         if ($baseRegionName !== '' && ! $this->coordinateResolver->isGenericRegionName($baseRegionName)) {
             return Str::limit($baseRegionName, 255, '');
-        }
-
-        if ($context !== '') {
-            $resolvedRegionName = $this->coordinateResolver->canonicalRegionName($baseRegionName, $context);
-            if ($resolvedRegionName !== null) {
-                $resolvedRegionName = trim($resolvedRegionName);
-                if ($resolvedRegionName !== '' && ! $this->coordinateResolver->isGenericRegionName($resolvedRegionName)) {
-                    return Str::limit($resolvedRegionName, 255, '');
-                }
-            }
         }
 
         return Str::limit((string) ($baseRegionName !== '' ? $baseRegionName : ''), 255, '');

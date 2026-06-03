@@ -34,6 +34,15 @@ class RegionCoordinateResolverTest extends TestCase
             'Pechino contesta le nuove manovre nel Mar Cinese Meridionale e rafforza la presenza navale nell area.'
         );
 
-        $this->assertSame('Mar Cinese Meridionale', $label);
+        $this->assertSame('Cina', $label);
+    }
+
+    public function test_it_uses_the_article_text_to_find_the_country(): void
+    {
+        $resolver = app(RegionCoordinateResolver::class);
+
+        $text = 'Le autorita iraniane a Teheran valutano una risposta diplomatica e rafforzano il controllo interno.';
+
+        $this->assertSame('Iran', $resolver->canonicalRegionNameFromText($text));
     }
 }

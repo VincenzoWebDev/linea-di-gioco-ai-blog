@@ -6,8 +6,6 @@ use Illuminate\Support\Str;
 
 class RegionCoordinateResolver
 {
-    private const GEO_CITY_INDEX_PATH = 'app/geo/geo_city_index.json';
-
     /**
      * @return array{lat: float, long: float}|null
      */
@@ -23,14 +21,31 @@ class RegionCoordinateResolver
 
     public function canonicalRegionName(string $regionName, string $context = ''): ?string
     {
-        $regionName = trim($regionName);
-        if ($regionName !== '' && ! $this->isGenericRegion($this->normalize($regionName))) {
-            $match = $this->resolveMatch($regionName, $context);
+        $match = $this->resolveMatch($regionName, $context);
 
-            return $match['label'] ?? $regionName;
+        return $match['label'] ?? null;
+    }
+
+    public function canonicalConfiguredRegionName(string $regionName): ?string
+    {
+        $regionName = trim($regionName);
+        if ($regionName === '') {
+            return null;
         }
 
-        $match = $this->resolveMatch($regionName, $context);
+        $match = $this->matchHaystack($this->normalizePlaceName($regionName));
+
+        return $match['label'] ?? null;
+    }
+
+    public function canonicalRegionNameFromText(string $text): ?string
+    {
+        $text = trim($text);
+        if ($text === '') {
+            return null;
+        }
+
+        $match = $this->matchHaystack($this->normalizePlaceName($text));
 
         return $match['label'] ?? null;
     }
@@ -70,72 +85,11 @@ class RegionCoordinateResolver
             return null;
         }
 
-        if ($regionName !== '' && $this->isGenericRegion($this->normalize($regionName))) {
-            $hints = $this->extractGeopoliticalHints($this->normalize($regionName . ' ' . $context));
-
-            $geoCityMatch = $this->matchGeoCityIndex($this->normalize($regionName . ' ' . $context));
-            if ($geoCityMatch !== null) {
-                return $geoCityMatch;
-            }
-
-            foreach ($hints as $hint) {
-                $match = $this->matchHaystack($this->normalize($hint));
-                if ($match !== null) {
-                    return $match;
-                }
-            }
-
-            return $context !== ''
-                ? $this->matchHaystack($this->normalize($context))
-                : null;
-        }
-
-        $regionMatch = $regionName !== ''
-            ? $this->matchHaystack($this->normalize($regionName))
-            : null;
-
-        $haystack = $this->normalize(trim($regionName . ' ' . $context));
-        $hints = $this->extractGeopoliticalHints($haystack);
-
-        if (!empty($hints)) {
-            $haystack .= ' ' . implode(' ', $hints);
-        }
-
-        /**
-         * 🔥 NUOVO: estrazione intelligente dei luoghi dal testo
-         */
-        $hints = $this->extractGeopoliticalHints($haystack);
-
-        foreach ($hints as $hint) {
-            $match = $this->matchHaystack($this->normalize($hint));
-
+        foreach (array_filter([$regionName, $context]) as $candidate) {
+            $match = $this->matchHaystack($this->normalizePlaceName($candidate));
             if ($match !== null) {
                 return $match;
             }
-        }
-
-        $geoCityMatch = $this->matchGeoCityIndex($haystack);
-        if ($geoCityMatch !== null) {
-            return $geoCityMatch;
-        }
-
-        /**
-         * fallback vecchio (solo se tutto fallisce)
-         */
-        if ($this->isGenericRegion($haystack) && $context !== '') {
-            return $this->matchHaystack($this->normalize($context))
-                ?? $this->matchGeoCityIndex($this->normalize($context));
-        }
-
-        $haystackMatch = $this->matchHaystack($haystack);
-        $geoCityHaystackMatch = $this->matchGeoCityIndex($haystack);
-
-        if ($geoCityHaystackMatch !== null) {
-            return $geoCityHaystackMatch;
-        }
-
-        if ($haystackMatch !== null || $regionMatch !== null) {
-            return $haystackMatch ?? $regionMatch;
         }
 
         return null;
@@ -155,7 +109,7 @@ class RegionCoordinateResolver
 
         foreach ($this->regions() as $entry) {
             foreach ($entry['aliases'] as $alias) {
-                $normalizedAlias = $this->normalize($alias);
+                $normalizedAlias = $this->normalizePlaceName($alias);
                 if ($normalizedAlias === '' || mb_strlen($normalizedAlias) < 3) {
                     continue;
                 }
@@ -179,11 +133,6 @@ class RegionCoordinateResolver
         return $bestPoint;
     }
 
-    public function isMappableRegion(string $regionName, string $context = ''): bool
-    {
-        return $this->resolve($regionName, $context) !== null;
-    }
-
     /**
      * @return list<array{aliases: list<string>, lat: float, long: float}>
      */
@@ -192,157 +141,6 @@ class RegionCoordinateResolver
         $regions = config('geopolitical_regions.regions', []);
 
         return is_array($regions) ? $regions : [];
-    }
-
-    /**
-     * @return list<array{aliases: list<string>, lat: float, long: float, label: string, type: string}>
-     */
-    private function geoCityIndex(): array
-    {
-        static $index = null;
-
-        if (is_array($index)) {
-            return $index;
-        }
-
-        $path = storage_path(self::GEO_CITY_INDEX_PATH);
-        if (! is_file($path)) {
-            return $index = [];
-        }
-
-        $raw = json_decode((string) file_get_contents($path), true);
-        if (! is_array($raw)) {
-            return $index = [];
-        }
-
-        $index = [];
-        foreach ($raw as $entry) {
-            if (! is_array($entry)) {
-                continue;
-            }
-
-            $lat = isset($entry['lat']) && is_numeric($entry['lat']) ? (float) $entry['lat'] : null;
-            $long = isset($entry['lng']) && is_numeric($entry['lng']) ? (float) $entry['lng'] : null;
-            $name = trim((string) ($entry['name'] ?? ''));
-            if ($lat === null || $long === null || $name === '') {
-                continue;
-            }
-
-            $aliases = array_filter(array_map(
-                fn ($value) => trim((string) $value),
-                array_merge(
-                    [$name],
-                    is_array($entry['aliases'] ?? null) ? $entry['aliases'] : [],
-                )
-            ));
-            $admin1 = trim((string) ($entry['admin1'] ?? ''));
-            if ($admin1 !== '') {
-                $normalizedAdmin1 = $this->normalize($admin1);
-                $genericAdmin1 = [
-                    'nord',
-                    'sud',
-                    'est',
-                    'ovest',
-                    'north',
-                    'south',
-                    'east',
-                    'west',
-                ];
-
-                if (
-                    $normalizedAdmin1 !== ''
-                    && mb_strlen($normalizedAdmin1) >= 5
-                    && ! in_array($normalizedAdmin1, $genericAdmin1, true)
-                ) {
-                    $aliases[] = $admin1;
-                }
-            }
-            $normalizedAliases = [];
-            foreach ($aliases as $alias) {
-                $normalizedAlias = $this->normalize($alias);
-                if ($normalizedAlias !== '') {
-                    $normalizedAliases[] = $normalizedAlias;
-                }
-            }
-
-            $index[] = [
-                'aliases' => array_values(array_unique($normalizedAliases)),
-                'lat' => $lat,
-                'long' => $long,
-                'label' => $this->geoCityLabel($entry),
-                'type' => trim((string) ($entry['type'] ?? '')),
-            ];
-        }
-
-        return $index;
-    }
-
-    /**
-     * @return array{lat: float, long: float, label: string}|null
-     */
-    private function matchGeoCityIndex(string $haystack): ?array
-    {
-        if ($haystack === '') {
-            return null;
-        }
-
-        $bestScore = 0;
-        $bestPoint = null;
-
-        foreach ($this->geoCityIndex() as $entry) {
-            foreach ($entry['aliases'] as $alias) {
-                if ($alias === '' || mb_strlen($alias) < 3) {
-                    continue;
-                }
-
-                if (! $this->aliasMatchesHaystack($haystack, $alias)) {
-                    continue;
-                }
-
-                $score = mb_strlen($alias) + $this->geoCityTypeBonus($entry['type']);
-                if ($score > $bestScore) {
-                    $bestScore = $score;
-                    $bestPoint = [
-                        'lat' => (float) $entry['lat'],
-                        'long' => (float) $entry['long'],
-                        'label' => $entry['label'],
-                    ];
-                }
-            }
-        }
-
-        return $bestPoint;
-    }
-
-    /**
-     * @param array{name?: mixed, admin1?: mixed, country?: mixed} $entry
-     */
-    private function geoCityLabel(array $entry): string
-    {
-        $name = trim((string) ($entry['name'] ?? ''));
-        $admin1 = trim((string) ($entry['admin1'] ?? ''));
-
-        if ($name === '') {
-            return 'Area non specificata';
-        }
-
-        if ($admin1 === '') {
-            return $name;
-        }
-
-        return $name.', '.$admin1;
-    }
-
-    private function geoCityTypeBonus(string $type): int
-    {
-        return match ($type) {
-            'PPLC' => 30,
-            'PPLA' => 25,
-            'PPLA2' => 20,
-            'PPLA3' => 15,
-            'PPLA4' => 10,
-            default => 0,
-        };
     }
 
     private function isGenericRegion(string $normalizedHaystack): bool
@@ -416,90 +214,8 @@ class RegionCoordinateResolver
         return preg_replace('/\s+/', ' ', $normalized) ?? $normalized;
     }
 
-    private function extractGeopoliticalHints(string $text): array
+    private function normalizePlaceName(string $value): string
     {
-        $keywords = [
-            // super potenze
-            'usa',
-            'u.s.',
-            'u.s.a',
-            'united states',
-            'stati uniti',
-            'russia',
-            'russian',
-            'ukraine',
-            'ukrainian',
-            'china',
-            'chinese',
-
-            // medio oriente
-            'iran',
-            'iraq',
-            'israel',
-            'palestine',
-            'gaza',
-            'west bank',
-            'syria',
-            'lebanon',
-            'yemen',
-
-            // asia
-            'taiwan',
-            'north korea',
-            'south korea',
-            'japan',
-
-            // europa
-            'nato',
-            'eu',
-            'european union',
-
-            // africa
-            'africa',
-            'sudan',
-            'ethiopia',
-
-            // geografie strategiche
-            'red sea',
-            'strait',
-            'straits',
-            'mediterranean',
-            'persian gulf',
-            'arabian sea',
-
-            // militare (importantissimo per il tuo problema)
-            'base militare',
-            'military base',
-            'us base',
-            'american base',
-            'forze statunitensi',
-            'forces',
-            'troops',
-            'soldiers',
-            'missile',
-            'airstrike',
-            'strike',
-            'raid',
-            'drone',
-
-            // politica / escalation
-            'sanctions',
-            'sanzioni',
-            'tensions',
-            'escalation',
-            'war',
-            'guerra',
-        ];
-
-        $found = [];
-
-        foreach ($keywords as $k) {
-            if (str_contains($text, $this->normalize($k))) {
-                $found[] = $k;
-            }
-        }
-
-        return array_values(array_unique($found));
+        return $this->normalize($value);
     }
 }
-
