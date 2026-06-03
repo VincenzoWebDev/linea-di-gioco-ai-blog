@@ -57,12 +57,12 @@ export default function ArticleGlossaryContent({ content, glossary = {} }) {
         }
 
         return (
-            <p
+            <div
                 key={`${text}-${index}`}
                 className="mt-6 whitespace-pre-line leading-[1.9] text-[#D7DEE8]"
             >
                 {renderGlossaryText(text, glossary, isClient)}
-            </p>
+            </div>
         );
     });
 }

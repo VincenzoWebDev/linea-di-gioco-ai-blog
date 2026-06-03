@@ -22,6 +22,8 @@ class TensionController extends Controller
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('region_name', 'like', "%{$search}%")
+                        ->orWhere('display_region_name', 'like', "%{$search}%")
+                        ->orWhere('region_key', 'like', "%{$search}%")
                         ->orWhere('status_label', 'like', "%{$search}%")
                         ->orWhere('featured_article_id', is_numeric($search) ? (int) $search : -1)
                         ->orWhereHas('featuredArticle', function ($articleQuery) use ($search) {
@@ -55,6 +57,7 @@ class TensionController extends Controller
     {
         $validated = $request->validate([
             'region_name' => ['required', 'string', 'max:120'],
+            'display_region_name' => ['nullable', 'string', 'max:180'],
             'risk_score' => ['required', 'integer', 'min:1', 'max:100'],
             'trend_direction' => ['required', 'in:rising,falling,stable'],
             'status_label' => ['required', 'string', 'max:80'],
@@ -63,8 +66,19 @@ class TensionController extends Controller
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
         ]);
 
-        GeopoliticalTension::query()->create($validated);
-        app(GeopoliticalTensionService::class)->clearHeaderCache();
+        $service = app(GeopoliticalTensionService::class);
+        $displayRegionName = trim((string) ($validated['display_region_name'] ?? $validated['region_name']));
+
+        GeopoliticalTension::query()->create([
+            ...$validated,
+            'display_region_name' => $displayRegionName !== '' ? $displayRegionName : $validated['region_name'],
+            'region_key' => $service->buildRegionKey(
+                (string) $validated['region_name'],
+                $displayRegionName !== '' ? $displayRegionName : (string) $validated['region_name']
+            ),
+            'last_event_at' => now(),
+        ]);
+        $service->clearHeaderCache();
 
         return redirect()->route('admin.tensions.index');
     }
@@ -73,6 +87,7 @@ class TensionController extends Controller
     {
         $validated = $request->validate([
             'region_name' => ['required', 'string', 'max:120'],
+            'display_region_name' => ['nullable', 'string', 'max:180'],
             'risk_score' => ['required', 'integer', 'min:1', 'max:100'],
             'trend_direction' => ['required', 'in:rising,falling,stable'],
             'status_label' => ['required', 'string', 'max:80'],
@@ -81,8 +96,18 @@ class TensionController extends Controller
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
         ]);
 
-        $tension->update($validated);
-        app(GeopoliticalTensionService::class)->clearHeaderCache();
+        $service = app(GeopoliticalTensionService::class);
+        $displayRegionName = trim((string) ($validated['display_region_name'] ?? $validated['region_name']));
+
+        $tension->update([
+            ...$validated,
+            'display_region_name' => $displayRegionName !== '' ? $displayRegionName : $validated['region_name'],
+            'region_key' => $service->buildRegionKey(
+                (string) $validated['region_name'],
+                $displayRegionName !== '' ? $displayRegionName : (string) $validated['region_name']
+            ),
+        ]);
+        $service->clearHeaderCache();
 
         return redirect()->route('admin.tensions.index');
     }

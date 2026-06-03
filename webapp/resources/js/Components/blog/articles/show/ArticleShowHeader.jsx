@@ -48,6 +48,7 @@ export default function ArticleShowHeader({ article, intelligence }) {
                     icon={RadioTower}
                     label="Area"
                     value={
+                        article.tension?.display_region_name ||
                         article.tension?.region_name ||
                         article.topic ||
                         "Dossier globale"

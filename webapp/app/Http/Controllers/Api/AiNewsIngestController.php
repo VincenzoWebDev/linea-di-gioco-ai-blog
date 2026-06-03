@@ -28,10 +28,14 @@ class AiNewsIngestController extends Controller
             'published_at' => ['nullable', 'date'],
             'geopolitical_tension' => ['nullable', 'array'],
             'geopolitical_tension.region_name' => ['required_with:geopolitical_tension', 'string', 'max:120'],
+            'geopolitical_tension.display_region_name' => ['nullable', 'string', 'max:180'],
+            'geopolitical_tension.region_key' => ['nullable', 'string', 'max:180'],
             'geopolitical_tension.risk_score' => ['required_with:geopolitical_tension', 'integer', 'min:1', 'max:100'],
             'geopolitical_tension.trend_direction' => ['required_with:geopolitical_tension', 'in:rising,falling,stable'],
             'geopolitical_tension.status_label' => ['required_with:geopolitical_tension', 'string', 'max:80'],
             'geopolitical_tension.tension_summary' => ['required_with:geopolitical_tension', 'string', 'max:160'],
+            'future_scenarios' => ['nullable', 'array'],
+            'future_scenarios.*' => ['string', 'max:180'],
         ]);
 
         $sourceUrl = (string) ($validated['source_url'] ?? '');

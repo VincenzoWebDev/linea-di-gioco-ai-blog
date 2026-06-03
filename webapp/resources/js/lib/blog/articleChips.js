@@ -6,6 +6,7 @@ export function buildArticleChips(article) {
     const chips = [];
 
     const region =
+        article.display_region_name ||
         article.region_name ||
         article.topic ||
         (Array.isArray(article.categories) ? article.categories[0] : null);

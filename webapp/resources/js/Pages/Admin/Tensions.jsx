@@ -37,7 +37,7 @@ export default function Tensions({
     };
 
     const handleDelete = (item) => {
-        if (!confirm(`Eliminare la tensione "${item.region_name}"?`)) {
+        if (!confirm(`Eliminare la tensione "${item.display_region_name || item.region_name}"?`)) {
             return;
         }
 

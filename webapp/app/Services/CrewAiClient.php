@@ -43,8 +43,9 @@ class CrewAiClient
                     'blocked_scope' => 'sports, football, basketball, entertainment, gossip, lifestyle',
                     'title_style_rule' => 'Titles must be sober, editorial and contextual. Include the relevant area, actor, or geopolitical dossier when supported. Avoid clickbait, sensationalism, rhetorical questions, and alarmist words.',
                     'introduction_rule' => 'The first paragraph must explain the event context, why it matters, and its likely geopolitical impact before moving into details.',
-                    'geopolitical_tension_region_rule' => 'Return the most specific stable geopolitical area supported by the article context. Avoid generic labels like "Area non specificata" when a country, sea, strait, border, or subregion can be inferred.',
+                    'geopolitical_tension_region_rule' => 'Derive region_name and display_region_name dynamically from the title, summary and source content, without fixed lookup strings. Check the headline first, then the lead and body. Use city/province clues when present, let region_name stay as the broader country/area, and make display_region_name the more specific speaking label when the story needs it. If multiple places appear, prefer the main geopolitical theater described by the headline and opening paragraphs. Avoid generic labels like "Area non specificata" unless the source truly lacks geographic evidence.',
                     'geopolitical_tension_risk_rule' => 'Risk score must be evidence-based and dynamic on a 1-100 scale. Use lower values for routine diplomacy, mid values for sanctions or force posture, and high values only for active escalation, strikes, mobilization, or severe crisis signals. Do not default to the same score across different stories.',
+                    'future_scenarios_rule' => 'When useful, add future_scenarios as an array of 2 short Italian sentences: concrete, prudent, and tied to the article evidence. Never invent details that are not in the source.',
                 ],
             ]);
 

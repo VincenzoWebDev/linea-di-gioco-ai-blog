@@ -7,6 +7,7 @@ export const TREND_LABELS = {
 export function emptyTensionForm() {
     return {
         region_name: "",
+        display_region_name: "",
         risk_score: 50,
         trend_direction: "stable",
         status_label: "",
@@ -27,6 +28,7 @@ export function tensionToEditFormData(item) {
     return {
         _method: "put",
         region_name: item.region_name || "",
+        display_region_name: item.display_region_name || "",
         risk_score: item.risk_score || 50,
         trend_direction: item.trend_direction || "stable",
         status_label: item.status_label || "",

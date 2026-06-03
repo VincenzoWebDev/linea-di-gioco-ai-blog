@@ -38,6 +38,8 @@ def send_to_laravel(
     }
     if article.geopolitical_tension is not None:
         payload["geopolitical_tension"] = article.geopolitical_tension.model_dump()
+    if article.future_scenarios:
+        payload["future_scenarios"] = article.future_scenarios
 
     try:
         with httpx.Client(timeout=timeout) as client:

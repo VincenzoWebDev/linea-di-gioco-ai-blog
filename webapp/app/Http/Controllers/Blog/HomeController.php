@@ -46,7 +46,6 @@ class HomeController extends Controller
                 'trend_direction',
                 'region_name',
                 'last_event_at',
-                'last_decay_at',
                 'updated_at',
             ])
             ->keyBy('featured_article_id');
@@ -57,10 +56,12 @@ class HomeController extends Controller
 
         $operations = $this->commandLocations();
         $activeOperations = $operations
-            ->where('current_tension', '>', 0)
+            ->where('is_expired', false)
+            ->where('risk_score', '>=', (int) config('ai_news.tensions.min_active_risk_score', 30))
             ->take(6)
             ->values();
         $historicalOperations = $operations
+            ->filter(fn(array $item) => (int) ($item['risk_score'] ?? 0) >= (int) config('ai_news.tensions.min_active_risk_score', 30))
             ->where('current_tension', '=', 0)
             ->take(5)
             ->values();
@@ -111,7 +112,7 @@ class HomeController extends Controller
             (string) $article->title
         );
         $currentTension = $tension
-            ? (int) ($this->geopoliticalTensionService->decaySnapshot($tension)['current_tension'] ?? $tension->risk_score ?? 0)
+            ? (int) ($this->geopoliticalTensionService->lifecycleSnapshot($tension)['current_tension'] ?? $tension->risk_score ?? 0)
             : null;
         $trendDirection = $tension
             ? $this->geopoliticalTensionService->resolveTrendDirection($tension)
@@ -153,42 +154,47 @@ class HomeController extends Controller
                 'id',
                 'featured_article_id',
                 'region_name',
+                'display_region_name',
+                'region_key',
                 'latitude',
                 'longitude',
                 'risk_score',
                 'trend_direction',
                 'status_label',
                 'last_event_at',
-                'last_decay_at',
                 'updated_at',
             ])
             ->map(function (GeopoliticalTension $tension) {
-                $decay = $this->geopoliticalTensionService->decaySnapshot($tension);
+                $lifecycle = $this->geopoliticalTensionService->lifecycleSnapshot($tension);
                 $coordinates = $this->coordinatesForTension($tension);
                 $regionName = $this->geopoliticalTensionService->normalizeRegionName(
                     (string) $tension->region_name,
                     $tension->featuredArticle
                 );
-                if ($coordinates === null && $decay['current_tension'] > 0) {
-                    return null;
-                }
+                $displayRegionName = trim((string) ($tension->display_region_name ?? ''));
 
                 $article = $tension->featuredArticle;
+                $mapRiskScore = (int) $tension->risk_score;
+                $displayTension = max((int) ($lifecycle['current_tension'] ?? 0), $mapRiskScore);
 
                 return [
                     'id' => $tension->id,
                     'region_name' => $regionName !== '' ? $regionName : $tension->region_name,
+                    'display_region_name' => $displayRegionName !== '' ? $displayRegionName : $regionName,
+                    'region_key' => (string) ($tension->region_key ?? ''),
                     'lat' => $coordinates['lat'] ?? null,
                     'long' => $coordinates['long'] ?? null,
-                    'risk_score' => $decay['current_tension'],
-                    'initial_risk_score' => $decay['initial_risk_score'],
-                    'current_tension' => $decay['current_tension'],
-                    'severity' => \App\Support\GeopoliticalSeverity::fromRiskScore($decay['current_tension']),
+                    'risk_score' => $mapRiskScore,
+                    'initial_risk_score' => $lifecycle['initial_risk_score'],
+                    'current_tension' => $displayTension,
+                    'severity' => \App\Support\GeopoliticalSeverity::fromRiskScore($displayTension),
                     'trend_direction' => $this->geopoliticalTensionService->resolveTrendDirection($tension),
                     'status_label' => $tension->status_label,
-                    'silence_hours' => $decay['silence_hours'],
-                    'decay_days' => $decay['decay_days'],
-                    'radio_silence_label' => $decay['radio_silence_label'],
+                    'silence_hours' => $lifecycle['silence_hours'],
+                    'ttl_hours' => $lifecycle['ttl_hours'],
+                    'expires_at' => $lifecycle['expires_at'],
+                    'is_expired' => $lifecycle['is_expired'],
+                    'radio_silence_label' => $lifecycle['radio_silence_label'],
                     'updated_at' => optional($tension->updated_at)->toISOString(),
                     'operation_code' => sprintf('OP-%04d', $article?->id ?? $tension->id),
                     'article' => $article && $article->status === 'published' ? [
@@ -205,7 +211,7 @@ class HomeController extends Controller
                             'slug' => $article->slug,
                         ]),
                     ] : null,
-                    'title' => $article?->title ?? $tension->region_name,
+                    'title' => $article?->title ?? ($displayRegionName !== '' ? $displayRegionName : $tension->region_name),
                     'summary' => $article?->summary ?? $tension->status_label,
                     'published_at' => optional($article?->published_at)->toISOString(),
                     'thumb_url' => $article?->thumb_path ? Storage::url($article->thumb_path) : null,
@@ -222,6 +228,7 @@ class HomeController extends Controller
             ->sortBy([
                 ['current_tension', 'desc'],
                 ['silence_hours', 'asc'],
+                ['display_region_name', 'asc'],
                 ['region_name', 'asc'],
             ])
             ->take(12)
@@ -241,7 +248,7 @@ class HomeController extends Controller
         }
 
         return $this->geopoliticalTensionService->resolveCoordinates(
-            (string) $tension->region_name,
+            (string) ($tension->display_region_name ?: $tension->region_name),
             $tension->featuredArticle
         );
     }

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import unicodedata
 from html import unescape
 from typing import Any, Dict, Tuple
 
@@ -37,6 +38,75 @@ def _source_blob(payload: ProcessRequest) -> str:
         f"URL fonte: {payload.source_url}\n"
         f"Testo fonte:\n{_clean_text(payload.source_content)}\n"
     )
+
+
+def _normalize_quality_score(raw_score: Any, title: str, summary: str, content: str, source_url: str, topic: str) -> float:
+    heuristic = _estimated_quality(title, summary, content, source_url, topic)
+
+    try:
+        model_score = float(raw_score)
+    except (TypeError, ValueError):
+        model_score = 0.0
+
+    if not (1 <= model_score <= 100):
+        return heuristic
+
+    return round(min(100.0, max(1.0, (model_score * 0.6) + (heuristic * 0.4))), 2)
+
+
+def _normalize_future_scenarios(raw: Any, payload: ProcessRequest, tension: GeopoliticalTensionOut | None = None) -> list[str]:
+    scenarios: list[str] = []
+
+    if isinstance(raw, list):
+        for item in raw:
+            if not isinstance(item, str):
+                continue
+            line = _normalize_scenario_line(item)
+            if line and line not in scenarios:
+                scenarios.append(line)
+            if len(scenarios) >= 2:
+                break
+
+    if scenarios:
+        return scenarios
+
+    summary = _clean_text(payload.summary or payload.title or "La situazione resta sotto osservazione.")
+    region = _clean_text(
+        (tension.display_region_name if tension and tension.display_region_name else None)
+        or (tension.region_name if tension else None)
+        or payload.title
+        or payload.domain
+        or "l'area monitorata"
+    )
+    risk_score = int(tension.risk_score if tension else 42)
+    trend = (tension.trend_direction if tension else "stable") or "stable"
+
+    first = {
+        "rising": f"Se la pressione aumenta, {region} potrebbe registrare una nuova escalation diplomatica o operativa.",
+        "falling": f"Se il trend si conferma in calo, {region} potrebbe avviarsi verso una fase di contenimento.",
+        "stable": f"{region} resta osservabile, con sviluppi possibili ma non ancora definitivi nel breve periodo.",
+    }.get(trend, f"{region} resta osservabile, con sviluppi possibili ma non ancora definitivi nel breve periodo.")
+
+    second = (
+        f"Con rischio {risk_score}, il prossimo aggiornamento potrebbe dipendere da conferme sul terreno e dalle reazioni ufficiali."
+        if risk_score >= 60
+        else f"Il quadro richiede conferme successive prima di parlare di un cambiamento strutturale."
+    )
+
+    third = f"Il punto da seguire resta: {summary}"
+
+    return collect_scenarios([first, second, third])
+
+
+def collect_scenarios(items: list[str]) -> list[str]:
+    normalized: list[str] = []
+    for item in items:
+        line = _normalize_scenario_line(item)
+        if line and line not in normalized:
+            normalized.append(line)
+        if len(normalized) >= 2:
+            break
+    return normalized
 
 
 def run_pipeline(payload: ProcessRequest) -> Tuple[ArticleOut, Dict[str, Any]]:
@@ -85,8 +155,11 @@ def _run_crewai(payload: ProcessRequest) -> Tuple[ArticleOut, Dict[str, Any]]:
     t1 = Task(
         description=(
             "Estrai un report JSON strutturato dalla notizia. "
-            "Deve includere: area geografica colpita, livello di tensione da 1 a 100, "
-            "direzione del trend e una sintesi di 10 parole. "
+            "Deve includere: area geografica colpita, display_region_name leggibile, region_key coerente, "
+            "livello di tensione da 1 a 100, direzione del trend, future_scenarios e una sintesi di 10 parole. "
+            "Region_name deve essere una base geografica utile al grouping; display_region_name deve essere il nome parlante più specifico possibile quando la notizia contiene città, province o sotto-aree. "
+            "Non usare liste statiche o etichette generiche se il testo consente una localizzazione più precisa. "
+            "Se la notizia riguarda più paesi dello stesso blocco (per esempio Giappone e Corea del Sud), usa il blocco geografico comune o l'area strategica più pertinente, non un paese estraneo al contenuto. "
             "Calibra risk_score con prudenza (evita allarmismo): "
             "85-100 solo per guerra attiva, attacchi confermati, mobilitazioni maggiori, minacce nucleari; "
             "65-84 per escalation seria con prove concrete; "
@@ -97,8 +170,7 @@ def _run_crewai(payload: ProcessRequest) -> Tuple[ArticleOut, Dict[str, Any]]:
             "Non superare 70 per articoli speculativi, dichiarazioni generiche o routine diplomatica. "
             "Usa termini comprensibili e concreti: per esempio preferisci "
             "'Rischio Forniture Gas' a 'Instabilita geoeconomica delle pipeline'. "
-            "Per region_name usa un'area geografica precisa e standard (es. Ucraina, Gaza, Medio Oriente, Taiwan, Sahel) "
-            "mai 'Area non specificata' se il luogo e deducibile dal testo. "
+            "Se il luogo non è deducibile, usa un fallback minimale e trasparente, ma non inventare localizzazioni. "
             "Non aggiungere testo fuori dal JSON. "
             f"\n\nMATERIALE:\n{source_blob}"
         ),
@@ -122,6 +194,7 @@ def _run_crewai(payload: ProcessRequest) -> Tuple[ArticleOut, Dict[str, Any]]:
             "tono giornalistico professionale, senza copiare frasi dalla fonte. "
             "Vietato usare frasi in inglese, salvo nomi propri internazionali. "
             "Mantieni il campo geopolitical_tension ricevuto dall'Analyst senza trasformarlo in testo libero. "
+            "Aggiungi future_scenarios come array di 2 frasi brevi, concrete e prudenti. "
             f'Non inserire mai "Fonte:" o URL nel content: source_url resta un campo JSON separato. {json_clause}'
         ),
         expected_output="JSON articolo pronto per validazione.",
@@ -135,7 +208,9 @@ def _run_crewai(payload: ProcessRequest) -> Tuple[ArticleOut, Dict[str, Any]]:
             "quality_score deve essere un numero 0-100. "
             "Verifica rigorosamente che title/summary/content siano in italiano. "
             "geopolitical_tension deve restare un oggetto JSON pulito con region_name, risk_score 1-100, "
-            "trend_direction rising/falling/stable, status_label accessibile e tension_summary di 10 parole."
+            "trend_direction rising/falling/stable, status_label accessibile, tension_summary di 10 parole, "
+            "display_region_name leggibile e region_key stabile. "
+            "future_scenarios deve essere un array di due frasi brevi in italiano."
         ),
         expected_output="JSON finale compatibile con Laravel ingest.",
         agent=dispatch_prep,
@@ -159,6 +234,7 @@ def _run_crewai(payload: ProcessRequest) -> Tuple[ArticleOut, Dict[str, Any]]:
     title = _clean_text(str(data.get("title", "")).strip())[:140]
     summary = _clean_text(str(data.get("summary", "")).strip())[:240]
     content = _clean_text(str(data.get("content", "")).strip())[:14000]
+    topic = _clean_text(str(data.get("topic", "geopolitica")).strip())[:60] or "geopolitica"
 
     title, summary, content = _ensure_italian_output(
         title=title,
@@ -168,15 +244,18 @@ def _run_crewai(payload: ProcessRequest) -> Tuple[ArticleOut, Dict[str, Any]]:
         model=model,
     )
 
+    tension = _normalize_tension(data.get("geopolitical_tension"), payload)
+
     article = ArticleOut(
         title=title,
         summary=summary,
         content=content,
-        topic=_clean_text(str(data.get("topic", "geopolitica")).strip())[:60] or "geopolitica",
-        categories=_normalize_categories(data.get("categories"), data.get("topic", "geopolitica")),
-        quality_score=float(data.get("quality_score", 0)),
+        topic=topic,
+        categories=_normalize_categories(data.get("categories"), topic),
+        quality_score=_normalize_quality_score(data.get("quality_score"), title, summary, content, str(data.get("source_url", payload.source_url)), topic),
         source_url=str(data.get("source_url", payload.source_url)),
-        geopolitical_tension=_normalize_tension(data.get("geopolitical_tension"), payload),
+        geopolitical_tension=tension,
+        future_scenarios=_normalize_future_scenarios(data.get("future_scenarios"), payload, tension),
     )
 
     article.content = _strip_source_footer(article.content)
@@ -184,10 +263,11 @@ def _run_crewai(payload: ProcessRequest) -> Tuple[ArticleOut, Dict[str, Any]]:
     if not article.title or not article.content:
         raise ValueError("Crew output incompleto")
 
-    if article.quality_score <= 0:
-        article.quality_score = _estimated_quality(article.title, article.content)
-
-    return article, {"mode": "crewai"}
+    return article, {
+        "mode": "crewai",
+        "quality_source": "model+heuristic",
+        "future_scenarios_source": "model+heuristic",
+    }
 
 
 def _ensure_italian_output(title: str, summary: str, content: str, source_url: str, model: str) -> tuple[str, str, str]:
@@ -282,8 +362,12 @@ def _normalize_tension(raw: Any, payload: ProcessRequest) -> GeopoliticalTension
         str(raw.get("status_label", "")),
     )
 
+    region_name, display_region_name, region_key = _normalize_region_fields(raw, payload)
+
     data = {
-        "region_name": _clean_text(str(raw.get("region_name", "")).strip())[:120] or "Area non specificata",
+        "region_name": region_name,
+        "display_region_name": display_region_name,
+        "region_key": region_key,
         "risk_score": min(100, max(1, risk_score)),
         "trend_direction": trend_direction,
         "status_label": _clean_text(str(raw.get("status_label", "")).strip())[:80] or "Tensione geopolitica",
@@ -370,13 +454,36 @@ def _calibrate_risk_score(raw_score: int, context: str, status_label: str = "") 
 
 def _fallback_tension(payload: ProcessRequest) -> GeopoliticalTensionOut:
     source = _clean_text(payload.title or payload.summary or "Aggiornamento geopolitico")
+    region_name, display_region_name, region_key = _normalize_region_fields({}, payload)
     return GeopoliticalTensionOut(
-        region_name="Area non specificata",
+        region_name=region_name,
+        display_region_name=display_region_name,
+        region_key=region_key,
         risk_score=42,
         trend_direction="stable",
         status_label="Tensione geopolitica",
         tension_summary=_ten_word_summary(source, payload),
     )
+
+
+def _normalize_region_fields(raw: dict[str, Any], payload: ProcessRequest) -> tuple[str, str | None, str | None]:
+    region_name = _clean_text(str(raw.get("region_name", "")).strip())
+    display_region_name = _clean_text(str(raw.get("display_region_name", "")).strip())
+    region_key = _clean_text(str(raw.get("region_key", "")).strip())
+
+    if region_name == "":
+        region_name = display_region_name
+
+    if display_region_name == "":
+        display_region_name = region_name if region_name else None
+
+    if region_key == "":
+        region_key = _slugify_region(display_region_name or region_name or payload.domain or "area_non_specificata")
+
+    if region_name == "":
+        region_name = "Area non specificata"
+
+    return region_name, display_region_name, region_key
 
 
 def _ten_word_summary(text: str, payload: ProcessRequest) -> str:
@@ -387,12 +494,33 @@ def _ten_word_summary(text: str, payload: ProcessRequest) -> str:
     return " ".join(words[:10])
 
 
+def _normalize_scenario_line(value: str) -> str:
+    line = _clean_text(value)
+    if not line:
+        return ""
+    if len(line) > 140:
+        line = line[:140].rsplit(" ", 1)[0].strip() or line[:140].strip()
+    if not re.search(r"[.!?]$", line):
+        line += "."
+    return line
+
+
+def _slugify_region(value: str) -> str:
+    normalized = unicodedata.normalize("NFKD", value or "")
+    normalized = "".join(ch for ch in normalized if not unicodedata.combining(ch))
+    normalized = normalized.lower()
+    normalized = re.sub(r"[^a-z0-9]+", "_", normalized)
+    normalized = re.sub(r"_+", "_", normalized).strip("_")
+    return normalized or "area_non_specificata"
+
+
 def _fallback_article(payload: ProcessRequest) -> ArticleOut:
     base = _clean_text(payload.source_content or payload.summary or payload.title)
     body = _strip_source_footer(base[:1200])
 
     title = _clean_text(payload.title or "Aggiornamento geopolitico")[:140]
     summary = _clean_text(payload.summary or base[:220])[:240]
+    topic = "geopolitica"
 
     try:
         title, summary, body = _ensure_italian_output(
@@ -402,23 +530,26 @@ def _fallback_article(payload: ProcessRequest) -> ArticleOut:
             source_url=str(payload.source_url),
             model=os.getenv("CREWAI_MODEL", "ollama/llama3.1"),
         )
-        quality = _estimated_quality(title, body)
+        tension = _fallback_tension(payload)
+        quality = _estimated_quality(title, summary, body, str(payload.source_url), topic)
     except Exception:
         # Fallback sicuro: non pubblicabile, verra scartato da Laravel per quality bassa
         title = "Notizia non traducibile automaticamente"
         summary = "Contenuto scartato: traduzione italiana non affidabile."
         body = "Impossibile ottenere una riscrittura italiana affidabile."
         quality = 0.0
+        tension = _fallback_tension(payload)
 
     return ArticleOut(
         title=title if title else "Aggiornamento geopolitico",
         summary=summary,
         content=body,
-        topic="geopolitica",
-        categories=["geopolitica"],
+        topic=topic,
+        categories=[topic],
         quality_score=quality,
         source_url=str(payload.source_url),
-        geopolitical_tension=_fallback_tension(payload),
+        geopolitical_tension=tension,
+        future_scenarios=_normalize_future_scenarios([], payload, tension),
     )
 
 
@@ -565,11 +696,14 @@ def _is_italian_text(text: str) -> bool:
     return it_hits >= 4 and it_sw >= 3 and (it_hits + it_sw) >= (en_hits + en_sw)
 
 
-def _estimated_quality(title: str, content: str) -> float:
-    score = 40.0
+def _estimated_quality(title: str, summary: str, content: str, source_url: str, topic: str) -> float:
+    score = 35.0
 
-    if len(title.strip()) >= 18:
-        score += 12
+    title_len = len(title.strip())
+    if title_len >= 24:
+        score += 15
+    elif title_len >= 14:
+        score += 8
 
     clen = len(content.strip())
     if clen >= 1200:
@@ -579,8 +713,23 @@ def _estimated_quality(title: str, content: str) -> float:
     elif clen >= 350:
         score += 12
 
+    summary_len = len(summary.strip())
+    if summary_len >= 120:
+        score += 6
+    elif summary_len >= 60:
+        score += 4
+
     low = content.lower()
-    if any(k in low for k in ["nato", "diplom", "sanzion", "guerra", "politica", "geopolit"]):
+    if any(k in low for k in ["nato", "diplom", "sanzion", "guerra", "politica", "geopolit", "conflitt", "tension"]):
         score += 10
+
+    if _is_italian_text(f"{title} {summary} {content}"):
+        score += 6
+
+    if topic and "geopolit" in topic.lower():
+        score += 4
+
+    if re.match(r"^https?://", source_url.strip(), flags=re.I):
+        score += 5
 
     return min(score, 100.0)

@@ -1,6 +1,6 @@
 # AI Agents Service (`ai/`)
 
-Servizio **solo riscrittura** CrewAI: Laravel gestisce fonti RSS (DB) e orchestrazione; questo modulo espone `POST /process`.
+Servizio **solo riscrittura** CrewAI: Laravel gestisce fonti RSS (DB) e orchestrazione; questo modulo espone `POST /process` e restituisce anche `geopolitical_tension` arricchito e `future_scenarios`.
 
 ## Setup
 
@@ -22,6 +22,12 @@ uvicorn app.main:app --host 127.0.0.1 --port 8001 --reload
 - `GET /health` — stato servizio
 - `POST /process` — riscrittura singola notizia (chiamato da Laravel `CrewAiClient`)
 - `POST /run-once` — **deprecato (410)**; usare `php artisan ai-news:run` in `webapp/`
+
+Formato risposta:
+
+- `article.geopolitical_tension.display_region_name`
+- `article.geopolitical_tension.region_key`
+- `article.future_scenarios` con 2 frasi brevi, quando disponibili
 
 ## Pipeline completa (Laravel)
 

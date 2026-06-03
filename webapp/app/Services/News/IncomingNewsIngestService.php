@@ -107,6 +107,7 @@ class IncomingNewsIngestService
             'source_url' => ArticleContentNormalizer::preferUsableUrl($sourceUrl) ?: $sourceUrl,
             'rewrite_mode' => (string) ($payload['rewrite_mode'] ?? 'dispatch'),
             'language' => (string) ($payload['language'] ?? 'it'),
+            'future_scenarios' => is_array($payload['future_scenarios'] ?? null) ? $payload['future_scenarios'] : [],
         ];
 
         if (is_array($payload['geopolitical_tension'] ?? null)) {

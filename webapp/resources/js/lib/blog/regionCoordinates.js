@@ -13,6 +13,7 @@ const regionCoordinates = [
 
 export function findCoordinates(article) {
     const region = [
+        article.tension?.display_region_name,
         article.tension?.region_name,
         article.topic,
         ...(article.categories || []),

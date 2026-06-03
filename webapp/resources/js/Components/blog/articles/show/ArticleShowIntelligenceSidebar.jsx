@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Clock3, Crosshair, Shield, Target } from "lucide-react";
+import { Crosshair, Shield, Target } from "lucide-react";
 import IntelligenceMetricBlock from "@/Components/blog/articles/show/IntelligenceMetricBlock";
 import IntelligenceRadarChart from "@/Components/blog/articles/show/IntelligenceRadarChart";
 import IntelligenceRadarIcon from "@/Components/blog/articles/show/IntelligenceRadarIcon";
@@ -55,21 +55,6 @@ export default function ArticleShowIntelligenceSidebar({
                         icon={Shield}
                     />
                 </div>
-
-                {article.tension && (
-                    <div className="mt-5 grid grid-cols-2 gap-3">
-                        <IntelligenceMetricBlock
-                            label="Silenzio"
-                            value={`${article.tension.silence_hours}h`}
-                            icon={Clock3}
-                        />
-                        <IntelligenceMetricBlock
-                            label="Decay"
-                            value={`${article.tension.decay_days}g`}
-                            icon={Clock3}
-                        />
-                    </div>
-                )}
 
                 <div className="mt-5 grid gap-3">
                     <div className="flex items-center justify-between border border-[#202A3D] bg-[#121722] px-4 py-3">

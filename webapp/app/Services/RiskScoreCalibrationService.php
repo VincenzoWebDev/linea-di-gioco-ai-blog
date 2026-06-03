@@ -69,14 +69,28 @@ class RiskScoreCalibrationService
     private const ROUTINE_SIGNALS = [
         'vertice',
         'summit',
+        'diplomazia',
+        'diplomatico',
+        'diplomatica',
         'incontro bilaterale',
+        'incontro',
+        'colloquio',
+        'colloqui',
         'talks',
         'trattativa',
+        'trattative',
         'accordo commerciale',
+        'accordo',
+        'intesa',
         'nomina',
         'elezioni locali',
         'dichiarazione congiunta',
         'comunicato stampa',
+        'dialogo',
+        'negoziato',
+        'negoziati',
+        'mediazione',
+        'missione diplomatica',
         'monitoraggio',
         'relazione annuale',
     ];
@@ -136,6 +150,15 @@ class RiskScoreCalibrationService
         $generalGeoCount = $this->countSignals($text, self::GENERAL_GEO_SIGNALS);
         $signalDensity = ($highCount * 3) + ($mediumCount * 2) + min($generalGeoCount, 4);
 
+        if ($highCount >= 1) {
+            $minimum = 58 + ($highCount * 8) + (min($mediumCount, 3) * 4) + (min($generalGeoCount, 4) * 2);
+            if ($highCount >= 2) {
+                $minimum = max($minimum, 76);
+            }
+
+            $score = max($score, min(86, $minimum));
+        }
+
         if ($score >= 70) {
             if ($highCount === 0 && $mediumCount === 0) {
                 $score = min($score, 52);
@@ -146,8 +169,15 @@ class RiskScoreCalibrationService
             }
         }
 
-        if ($score >= 55 && $hasRoutineSignals && $highCount === 0) {
-            $score = min($score, 48);
+        if ($hasRoutineSignals && $highCount === 0) {
+            $routineCap = 48;
+            if ($mediumCount === 0) {
+                $routineCap = 44;
+            } elseif ($mediumCount >= 2) {
+                $routineCap = 52;
+            }
+
+            $score = min($score, $routineCap);
         }
 
         if ($score >= 60 && $hasSpeculativeSignals && $highCount === 0) {

@@ -43,12 +43,12 @@ export default function TensionsCard({ tensions = {} }) {
                 ) : (
                     items.map((item) => (
                         <div
-                            key={`${item.region_name}-${item.updated_at}`}
+                            key={`${item.region_key || item.region_name}-${item.updated_at}`}
                             className="rounded-lg border border-slate-200 p-3"
                         >
                             <div className="flex items-center justify-between text-sm">
                                 <span className="font-medium text-slate-900">
-                                    {item.region_name}
+                                    {item.display_region_name || item.region_name}
                                 </span>
                                 <span className="text-slate-600">{item.risk_score}</span>
                             </div>

@@ -27,6 +27,19 @@ export default function TensionForm({
                         onChange={(e) => form.setData("region_name", e.target.value)}
                     />
                 </TensionFormField>
+                <TensionFormField
+                    label="Nome parlante"
+                    error={form.errors.display_region_name}
+                >
+                    <input
+                        className={inputClassName}
+                        value={form.data.display_region_name}
+                        onChange={(e) =>
+                            form.setData("display_region_name", e.target.value)
+                        }
+                        placeholder="Es. USA-Iran, Cina-Taiwan"
+                    />
+                </TensionFormField>
                 <TensionFormField label="Risk score (1-100)" error={form.errors.risk_score}>
                     <input
                         type="number"

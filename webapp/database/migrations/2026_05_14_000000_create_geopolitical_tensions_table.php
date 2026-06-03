@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('geopolitical_tensions', function (Blueprint $table) {
             $table->id();
-            $table->string('region_name')->unique();
+            $table->string('region_name');
             $table->unsignedTinyInteger('risk_score');
             $table->enum('trend_direction', ['rising', 'falling', 'stable'])->default('stable');
             $table->string('status_label');
@@ -18,6 +18,7 @@ return new class extends Migration
                 ->nullable()
                 ->constrained('articles')
                 ->nullOnDelete();
+            $table->timestamp('last_event_at')->nullable()->index();
             $table->timestamp('updated_at')->nullable();
 
             $table->index('risk_score');

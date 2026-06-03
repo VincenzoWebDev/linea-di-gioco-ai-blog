@@ -4,10 +4,11 @@ import { TREND_LABELS } from "@/lib/admin/tensions";
 export default function TensionsTableRow({ tension, onEdit, onDelete }) {
     const trend =
         TREND_LABELS[tension.trend_direction] || TREND_LABELS.stable;
+    const regionLabel = tension.display_region_name || tension.region_name;
 
     return (
         <tr className="border-b border-slate-100">
-            <td className="py-3 pr-4 font-medium text-slate-900">{tension.region_name}</td>
+            <td className="py-3 pr-4 font-medium text-slate-900">{regionLabel}</td>
             <td className="py-3 pr-4 text-slate-600">{tension.risk_score}</td>
             <td className="py-3 pr-4 text-slate-600">{trend}</td>
             <td className="py-3 pr-4 text-slate-600">{tension.status_label}</td>

@@ -23,10 +23,11 @@ function riskColor(score) {
 
 function TensionItem({ tension }) {
     const Trend = trendIcon[tension.trend_direction] ?? Minus;
+    const regionLabel = tension.display_region_name || tension.region_name;
     const content = (
         <>
             <span className="max-w-32 truncate text-[#E5E7EB]">
-                {tension.region_name}
+                {regionLabel}
             </span>
             <Trend className="h-3.5 w-3.5 text-[#9CA3AF]" aria-hidden="true" />
             <span className={riskColor(tension.risk_score)}>
@@ -79,7 +80,7 @@ export default function TensionHeader({ tensions = [] }) {
                 <div className="flex min-w-0 gap-2">
                     {visibleTensions.map((tension) => (
                         <TensionItem
-                            key={tension.region_name}
+                            key={tension.region_key || tension.region_name}
                             tension={tension}
                         />
                     ))}

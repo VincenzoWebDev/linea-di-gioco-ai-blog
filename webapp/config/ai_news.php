@@ -94,13 +94,9 @@ return [
         'severity_elevated' => env('AI_NEWS_RISK_SEVERITY_ELEVATED', 60),
         'severity_guarded' => env('AI_NEWS_RISK_SEVERITY_GUARDED', 40),
     ],
-    'thermal_decay' => [
-        'grace_hours' => env('AI_NEWS_THERMAL_DECAY_GRACE_HOURS', 24),
-        'model' => env('AI_NEWS_THERMAL_DECAY_MODEL', 'exponential'),
-        'decay_percent_per_day' => env('AI_NEWS_THERMAL_DECAY_PERCENT_PER_DAY', 10),
-        'penalty_per_day' => env('AI_NEWS_THERMAL_DECAY_PENALTY_PER_DAY', 15),
-        // Limita solo il contatore mostrato in UI; il modello esponenziale non forza la tensione a zero.
-        'max_silence_hours' => env('AI_NEWS_THERMAL_DECAY_MAX_SILENCE_HOURS', 168),
+    'tensions' => [
+        'min_active_risk_score' => env('AI_NEWS_TENSION_MIN_ACTIVE_RISK_SCORE', 30),
+        'ttl_hours' => env('AI_NEWS_TENSION_TTL_HOURS', 48),
     ],
     'ingest' => [
         'token' => env('AI_NEWS_INGEST_TOKEN', ''),

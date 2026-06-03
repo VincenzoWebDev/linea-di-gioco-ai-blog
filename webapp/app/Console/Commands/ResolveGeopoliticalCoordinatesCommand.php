@@ -44,7 +44,10 @@ class ResolveGeopoliticalCoordinatesCommand extends Command
                         continue;
                     }
 
-                    $point = $resolver->resolve($tension->region_name, $context);
+                    $point = $resolver->resolve(
+                        (string) ($tension->display_region_name ?: $tension->region_name),
+                        $context
+                    );
 
                     if ($point === null) {
                         if ($tension->latitude !== null || $tension->longitude !== null) {

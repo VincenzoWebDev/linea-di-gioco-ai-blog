@@ -25,7 +25,7 @@ function OperationIntelligenceCard({ item, index }) {
             imageLoading={index === 0 ? "eager" : "lazy"}
             imageFetchPriority={index === 0 ? "high" : "auto"}
             chips={[
-                { icon: MapPin, value: item.region_name || "Hotspot" },
+                { icon: MapPin, value: item.display_region_name || item.region_name || "Hotspot" },
                 {
                     icon: TrendIcon,
                     value: trendCopy[item.trend_direction]?.label || "Stabile",

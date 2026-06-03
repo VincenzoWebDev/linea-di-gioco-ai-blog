@@ -25,10 +25,6 @@ class Kernel extends ConsoleKernel
         $schedule->job(new FetchNewsJob(), config('ai_news.queues.ingest', 'news-ingest'))
             ->cron("0 {$newsTriggerHours} * * *")
             ->withoutOverlapping();
-
-        $schedule->command('geopolitical:cool-tensions')
-            ->twiceDaily(3, 15)
-            ->withoutOverlapping();
     }
 
     /**

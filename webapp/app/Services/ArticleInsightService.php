@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Support\ArticleContentNormalizer;
-use App\Support\ThermalDecay;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Throwable;
@@ -135,7 +134,13 @@ class ArticleInsightService
         $tension = is_array($payload['geopolitical_tension'] ?? null)
             ? $payload['geopolitical_tension']
             : [];
-        $region = trim((string) ($tension['region_name'] ?? $payload['region_name'] ?? ''));
+        $region = trim((string) (
+            $tension['display_region_name']
+            ?? $tension['region_name']
+            ?? $payload['display_region_name']
+            ?? $payload['region_name']
+            ?? ''
+        ));
         $riskScore = (int) ($tension['risk_score'] ?? $payload['risk_score'] ?? 0);
         $trend = trim((string) ($tension['trend_direction'] ?? $payload['trend_direction'] ?? 'stable'));
 
@@ -205,7 +210,9 @@ PROMPT;
             (string) ($payload['title'] ?? '')
         );
         $region = trim((string) (
-            data_get($payload, 'geopolitical_tension.region_name')
+            data_get($payload, 'geopolitical_tension.display_region_name')
+            ?? data_get($payload, 'geopolitical_tension.region_name')
+            ?? $payload['display_region_name']
             ?? $payload['region_name']
             ?? $payload['topic']
             ?? 'l’area monitorata'

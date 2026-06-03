@@ -45,7 +45,6 @@ class ArticleController extends Controller
                 'trend_direction',
                 'region_name',
                 'last_event_at',
-                'last_decay_at',
                 'updated_at',
             ])
             ->keyBy('featured_article_id');
@@ -55,7 +54,7 @@ class ArticleController extends Controller
                 $categoryNames = $article->categories->pluck('name')->values();
                 $tension = $tensions->get($article->id);
                 $currentTension = $tension
-                    ? (int) (app(GeopoliticalTensionService::class)->decaySnapshot($tension)['current_tension'] ?? $tension->risk_score ?? 0)
+                    ? (int) (app(GeopoliticalTensionService::class)->lifecycleSnapshot($tension)['current_tension'] ?? $tension->risk_score ?? 0)
                     : null;
                 $trendDirection = $tension
                     ? app(GeopoliticalTensionService::class)->resolveTrendDirection($tension)
@@ -138,8 +137,8 @@ class ArticleController extends Controller
 
         $tension = GeopoliticalTension::query()
             ->where('featured_article_id', $article->id)
-            ->first(['region_name', 'risk_score', 'trend_direction', 'status_label', 'last_event_at', 'last_decay_at', 'updated_at']);
-        $decay = $tension ? $geopoliticalTensionService->decaySnapshot($tension) : null;
+            ->first(['region_name', 'display_region_name', 'region_key', 'risk_score', 'trend_direction', 'status_label', 'last_event_at', 'updated_at']);
+        $lifecycle = $tension ? $geopoliticalTensionService->lifecycleSnapshot($tension) : null;
         $trendDirection = $tension ? $geopoliticalTensionService->resolveTrendDirection($tension) : 'stable';
         $resolvedRegionName = $tension
             ? $geopoliticalTensionService->normalizeRegionName($tension->region_name, $article)
@@ -171,15 +170,19 @@ class ArticleController extends Controller
                 'future_scenarios' => $futureScenarios,
                 'tension' => $tension ? [
                     'region_name' => $resolvedRegionName ?: $tension->region_name,
+                    'display_region_name' => $tension->display_region_name ?: $resolvedRegionName ?: $tension->region_name,
+                    'region_key' => $tension->region_key,
                     'risk_score' => $tension->risk_score,
                     'trend_direction' => $trendDirection,
                     'status_label' => $tension->status_label,
                     'updated_at' => optional($tension->updated_at)->toISOString(),
-                    'current_tension' => $decay['current_tension'] ?? $tension->risk_score,
-                    'initial_risk_score' => $decay['initial_risk_score'] ?? $tension->risk_score,
-                    'silence_hours' => $decay['silence_hours'] ?? 0,
-                    'decay_days' => $decay['decay_days'] ?? 0,
-                    'radio_silence_label' => $decay['radio_silence_label'] ?? null,
+                    'current_tension' => $lifecycle['current_tension'] ?? $tension->risk_score,
+                    'initial_risk_score' => $lifecycle['initial_risk_score'] ?? $tension->risk_score,
+                    'silence_hours' => $lifecycle['silence_hours'] ?? 0,
+                    'ttl_hours' => $lifecycle['ttl_hours'] ?? 48,
+                    'expires_at' => $lifecycle['expires_at'] ?? null,
+                    'is_expired' => $lifecycle['is_expired'] ?? false,
+                    'radio_silence_label' => $lifecycle['radio_silence_label'] ?? null,
                 ] : null,
             ],
             'related' => $related,
@@ -215,7 +218,7 @@ class ArticleController extends Controller
 
         $tensionsByArticleId = GeopoliticalTension::query()
             ->whereNotNull('featured_article_id')
-            ->get(['featured_article_id', 'region_name'])
+            ->get(['featured_article_id', 'region_name', 'display_region_name'])
             ->keyBy('featured_article_id');
 
         return Article::query()
@@ -227,7 +230,8 @@ class ArticleController extends Controller
             ->get(['id', 'title', 'slug', 'summary', 'content', 'published_at', 'thumb_path'])
             ->map(function (Article $candidate) use ($currentCategoryNames, $currentKeywords, $currentRegion, $tensionsByArticleId) {
                 $categoryNames = $candidate->categories->pluck('name')->values();
-                $candidateRegion = mb_strtolower(trim((string) ($tensionsByArticleId->get($candidate->id)?->region_name ?? '')));
+                $candidateTension = $tensionsByArticleId->get($candidate->id);
+                $candidateRegion = mb_strtolower(trim((string) ($candidateTension?->region_name ?? '')));
                 $sharedCategories = $categoryNames
                     ->map(fn ($value) => mb_strtolower((string) $value))
                     ->filter(fn ($value) => $currentCategoryNames->contains($value))

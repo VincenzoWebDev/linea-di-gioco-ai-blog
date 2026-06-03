@@ -89,7 +89,7 @@ export default function GlobalMap({ operations }) {
 
                                 return (
                                     <Marker
-                                        key={`${item.id}-${item.region_name}`}
+                                        key={`${item.id}-${item.region_key || item.region_name}`}
                                         coordinates={[
                                             Number(item.long),
                                             Number(item.lat),
@@ -131,7 +131,7 @@ export default function GlobalMap({ operations }) {
                                         Hotspot selezionato
                                     </p>
                                     <h2 className="mt-2 min-h-[4rem] text-2xl font-semibold leading-tight text-[#F3F4F6]">
-                                        {active.region_name}
+                                        {active.display_region_name || active.region_name}
                                     </h2>
                                 </div>
                                 <span

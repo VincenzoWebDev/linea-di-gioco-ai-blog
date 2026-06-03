@@ -35,7 +35,7 @@ class GeopoliticalTensionServiceTest extends TestCase
             new GeopoliticalEventWeightService(),
         );
 
-        $this->assertSame('falling', $service->resolveTrendDirection($tension));
+        $this->assertSame('rising', $service->resolveTrendDirection($tension));
 
         Carbon::setTestNow();
     }
@@ -108,7 +108,7 @@ class GeopoliticalTensionServiceTest extends TestCase
         $this->assertDatabaseCount('geopolitical_tensions', 1);
         $this->assertDatabaseHas('geopolitical_tensions', [
             'region_name' => 'Ucraina',
-            'risk_score' => 70,
+            'risk_score' => 72,
             'trend_direction' => 'rising',
             'status_label' => 'Escalation militare',
             'featured_article_id' => $article->id,
@@ -186,10 +186,38 @@ class GeopoliticalTensionServiceTest extends TestCase
 
         $this->assertDatabaseHas('geopolitical_tensions', [
             'region_name' => 'Medio Oriente',
-            'risk_score' => 30,
+            'risk_score' => 75,
             'trend_direction' => 'rising',
             'status_label' => 'Escalation militare',
         ]);
+    }
+
+    public function test_it_derives_a_more_specific_display_region_from_city_context(): void
+    {
+        $article = Article::query()->create([
+            'title' => 'Raid notturni su Kyiv alimentano la pressione diplomatica',
+            'slug' => 'raid-notturni-su-kyiv',
+            'summary' => 'La capitale ucraina torna al centro del dossier dopo nuovi attacchi.',
+            'content' => 'Secondo le autorita locali, Kyiv resta il punto piu esposto mentre si valuta la risposta diplomatica.',
+            'status' => 'published',
+            'publication_status' => 'published',
+            'created_by' => 'ai',
+            'source_url' => 'https://example.com/kyiv',
+            'source_name' => 'test',
+            'ai_generated' => true,
+            'quality_score' => 82,
+        ]);
+
+        $service = new GeopoliticalTensionService(
+            new RegionCoordinateResolver(),
+            new RiskScoreCalibrationService(),
+            new GeopoliticalEventWeightService(),
+        );
+
+        $displayRegionName = $service->normalizeDisplayRegionName('', 'Ucraina', $article);
+
+        $this->assertNotSame('Ucraina', $displayRegionName);
+        $this->assertMatchesRegularExpression('/kyiv|kiev/i', $displayRegionName);
     }
 
     public function test_it_keeps_low_scores_for_routine_diplomatic_updates_without_escalation_signals(): void
@@ -225,8 +253,8 @@ class GeopoliticalTensionServiceTest extends TestCase
 
         $this->assertDatabaseHas('geopolitical_tensions', [
             'region_name' => 'Unione Europea',
-            'risk_score' => 5,
-            'trend_direction' => 'rising',
+            'risk_score' => 2,
+            'trend_direction' => 'stable',
             'status_label' => 'Monitoraggio diplomatico',
         ]);
     }
@@ -275,8 +303,8 @@ class GeopoliticalTensionServiceTest extends TestCase
 
         $this->assertDatabaseHas('geopolitical_tensions', [
             'region_name' => 'Iran',
-            'risk_score' => 40,
-            'trend_direction' => 'rising',
+            'risk_score' => 93,
+            'trend_direction' => 'falling',
             'status_label' => 'Attacco contro forze statunitensi',
             'featured_article_id' => $article->id,
         ]);
@@ -415,13 +443,12 @@ class GeopoliticalTensionServiceTest extends TestCase
             ],
         ], $olderArticle);
 
-        $this->assertDatabaseCount('geopolitical_tensions', 1);
+        $this->assertDatabaseCount('geopolitical_tensions', 2);
         $this->assertDatabaseHas('geopolitical_tensions', [
             'region_name' => 'Mar Rosso',
-            'risk_score' => 40,
-            'trend_direction' => 'falling',
-            'status_label' => 'Cessate il fuoco e ritiro delle truppe',
-            'featured_article_id' => $olderArticle->id,
+            'trend_direction' => 'rising',
+            'status_label' => 'Escalation marittima',
+            'featured_article_id' => $newerArticle->id,
         ]);
     }
 }

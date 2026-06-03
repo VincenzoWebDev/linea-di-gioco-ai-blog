@@ -14,6 +14,8 @@ class ProcessRequest(BaseModel):
 
 class GeopoliticalTensionOut(BaseModel):
     region_name: str
+    display_region_name: str | None = None
+    region_key: str | None = None
     risk_score: int = Field(ge=1, le=100)
     trend_direction: Literal["rising", "falling", "stable"] = "stable"
     status_label: str
@@ -29,6 +31,7 @@ class ArticleOut(BaseModel):
     quality_score: float = Field(default=0.0, ge=0, le=100)
     source_url: str
     geopolitical_tension: GeopoliticalTensionOut | None = None
+    future_scenarios: list[str] = Field(default_factory=list)
 
 
 class ProcessResponse(BaseModel):

@@ -5,17 +5,16 @@ namespace App\Services;
 use App\Models\Article;
 use App\Models\GeopoliticalTension;
 use App\Support\GeopoliticalSeverity;
-use App\Support\ThermalDecay;
-use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class GeopoliticalTensionService
 {
     private const HEADER_CACHE_KEY = 'geopolitical_tensions.header_top_5';
+    private const DEFAULT_TTL_HOURS = 48;
+    private const DEFAULT_MIN_ACTIVE_RISK_SCORE = 30;
 
     public function __construct(
         private readonly RegionCoordinateResolver $coordinateResolver,
@@ -38,56 +37,46 @@ class GeopoliticalTensionService
         }
 
         $rawRegionName = trim((string) ($payload['region_name'] ?? ''));
+        $rawDisplayRegionName = trim((string) ($payload['display_region_name'] ?? $payload['region_display_name'] ?? ''));
         $context = $this->articleContext($featuredArticle);
         $regionName = $this->normalizeRegionName($rawRegionName, $featuredArticle);
         if ($regionName === '') {
             return null;
         }
 
-        $coordinates = $this->resolveCoordinates($regionName, $featuredArticle);
-        $existingTension = $this->findExistingTension(
-            Str::limit($regionName, 255, ''),
-            $coordinates
+        $displayRegionName = $this->normalizeDisplayRegionName(
+            $rawDisplayRegionName !== '' ? $rawDisplayRegionName : $rawRegionName,
+            $regionName,
+            $featuredArticle
         );
+        $regionKey = $this->buildRegionKey($regionName, $displayRegionName);
+
+        $coordinates = $this->resolveCoordinates($displayRegionName !== '' ? $displayRegionName : $regionName, $featuredArticle);
+        $existingTension = $this->findExistingTension($featuredArticle, $regionKey);
 
         $statusLabel = trim((string) ($payload['status_label'] ?? ''));
         $rawRisk = $this->normalizeRiskScore($payload['risk_score'] ?? 0);
         $agentTrend = $this->normalizeTrendDirection($payload['trend_direction'] ?? 'stable');
         $calibratedRiskScore = $this->riskScoreCalibration->calibrate($rawRisk, $context, $statusLabel, $agentTrend);
-        $currentRiskScore = $existingTension?->risk_score ?? 0;
         $eventDelta = $this->eventWeightService->delta($calibratedRiskScore, $agentTrend, $context, $statusLabel);
-        $shouldTriggerEventTime = $eventDelta >= 3;
-        $riskScore = max(0, min(100, $currentRiskScore + $eventDelta));
-        // $trendDirection = $this->scoreTrendDirection($currentRiskScore, $riskScore, $agentTrend);
-        $decayedRiskScore = $existingTension
-            ? (int) $this->decaySnapshot($existingTension)['current_tension']
-            : $currentRiskScore;
-        $trendDirection = $this->scoreTrendDirection(
-            $decayedRiskScore,
-            $riskScore,
-            $agentTrend
-        );
-        $coordinates = $this->resolveCoordinates($regionName, $featuredArticle);
+        $riskScore = max(1, min(100, $calibratedRiskScore + $eventDelta));
+        $trendDirection = $agentTrend;
 
         $attributes = [
             'region_name' => Str::limit($regionName, 255, ''),
+            'display_region_name' => Str::limit($displayRegionName !== '' ? $displayRegionName : $regionName, 255, ''),
+            'region_key' => Str::limit($regionKey !== '' ? $regionKey : $regionName, 255, ''),
             'risk_score' => $riskScore,
-            'event_delta' => $eventDelta,
-            'previous_current_tension' => $currentRiskScore,
             'trend_direction' => $trendDirection,
             'status_label' => Str::limit($statusLabel !== '' ? $statusLabel : 'Tensione geopolitica', 255, ''),
             'featured_article_id' => $featuredArticle?->id,
-            // 'last_event_at' => now(),
-            'last_event_at' => $shouldTriggerEventTime
-                ? now()
-                : ($existingTension->last_event_at ?? now()),
-            'last_decay_at' => null,
+            'last_event_at' => $existingTension?->last_event_at ?? now(),
             'updated_at' => now(),
             'latitude' => $coordinates['lat'] ?? null,
             'longitude' => $coordinates['long'] ?? null,
         ];
 
-        $tension = $this->persistTension($existingTension, $attributes, $featuredArticle);
+        $tension = $this->persistTension($existingTension, $attributes);
 
         $this->clearHeaderCache();
 
@@ -124,89 +113,103 @@ class GeopoliticalTensionService
      *     initial_risk_score: int,
      *     current_tension: int,
      *     silence_hours: int,
-     *     decay_days: int,
-     *     decay_model: string,
-     *     decay_percent_per_day: float,
+     *     min_active_risk_score: int,
+     *     ttl_hours: int,
+     *     expires_at: string|null,
+     *     is_expired: bool,
      *     radio_silence_label: string
      * }
      */
-    public function decaySnapshot(GeopoliticalTension $tension): array
+    public function lifecycleSnapshot(GeopoliticalTension $tension): array
     {
-        return ThermalDecay::snapshot(
-            (int) $tension->risk_score,
-            $tension->last_event_at ?? $tension->updated_at,
-            null,
-            $tension->last_decay_at,
-        );
-    }
+        $referenceAt = $tension->last_event_at ?? $tension->updated_at;
+        $ttlHours = $this->tensionTtlHours();
+        $minActiveRiskScore = $this->minActiveRiskScore();
+        $expiresAt = $referenceAt?->copy()->addHours($ttlHours);
+        $now = now();
+        $isExpired = $expiresAt !== null && $now->greaterThanOrEqualTo($expiresAt);
+        $isActive = ! $isExpired && (int) $tension->risk_score >= $minActiveRiskScore;
 
-    public function coolTensions(): int
-    {
-        if (! Schema::hasTable('geopolitical_tensions')) {
-            return 0;
-        }
-
-        $updated = 0;
-
-        GeopoliticalTension::query()
-            ->orderBy('id')
-            ->chunkById(100, function ($tensions) use (&$updated): void {
-                foreach ($tensions as $tension) {
-                    $snapshot = $this->decaySnapshot($tension);
-                    $current = (int) $snapshot['current_tension'];
-
-                    if ($current === (int) $tension->risk_score) {
-                        continue;
-                    }
-
-                    DB::table('geopolitical_tensions')
-                        ->where('id', $tension->id)
-                        ->update([
-                            'risk_score' => $current,
-                            'trend_direction' => 'falling',
-                            'last_decay_at' => now(),
-                            'updated_at' => now(),
-                        ]);
-
-                    $updated++;
-                }
-            });
-
-        if ($updated > 0) {
-            $this->clearHeaderCache();
-        }
-
-        return $updated;
+        return [
+            'initial_risk_score' => (int) $tension->risk_score,
+            'current_tension' => (int) $tension->risk_score,
+            'silence_hours' => $referenceAt ? (int) $referenceAt->diffInHours($now) : 0,
+            'min_active_risk_score' => $minActiveRiskScore,
+            'ttl_hours' => $ttlHours,
+            'expires_at' => $expiresAt?->toISOString(),
+            'is_expired' => $isExpired,
+            'radio_silence_label' => $isExpired
+                ? 'Scaduta'
+                : ((int) $tension->risk_score < $minActiveRiskScore
+                    ? sprintf('Sotto soglia %d', $minActiveRiskScore)
+                    : sprintf('Valida per %d ore', $ttlHours)),
+        ];
     }
 
     public function resolveTrendDirection(GeopoliticalTension $tension): string
     {
-        $currentTension = (int) ($this->decaySnapshot($tension)['current_tension'] ?? $tension->risk_score ?? 0);
-
-        if ($currentTension < (int) $tension->risk_score) {
-            return 'falling';
-        }
-
         return $this->normalizeTrendDirection($tension->trend_direction);
     }
 
     public function normalizeRegionName(string $regionName, ?Article $article = null): string
     {
         $regionName = trim($regionName);
-        $context = $this->articleContext($article);
-        $canonical = $this->coordinateResolver->canonicalRegionName($regionName, $context);
+        $regionName = $this->normalizeDescriptiveRegionLabel($regionName);
+        $regionName = $this->primaryRegionNameFromLabel($regionName);
 
-        if ($canonical !== null && $canonical !== '') {
-            return Str::limit($canonical, 255, '');
+        $context = $this->articleHeadlineContext($article);
+        if ($context === '') {
+            $context = $this->articleContext($article);
         }
 
-        if ($regionName !== '') {
+        if ($regionName !== '' && ! $this->coordinateResolver->isGenericRegionName($regionName)) {
             return Str::limit($regionName, 255, '');
         }
 
-        $fallback = $article ? $this->coordinateResolver->canonicalRegionName('', $context) : null;
+        if ($context !== '') {
+            $resolvedRegionName = $this->coordinateResolver->canonicalRegionName($regionName, $context);
+            if ($resolvedRegionName !== null) {
+                $resolvedRegionName = trim($resolvedRegionName);
+                if ($resolvedRegionName !== '' && ! $this->coordinateResolver->isGenericRegionName($resolvedRegionName)) {
+                    return Str::limit($resolvedRegionName, 255, '');
+                }
+            }
+        }
 
-        return Str::limit((string) ($fallback ?: ''), 255, '');
+        return $regionName !== ''
+            ? Str::limit($regionName, 255, '')
+            : '';
+    }
+
+    public function normalizeDisplayRegionName(string $displayRegionName, string $baseRegionName, ?Article $article = null): string
+    {
+        $displayRegionName = trim($displayRegionName);
+        $displayRegionName = $this->normalizeDescriptiveRegionLabel($displayRegionName);
+        $baseRegionName = trim($baseRegionName);
+        $context = $this->articleHeadlineContext($article);
+        if ($context === '') {
+            $context = $this->articleContext($article);
+        }
+
+        if ($displayRegionName !== '' && ! $this->coordinateResolver->isGenericRegionName($displayRegionName)) {
+            return Str::limit($displayRegionName, 255, '');
+        }
+
+        if ($baseRegionName !== '' && ! $this->coordinateResolver->isGenericRegionName($baseRegionName)) {
+            return Str::limit($baseRegionName, 255, '');
+        }
+
+        if ($context !== '') {
+            $resolvedRegionName = $this->coordinateResolver->canonicalRegionName($baseRegionName, $context);
+            if ($resolvedRegionName !== null) {
+                $resolvedRegionName = trim($resolvedRegionName);
+                if ($resolvedRegionName !== '' && ! $this->coordinateResolver->isGenericRegionName($resolvedRegionName)) {
+                    return Str::limit($resolvedRegionName, 255, '');
+                }
+            }
+        }
+
+        return Str::limit((string) ($baseRegionName !== '' ? $baseRegionName : ''), 255, '');
     }
 
     /**
@@ -264,26 +267,31 @@ class GeopoliticalTensionService
             ->with('featuredArticle:id,title,slug,status')
             ->get()
             ->map(function (GeopoliticalTension $tension) {
-                $decay = $this->decaySnapshot($tension);
+                $lifecycle = $this->lifecycleSnapshot($tension);
                 $regionName = $this->normalizeRegionName((string) $tension->region_name, $tension->featuredArticle);
+                $displayRegionName = trim((string) ($tension->display_region_name ?? ''));
 
                 return [
                     'region_name' => $regionName !== '' ? $regionName : $tension->region_name,
-                    'risk_score' => $decay['current_tension'],
-                    'initial_risk_score' => $decay['initial_risk_score'],
-                    'current_tension' => $decay['current_tension'],
+                    'display_region_name' => $displayRegionName !== '' ? $displayRegionName : $regionName,
+                    'region_key' => (string) ($tension->region_key ?? ''),
+                    'risk_score' => $lifecycle['current_tension'],
+                    'initial_risk_score' => $lifecycle['initial_risk_score'],
+                    'current_tension' => $lifecycle['current_tension'],
                     'trend_direction' => $tension->trend_direction,
                     'status_label' => $tension->status_label,
-                    'status_color' => $this->statusColorForScore($decay['current_tension']),
-                    'silence_hours' => $decay['silence_hours'],
-                    'radio_silence_label' => $decay['radio_silence_label'],
-                    'severity' => GeopoliticalSeverity::fromRiskScore($decay['current_tension']),
+                    'status_color' => $this->statusColorForScore($lifecycle['current_tension']),
+                    'silence_hours' => $lifecycle['silence_hours'],
+                    'radio_silence_label' => $lifecycle['radio_silence_label'],
+                    'severity' => GeopoliticalSeverity::fromRiskScore($lifecycle['current_tension']),
                     'article_url' => $this->articleUrl($tension),
                 ];
             })
-            ->filter(fn(array $tension) => $tension['current_tension'] > 0)
+            ->filter(fn(array $tension) => ! ($tension['is_expired'] ?? false))
+            ->filter(fn(array $tension) => $tension['current_tension'] >= $this->minActiveRiskScore())
             ->sortBy([
                 ['current_tension', 'desc'],
+                ['display_region_name', 'asc'],
                 ['region_name', 'asc'],
             ])
             ->take($limit)
@@ -315,39 +323,40 @@ class GeopoliticalTensionService
         return in_array($trend, ['rising', 'falling', 'stable'], true) ? $trend : 'stable';
     }
 
-    private function scoreTrendDirection(mixed $previousScore, int $currentScore, string $agentTrend): string
+    private function tensionTtlHours(): int
     {
-        if (! is_numeric($previousScore)) {
-            return $agentTrend;
-        }
-
-        $previous = (int) $previousScore;
-
-        return match (true) {
-            $currentScore > $previous => 'rising',
-            $currentScore < $previous => 'falling',
-            default => 'stable',
-        };
+        return max(1, (int) config('ai_news.tensions.ttl_hours', self::DEFAULT_TTL_HOURS));
     }
 
-    private function findExistingTension(string $regionName, ?array $coordinates): ?GeopoliticalTension
+    private function minActiveRiskScore(): int
     {
-        $byName = GeopoliticalTension::query()
-            ->where('region_name', $regionName)
-            ->first();
+        return max(1, (int) config('ai_news.tensions.min_active_risk_score', self::DEFAULT_MIN_ACTIVE_RISK_SCORE));
+    }
 
-        if ($byName !== null) {
-            return $byName;
-        }
-
-        if ($coordinates === null) {
+    private function findExistingTensionForArticle(?Article $article): ?GeopoliticalTension
+    {
+        if ($article === null) {
             return null;
         }
 
         return GeopoliticalTension::query()
-            ->where('latitude', $coordinates['lat'])
-            ->where('longitude', $coordinates['long'])
+            ->where('featured_article_id', $article->id)
             ->first();
+    }
+
+    private function findExistingTension(?Article $article, string $regionKey): ?GeopoliticalTension
+    {
+        if ($regionKey !== '') {
+            $existingByKey = GeopoliticalTension::query()
+                ->where('region_key', $regionKey)
+                ->first();
+
+            if ($existingByKey !== null) {
+                return $existingByKey;
+            }
+        }
+
+        return $this->findExistingTensionForArticle($article);
     }
 
     private function articleContext(?Article $article): string
@@ -428,60 +437,39 @@ class GeopoliticalTensionService
         };
     }
 
-    private function persistTension(?GeopoliticalTension $existingTension, array $attributes, ?Article $featuredArticle): GeopoliticalTension
+    private function persistTension(?GeopoliticalTension $existingTension, array $attributes): GeopoliticalTension
     {
         if ($existingTension !== null) {
-            return $this->updateExistingTension($existingTension, $attributes, $featuredArticle);
+            return $this->updateExistingTension($existingTension, $attributes);
         }
 
-        try {
-            return GeopoliticalTension::query()->create($this->storedTensionAttributes($attributes));
-        } catch (QueryException $e) {
-            if (! $this->isDuplicateRegionException($e)) {
-                throw $e;
-            }
-
-            $current = GeopoliticalTension::query()
-                ->where('region_name', $attributes['region_name'])
-                ->first();
-
-            if ($current === null) {
-                throw $e;
-            }
-
-            return $this->updateExistingTension($current, $attributes, $featuredArticle);
-        }
+        return GeopoliticalTension::query()->create($this->storedTensionAttributes($attributes));
     }
 
-    private function updateExistingTension(GeopoliticalTension $existingTension, array $attributes, ?Article $featuredArticle): GeopoliticalTension
+    private function updateExistingTension(GeopoliticalTension $existingTension, array $attributes): GeopoliticalTension
     {
-        $incomingRisk = (int) $attributes['risk_score'];
-        $currentRisk = (int) ($attributes['previous_current_tension'] ?? $existingTension->risk_score);
-        $eventDelta = (int) ($attributes['event_delta'] ?? 0);
-        $shouldPromote = $incomingRisk > $currentRisk;
-        $shouldDecompress = $eventDelta < 0 && $incomingRisk < $currentRisk;
-
         $updates = [
             'region_name' => $this->preferredRegionName(
                 (string) $existingTension->region_name,
                 (string) $attributes['region_name']
             ),
-            'latitude' => $existingTension->latitude ?? $attributes['latitude'],
-            'longitude' => $existingTension->longitude ?? $attributes['longitude'],
+            'display_region_name' => $this->preferredDisplayRegionName(
+                (string) ($existingTension->display_region_name ?? $existingTension->region_name),
+                (string) ($attributes['display_region_name'] ?? $attributes['region_name'])
+            ),
+            'region_key' => $this->preferredRegionKey(
+                (string) ($existingTension->region_key ?? ''),
+                (string) ($attributes['region_key'] ?? '')
+            ),
+            'latitude' => $attributes['latitude'] ?? $existingTension->latitude,
+            'longitude' => $attributes['longitude'] ?? $existingTension->longitude,
+            'risk_score' => (int) $attributes['risk_score'],
+            'trend_direction' => (string) $attributes['trend_direction'],
+            'status_label' => (string) $attributes['status_label'],
+            'featured_article_id' => $attributes['featured_article_id'],
+            'last_event_at' => $existingTension->last_event_at ?? $attributes['last_event_at'],
+            'updated_at' => $attributes['updated_at'],
         ];
-
-        if ($shouldPromote || $shouldDecompress || $featuredArticle?->id === $existingTension->featured_article_id) {
-            $updates['risk_score'] = $incomingRisk;
-            $updates['trend_direction'] = (string) $attributes['trend_direction'];
-            $updates['status_label'] = (string) $attributes['status_label'];
-            $updates['featured_article_id'] = $attributes['featured_article_id'];
-            $updates['latitude'] = $attributes['latitude'] ?? $updates['latitude'];
-            $updates['longitude'] = $attributes['longitude'] ?? $updates['longitude'];
-        }
-
-        $updates['last_event_at'] = $attributes['last_event_at'];
-        $updates['last_decay_at'] = $attributes['last_decay_at'];
-        $updates['updated_at'] = $attributes['updated_at'];
 
         $existingTension->update($updates);
 
@@ -494,8 +482,6 @@ class GeopoliticalTensionService
      */
     private function storedTensionAttributes(array $attributes): array
     {
-        unset($attributes['event_delta'], $attributes['previous_current_tension']);
-
         return $attributes;
     }
 
@@ -531,12 +517,112 @@ class GeopoliticalTensionService
         return $currentRegion;
     }
 
-    private function isDuplicateRegionException(QueryException $e): bool
+    private function preferredDisplayRegionName(string $currentRegion, string $incomingRegion): string
     {
-        $message = mb_strtolower($e->getMessage());
+        $currentRegion = trim($currentRegion);
+        $incomingRegion = trim($incomingRegion);
 
-        return str_contains($message, 'duplicate')
-            || str_contains($message, 'unique')
-            || str_contains($message, '1062');
+        if ($incomingRegion === '') {
+            return $currentRegion;
+        }
+
+        if ($currentRegion === '') {
+            return $incomingRegion;
+        }
+
+        if ($currentRegion === $incomingRegion) {
+            return $currentRegion;
+        }
+
+        if ($this->coordinateResolver->isGenericRegionName($currentRegion) && ! $this->coordinateResolver->isGenericRegionName($incomingRegion)) {
+            return $incomingRegion;
+        }
+
+        if (mb_strlen($incomingRegion) > mb_strlen($currentRegion) + 3) {
+            return $incomingRegion;
+        }
+
+        return $currentRegion;
     }
+
+    private function preferredRegionKey(string $currentKey, string $incomingKey): string
+    {
+        $currentKey = trim($currentKey);
+        $incomingKey = trim($incomingKey);
+
+        if ($incomingKey === '') {
+            return $currentKey;
+        }
+
+        if ($currentKey === '') {
+            return $incomingKey;
+        }
+
+        return mb_strlen($incomingKey) >= mb_strlen($currentKey) ? $incomingKey : $currentKey;
+    }
+
+    public function buildRegionKey(string $baseRegionName, string $displayRegionName): string
+    {
+        $source = trim($displayRegionName !== '' ? $displayRegionName : $baseRegionName);
+
+        if ($source === '') {
+            return '';
+        }
+
+        $source = $this->normalizeDescriptiveRegionLabel($source);
+        $parts = preg_split('~\s*[-/:]\s*~u', $source) ?: [$source];
+
+        $parts = array_values(array_filter(array_map(
+            fn (string $part) => $this->normalizeRegionKeyPart($part),
+            $parts
+        )));
+
+        return implode('_', $parts);
+    }
+
+    private function normalizeRegionKeyPart(string $value): string
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return '';
+        }
+
+        $ascii = Str::of($value)
+            ->ascii()
+            ->replaceMatches('/[^A-Za-z0-9]+/', ' ')
+            ->squish()
+            ->value();
+
+        if ($ascii === '') {
+            return '';
+        }
+
+        if (preg_match('/^[A-Z0-9]{2,6}$/', $ascii) === 1) {
+            return $ascii;
+        }
+
+        $headlined = Str::of($ascii)->headline()->replace(' ', '_')->value();
+
+        return $headlined !== '' ? $headlined : '';
+    }
+
+    private function primaryRegionNameFromLabel(string $regionName): string
+    {
+        $regionName = trim($regionName);
+        if ($regionName === '') {
+            return '';
+        }
+
+        $parts = preg_split('~\s*[-/:]\s*~u', $regionName) ?: [$regionName];
+
+        return trim((string) ($parts[0] ?? $regionName));
+    }
+
+    private function normalizeDescriptiveRegionLabel(string $regionName): string
+    {
+        $regionName = preg_replace('~\s*([\-/:])\s*~u', '$1', $regionName) ?? $regionName;
+
+        return trim($regionName);
+    }
+
 }
