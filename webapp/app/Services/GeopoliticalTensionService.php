@@ -19,8 +19,7 @@ class GeopoliticalTensionService
     public function __construct(
         private readonly RegionCoordinateResolver $coordinateResolver,
         private readonly GeopoliticalAreaExtractionService $areaExtractionService,
-        private readonly RiskScoreCalibrationService $riskScoreCalibration,
-        private readonly GeopoliticalEventWeightService $eventWeightService
+        private readonly RiskScoreCalibrationService $riskScoreCalibration
     ) {}
 
     /**
@@ -67,9 +66,7 @@ class GeopoliticalTensionService
         $statusLabel = trim((string) ($payload['status_label'] ?? ''));
         $rawRisk = $this->normalizeRiskScore($payload['risk_score'] ?? 0);
         $agentTrend = $this->normalizeTrendDirection($payload['trend_direction'] ?? 'stable');
-        $calibratedRiskScore = $this->riskScoreCalibration->calibrate($rawRisk, $context, $statusLabel, $agentTrend);
-        $eventDelta = $this->eventWeightService->delta($calibratedRiskScore, $agentTrend, $context, $statusLabel);
-        $riskScore = max(1, min(100, $calibratedRiskScore + $eventDelta));
+        $riskScore = max(1, min(100, $this->riskScoreCalibration->calibrate($rawRisk, $context, $statusLabel, $agentTrend)));
         $trendDirection = $agentTrend;
 
         $attributes = [
@@ -373,16 +370,37 @@ class GeopoliticalTensionService
     private function findExistingTension(?Article $article, string $regionKey): ?GeopoliticalTension
     {
         if ($regionKey !== '') {
+            $normalizedKey = $this->normalizeRegionKeyForLookup($regionKey);
+
             $existingByKey = GeopoliticalTension::query()
-                ->where('region_key', $regionKey)
+                ->where('region_key', $normalizedKey)
                 ->first();
 
             if ($existingByKey !== null) {
                 return $existingByKey;
             }
+
+            // fallback fuzzy: stesso prefisso
+            $fuzzy = GeopoliticalTension::query()
+                ->where('region_key', 'like', $normalizedKey . '%')
+                ->first();
+
+            if ($fuzzy !== null) {
+                return $fuzzy;
+            }
         }
 
         return $this->findExistingTensionForArticle($article);
+    }
+
+    private function normalizeRegionKeyForLookup(string $key): string
+    {
+        return Str::of($key)
+            ->lower()
+            ->replaceMatches('/[^a-z0-9_]+/', '_')
+            ->replace('__', '_')
+            ->trim('_')
+            ->value();
     }
 
     private function articleContext(?Article $article): string
@@ -469,7 +487,18 @@ class GeopoliticalTensionService
             return $this->updateExistingTension($existingTension, $attributes);
         }
 
-        return GeopoliticalTension::query()->create($this->storedTensionAttributes($attributes));
+        if (!empty($attributes['region_key'])) {
+            $existingTension = GeopoliticalTension::query()
+                ->where('region_key', $attributes['region_key'])
+                ->first();
+
+            if ($existingTension !== null) {
+                return $this->updateExistingTension($existingTension, $attributes);
+            }
+        }
+
+        return GeopoliticalTension::query()
+            ->create($this->storedTensionAttributes($attributes));
     }
 
     private function updateExistingTension(GeopoliticalTension $existingTension, array $attributes): GeopoliticalTension
@@ -599,11 +628,14 @@ class GeopoliticalTensionService
         $parts = preg_split('~\s*[-/:]\s*~u', $source) ?: [$source];
 
         $parts = array_values(array_filter(array_map(
-            fn (string $part) => $this->normalizeRegionKeyPart($part),
+            fn(string $part) => $this->normalizeRegionKeyPart($part),
             $parts
         )));
 
-        return implode('_', $parts);
+        // return implode('_', $parts);
+        return Str::of(implode('_', $parts))
+            ->lower()
+            ->value();
     }
 
     private function normalizeRegionKeyPart(string $value): string
@@ -650,5 +682,4 @@ class GeopoliticalTensionService
 
         return trim($regionName);
     }
-
 }
