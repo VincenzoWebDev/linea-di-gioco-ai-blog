@@ -34,7 +34,7 @@ return [
     'google' => [
         'credentials' => env('GOOGLE_APPLICATION_CREDENTIALS'),
         'project_id' => env('GOOGLE_CLOUD_PROJECT'),
-        'location' => env('GOOGLE_CLOUD_LOCATION', 'us-central1'),
+        'location' => env('GOOGLE_CLOUD_LOCATION', 'global'),
     ],
 
 ];
