@@ -16,7 +16,7 @@ class GoogleImageService
         string $summary
     ): array {
         $projectId = (string) config('services.google.project_id');
-        $location  = (string) config('services.google.location');
+        $location  = (string) config('services.google.location') ?: 'global';
 
         if ($projectId === '' || $location === '') {
             throw new RuntimeException('missing_google_config');
@@ -29,9 +29,12 @@ class GoogleImageService
 
         $model = 'gemini-3.1-flash-image';
 
+        // Fix per global endpoint
+        $host = ($location === 'global') ? 'aiplatform.googleapis.com' : "{$location}-aiplatform.googleapis.com";
+
         $url = sprintf(
-            'https://%s-aiplatform.googleapis.com/v1/projects/%s/locations/%s/publishers/google/models/%s:generateContent',
-            $location,
+            'https://%s/v1/projects/%s/locations/%s/publishers/google/models/%s:generateContent',
+            $host,
             $projectId,
             $location,
             $model
@@ -50,7 +53,7 @@ class GoogleImageService
                     ]
                 ],
                 'generationConfig' => [
-                    'responseModalities' => ['IMAGE'],
+                    'responseModalities' => ['TEXT', 'IMAGE'],
                     'imageConfig' => [
                         'aspectRatio' => '16:9',
                         'imageSize'   => '1K'
@@ -67,6 +70,7 @@ class GoogleImageService
         if (!$response->successful()) {
             Log::error('gemini_image_generation_failed', [
                 'status'   => $response->status(),
+                'url' => $url,
                 'response' => mb_substr($response->body(), 0, 1500),
             ]);
             throw new RuntimeException('gemini_http_error_' . $response->status());
