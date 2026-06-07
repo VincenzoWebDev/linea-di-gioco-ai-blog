@@ -205,7 +205,7 @@ class ArticleController extends Controller
     {
         $currentCategoryNames = $article->categories
             ->pluck('name')
-            ->map(fn ($value) => mb_strtolower((string) $value))
+            ->map(fn($value) => mb_strtolower((string) $value))
             ->values();
         $currentRegion = mb_strtolower(trim((string) $tension?->region_name));
         $currentKeywords = $this->extractSimilarityKeywords(
@@ -233,8 +233,8 @@ class ArticleController extends Controller
                 $candidateTension = $tensionsByArticleId->get($candidate->id);
                 $candidateRegion = mb_strtolower(trim((string) ($candidateTension?->region_name ?? '')));
                 $sharedCategories = $categoryNames
-                    ->map(fn ($value) => mb_strtolower((string) $value))
-                    ->filter(fn ($value) => $currentCategoryNames->contains($value))
+                    ->map(fn($value) => mb_strtolower((string) $value))
+                    ->filter(fn($value) => $currentCategoryNames->contains($value))
                     ->values();
                 $candidateKeywords = $this->extractSimilarityKeywords(
                     implode(' ', array_filter([
@@ -264,7 +264,7 @@ class ArticleController extends Controller
                     '_score' => $score,
                 ];
             })
-            ->filter(fn (array $item) => $item['_score'] > 0)
+            ->filter(fn(array $item) => $item['_score'] > 0)
             ->sortBy([
                 ['_score', 'desc'],
                 ['published_at', 'desc'],
@@ -286,7 +286,7 @@ class ArticleController extends Controller
     {
         $currentCategoryNames = $article->categories
             ->pluck('name')
-            ->map(fn ($value) => mb_strtolower((string) $value))
+            ->map(fn($value) => mb_strtolower((string) $value))
             ->values();
         $currentRegion = mb_strtolower(trim((string) $tension?->region_name));
 
@@ -314,8 +314,8 @@ class ArticleController extends Controller
                     Str::limit(strip_tags((string) $candidate->content), 900, ''),
                 ]));
                 $sharedCategories = $categoryNames
-                    ->map(fn ($value) => mb_strtolower((string) $value))
-                    ->filter(fn ($value) => $currentCategoryNames->contains($value))
+                    ->map(fn($value) => mb_strtolower((string) $value))
+                    ->filter(fn($value) => $currentCategoryNames->contains($value))
                     ->values();
 
                 return [
@@ -332,27 +332,27 @@ class ArticleController extends Controller
             });
 
         $sameArea = $candidates
-            ->filter(fn (array $item) => $item['_same_region'])
+            ->filter(fn(array $item) => $item['_same_region'])
             ->take(3)
-            ->map(fn (array $item) => $this->cleanInternalLinkItem($item, 'Stessa area geopolitica'))
+            ->map(fn(array $item) => $this->cleanInternalLinkItem($item, 'Stessa area geopolitica'))
             ->values()
             ->all();
 
         $sameCategory = $candidates
-            ->filter(fn (array $item) => $item['_shared_categories'] !== [])
+            ->filter(fn(array $item) => $item['_shared_categories'] !== [])
             ->take(3)
-            ->map(fn (array $item) => $this->cleanInternalLinkItem(
+            ->map(fn(array $item) => $this->cleanInternalLinkItem(
                 $item,
-                'Categoria: '.Str::title((string) $item['_shared_categories'][0])
+                'Categoria: ' . Str::title((string) $item['_shared_categories'][0])
             ))
             ->values()
             ->all();
 
         $previousEvents = $candidates
-            ->filter(fn (array $item) => $item['_same_region'])
-            ->filter(fn (array $item) => $article->published_at === null || ($item['published_at'] ?? null) < $article->published_at->toISOString())
+            ->filter(fn(array $item) => $item['_same_region'])
+            ->filter(fn(array $item) => $article->published_at === null || ($item['published_at'] ?? null) < $article->published_at->toISOString())
             ->take(3)
-            ->map(fn (array $item) => $this->cleanInternalLinkItem($item, 'Evento precedente'))
+            ->map(fn(array $item) => $this->cleanInternalLinkItem($item, 'Evento precedente'))
             ->values()
             ->all();
 
@@ -375,11 +375,11 @@ class ArticleController extends Controller
 
         $text = Str::lower($candidateText);
         $regionTokens = collect(preg_split('/[^\pL\pN]+/u', $currentRegion) ?: [])
-            ->map(fn ($value) => trim((string) $value))
-            ->filter(fn ($value) => mb_strlen($value) >= 4)
+            ->map(fn($value) => trim((string) $value))
+            ->filter(fn($value) => mb_strlen($value) >= 4)
             ->values();
 
-        return $regionTokens->contains(fn ($token) => str_contains($text, $token));
+        return $regionTokens->contains(fn($token) => str_contains($text, $token));
     }
 
     /**
@@ -401,15 +401,42 @@ class ArticleController extends Controller
     private function extractSimilarityKeywords(string $text): array
     {
         $stopwords = [
-            'della', 'delle', 'degli', 'dello', 'nella', 'nelle', 'negli', 'sulla', 'sulle',
-            'dopo', 'prima', 'anche', 'mentre', 'questo', 'questa', 'quello', 'quella',
-            'sono', 'come', 'dati', 'fonti', 'paese', 'paesi', 'stato', 'stati',
-            'notizia', 'articolo', 'analisi', 'linea', 'gioco', 'dossier',
+            'della',
+            'delle',
+            'degli',
+            'dello',
+            'nella',
+            'nelle',
+            'negli',
+            'sulla',
+            'sulle',
+            'dopo',
+            'prima',
+            'anche',
+            'mentre',
+            'questo',
+            'questa',
+            'quello',
+            'quella',
+            'sono',
+            'come',
+            'dati',
+            'fonti',
+            'paese',
+            'paesi',
+            'stato',
+            'stati',
+            'notizia',
+            'articolo',
+            'analisi',
+            'linea',
+            'gioco',
+            'dossier',
         ];
 
         return collect(preg_split('/[^\pL\pN]+/u', Str::lower($text)) ?: [])
-            ->map(fn ($value) => trim((string) $value))
-            ->filter(fn ($value) => mb_strlen($value) >= 5 && ! in_array($value, $stopwords, true))
+            ->map(fn($value) => trim((string) $value))
+            ->filter(fn($value) => mb_strlen($value) >= 5 && ! in_array($value, $stopwords, true))
             ->unique()
             ->values()
             ->take(12)
@@ -427,11 +454,11 @@ class ArticleController extends Controller
         }
 
         if ($sharedCategories !== []) {
-            return 'Categoria condivisa: '.Str::title((string) $sharedCategories[0]);
+            return 'Categoria condivisa: ' . Str::title((string) $sharedCategories[0]);
         }
 
         if ($sharedKeywords !== []) {
-            return 'Tema comune: '.Str::headline((string) $sharedKeywords[0]);
+            return 'Tema comune: ' . Str::headline((string) $sharedKeywords[0]);
         }
 
         return 'Contesto affine';
