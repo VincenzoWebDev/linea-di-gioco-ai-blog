@@ -308,6 +308,7 @@ class GeopoliticalTensionService
                     'radio_silence_label' => $lifecycle['radio_silence_label'],
                     'severity' => GeopoliticalSeverity::fromRiskScore($lifecycle['current_tension']),
                     'article_url' => $this->articleUrl($tension),
+                    'is_expired' => $lifecycle['is_expired'],
                 ];
             })
             ->filter(fn(array $tension) => ! ($tension['is_expired'] ?? false))

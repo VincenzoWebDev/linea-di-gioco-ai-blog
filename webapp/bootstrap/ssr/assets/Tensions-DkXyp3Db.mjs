@@ -1,8 +1,8 @@
 import { jsx, jsxs } from "react/jsx-runtime";
 import { useRef, useEffect, useState, useMemo } from "react";
-import { A as Authenticated } from "./AuthenticatedLayout-Bc07UTqA.mjs";
+import { A as Authenticated } from "./AuthenticatedLayout-dpwVNFAu.mjs";
 import { router, useForm, Head } from "@inertiajs/react";
-import { C as Card, a as CardContent, c as CardHeader, d as CardTitle, b as CardDescription } from "./card-DRB3Bbat.mjs";
+import { C as Card, c as CardHeader, d as CardTitle, b as CardDescription, a as CardContent } from "./card-DRB3Bbat.mjs";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { A as AdminPagination } from "./AdminPagination-D6_hrmXq.mjs";
 import { M as Modal } from "./Modal-BnFbDATV.mjs";
@@ -11,7 +11,7 @@ import "./ApplicationLogo-VXSMMN2A.mjs";
 import "@headlessui/react";
 import "./SeoHead-9Gv-Y1Y7.mjs";
 function TensionsStatsCard({ stats = {} }) {
-  return /* @__PURE__ */ jsx(Card, { children: /* @__PURE__ */ jsxs(CardContent, { className: "grid gap-3 p-6 sm:grid-cols-3", children: [
+  return /* @__PURE__ */ jsx(Card, { className: "p-6", children: /* @__PURE__ */ jsxs("div", { className: "grid gap-3 sm:grid-cols-3", children: [
     /* @__PURE__ */ jsxs("div", { children: [
       /* @__PURE__ */ jsx("p", { className: "text-xs text-slate-500", children: "Totali" }),
       /* @__PURE__ */ jsx("p", { className: "text-xl font-semibold text-slate-900", children: stats.total ?? 0 })
@@ -34,6 +34,7 @@ const TREND_LABELS = {
 function emptyTensionForm() {
   return {
     region_name: "",
+    display_region_name: "",
     risk_score: 50,
     trend_direction: "stable",
     status_label: "",
@@ -52,6 +53,7 @@ function tensionToEditFormData(item) {
   return {
     _method: "put",
     region_name: item.region_name || "",
+    display_region_name: item.display_region_name || "",
     risk_score: item.risk_score || 50,
     trend_direction: item.trend_direction || "stable",
     status_label: item.status_label || "",
@@ -66,8 +68,9 @@ function articleOptionLabel(article) {
 }
 function TensionsTableRow({ tension, onEdit, onDelete }) {
   const trend = TREND_LABELS[tension.trend_direction] || TREND_LABELS.stable;
+  const regionLabel = tension.display_region_name || tension.region_name;
   return /* @__PURE__ */ jsxs("tr", { className: "border-b border-slate-100", children: [
-    /* @__PURE__ */ jsx("td", { className: "py-3 pr-4 font-medium text-slate-900", children: tension.region_name }),
+    /* @__PURE__ */ jsx("td", { className: "py-3 pr-4 font-medium text-slate-900", children: regionLabel }),
     /* @__PURE__ */ jsx("td", { className: "py-3 pr-4 text-slate-600", children: tension.risk_score }),
     /* @__PURE__ */ jsx("td", { className: "py-3 pr-4 text-slate-600", children: trend }),
     /* @__PURE__ */ jsx("td", { className: "py-3 pr-4 text-slate-600", children: tension.status_label }),
@@ -204,6 +207,22 @@ function TensionForm({
               onChange: (e) => form.setData("region_name", e.target.value)
             }
           ) }),
+          /* @__PURE__ */ jsx(
+            TensionFormField,
+            {
+              label: "Nome parlante",
+              error: form.errors.display_region_name,
+              children: /* @__PURE__ */ jsx(
+                "input",
+                {
+                  className: inputClassName,
+                  value: form.data.display_region_name,
+                  onChange: (e) => form.setData("display_region_name", e.target.value),
+                  placeholder: "Es. USA-Iran, Cina-Taiwan"
+                }
+              )
+            }
+          ),
           /* @__PURE__ */ jsx(TensionFormField, { label: "Risk score (1-100)", error: form.errors.risk_score, children: /* @__PURE__ */ jsx(
             "input",
             {
@@ -393,7 +412,7 @@ function Tensions({
     setShowEdit(true);
   };
   const handleDelete = (item) => {
-    if (!confirm(`Eliminare la tensione "${item.region_name}"?`)) {
+    if (!confirm(`Eliminare la tensione "${item.display_region_name || item.region_name}"?`)) {
       return;
     }
     editForm.delete(route("admin.tensions.destroy", item.id), {

@@ -2,9 +2,10 @@ import { jsxs, jsx } from "react/jsx-runtime";
 import { ComposableMap, Graticule, Geographies, Geography, Marker } from "react-simple-maps";
 import { useState } from "react";
 import { d as severityClasses } from "./geopoliticalSeverity-B4PJR-9p.mjs";
-import { Satellite, Crosshair, MapPin, Clock3, RadioTower, ArrowRight } from "lucide-react";
+import { Satellite, Crosshair, MapPin, ArrowRight } from "lucide-react";
 import { Link } from "@inertiajs/react";
-import { A as ArticleCoverImage } from "./ArticleIntelligenceCard-Dth2VJvG.mjs";
+import { A as ArticleCoverImage } from "./ArticleIntelligenceCard-6E8fd8fc.mjs";
+import { t as trendCopy } from "./trendCopy-BRLsGmW-.mjs";
 const geoUrl = "/build/assets/countries-110m-B3KlhDC_.json";
 function formatCoordinate(value, axis) {
   const numeric = Number(value) || 0;
@@ -14,6 +15,9 @@ function formatCoordinate(value, axis) {
 function GlobalMap({ operations }) {
   const [activeId, setActiveId] = useState(operations[0]?.id || null);
   const active = operations.find((item) => item.id === activeId) || operations[0];
+  const trend = active ? trendCopy[active.trend_direction] || trendCopy.stable : null;
+  const TrendIcon = trend?.icon;
+  const trendLabel = trend?.label;
   return /* @__PURE__ */ jsxs("section", { className: "relative overflow-hidden border border-[#202A3D] bg-[#080B10] shadow-[0_32px_90px_rgba(0,0,0,0.32)]", children: [
     /* @__PURE__ */ jsx("div", { className: "absolute inset-0 bg-[linear-gradient(rgba(215,181,109,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(215,181,109,0.04)_1px,transparent_1px)] bg-[size:44px_44px]" }),
     /* @__PURE__ */ jsxs("div", { className: "relative grid gap-6 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_minmax(260px,320px)] lg:p-7", children: [
@@ -25,7 +29,7 @@ function GlobalMap({ operations }) {
           ] }),
           /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-3 border border-[#2A354D] bg-[#101620]/90 px-4 py-3 font-mono text-xs uppercase tracking-[0.18em] text-[#AAB3C2]", children: [
             /* @__PURE__ */ jsx(Satellite, { className: "h-4 w-4 text-[#D7B56D]" }),
-            "Monitoraggio AI attivo"
+            "Monitoraggio geopolitico attivo"
           ] })
         ] }),
         /* @__PURE__ */ jsx("div", { className: "mt-5 sm:mt-7 aspect-[1.55] sm:aspect-[1.72] w-full max-w-full overflow-hidden border border-[#182234] bg-[#0B0F15]/80 [&_svg]:max-w-full [&_svg]:origin-center [&_svg]:scale-[1.02] sm:[&_svg]:scale-[1.1]", children: /* @__PURE__ */ jsxs(
@@ -95,7 +99,7 @@ function GlobalMap({ operations }) {
                       )
                     ] })
                   },
-                  `${item.id}-${item.region_name}`
+                  `${item.id}-${item.region_key || item.region_name}`
                 );
               })
             ]
@@ -106,7 +110,7 @@ function GlobalMap({ operations }) {
         /* @__PURE__ */ jsxs("div", { className: "flex items-start justify-between gap-3", children: [
           /* @__PURE__ */ jsxs("div", { className: "min-w-0 flex-1", children: [
             /* @__PURE__ */ jsx("p", { className: "font-mono text-[11px] uppercase tracking-[0.26em] text-[#7E8796]", children: "Hotspot selezionato" }),
-            /* @__PURE__ */ jsx("h2", { className: "mt-2 min-h-[4rem] text-2xl font-semibold leading-tight text-[#F3F4F6]", children: active.region_name })
+            /* @__PURE__ */ jsx("h2", { className: "mt-2 min-h-[4rem] text-2xl font-semibold leading-tight text-[#F3F4F6]", children: active.display_region_name || active.region_name })
           ] }),
           /* @__PURE__ */ jsx(
             "span",
@@ -128,27 +132,19 @@ function GlobalMap({ operations }) {
           /* @__PURE__ */ jsx(
             SignalBox,
             {
+              icon: TrendIcon,
+              label: "Tendenza",
+              value: trendLabel
+            }
+          ),
+          /* @__PURE__ */ jsx("div", { className: "col-span-2", children: /* @__PURE__ */ jsx(
+            SignalBox,
+            {
               icon: MapPin,
               label: "Coordinate",
               value: `${formatCoordinate(active.lat, "lat")} / ${formatCoordinate(active.long, "long")}`
             }
-          ),
-          /* @__PURE__ */ jsx(
-            SignalBox,
-            {
-              icon: Clock3,
-              label: "Silenzio",
-              value: `${active.silence_hours}h`
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            SignalBox,
-            {
-              icon: RadioTower,
-              label: "Stato",
-              value: active.radio_silence_label
-            }
-          )
+          ) })
         ] }),
         /* @__PURE__ */ jsx(
           ArticleCoverImage,

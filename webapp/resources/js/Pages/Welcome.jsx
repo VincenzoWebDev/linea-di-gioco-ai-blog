@@ -1,5 +1,4 @@
 import BlogLayout from "@/Layouts/BlogLayout";
-import HomeBriefingSection from "@/Components/blog/home/HomeBriefingSection";
 import HomeCommandCenter from "@/Components/blog/home/HomeCommandCenter";
 import HomeFeedSection from "@/Components/blog/home/HomeFeedSection";
 import HomeLatestNewsSection from "@/Components/blog/home/HomeLatestNewsSection";
@@ -12,7 +11,6 @@ export default function Welcome({
     feedItems = [],
     latestItems = [],
     locations = [],
-    historicalOperations = [],
     stats = {},
 }) {
     const lcpImageUrl = resolveLcpImageUrl(feedItems[0]);
@@ -38,7 +36,6 @@ export default function Welcome({
                 />
                 <HomeFeedSection items={feedItems} />
                 <HomeLatestNewsSection items={latestItems} />
-                <HomeBriefingSection items={historicalOperations} />
             </BlogLayout>
         </>
     );

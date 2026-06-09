@@ -75,7 +75,7 @@ function ArticleIntelligenceCard({
     slug: article.slug
   });
   const operationCode = article.operation_code || `OP-${String(article.id).padStart(4, "0")}`;
-  const summary = article.summary || article.excerpt || "Briefing in aggiornamento automatico.";
+  const summary = article.summary || article.excerpt || "Aggiornamento geopolitico in corso.";
   const revealDelay = Math.min(index * 60, 300);
   return /* @__PURE__ */ jsx(
     "article",

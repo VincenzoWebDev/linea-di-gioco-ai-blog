@@ -7,10 +7,11 @@ import {
 } from "react-simple-maps";
 import { useState } from "react";
 import { severityClasses } from "@/lib/geopoliticalSeverity";
-import { ArrowRight, Clock3, Crosshair, MapPin, RadioTower, Satellite } from "lucide-react";
+import { ArrowRight, Crosshair, MapPin, Satellite } from "lucide-react";
 import { Link } from "@inertiajs/react";
 import ArticleCoverImage from "@/Components/blog/articles/ArticleCoverImage";
 import geoUrl from "@/assets/world-atlas/countries-110m.json?url";
+import { trendCopy } from "@/lib/blog/trendCopy";
 
 function formatCoordinate(value, axis) {
     const numeric = Number(value) || 0;
@@ -24,6 +25,10 @@ export default function GlobalMap({ operations }) {
     const [activeId, setActiveId] = useState(operations[0]?.id || null);
     const active =
         operations.find((item) => item.id === activeId) || operations[0];
+
+    const trend = active ? (trendCopy[active.trend_direction] || trendCopy.stable) : null;
+    const TrendIcon = trend?.icon;
+    const trendLabel = trend?.label;
 
     return (
         <section className="relative overflow-hidden border border-[#202A3D] bg-[#080B10] shadow-[0_32px_90px_rgba(0,0,0,0.32)]">
@@ -148,20 +153,17 @@ export default function GlobalMap({ operations }) {
                                     value={active.current_tension}
                                 />
                                 <SignalBox
-                                    icon={MapPin}
-                                    label="Coordinate"
-                                    value={`${formatCoordinate(active.lat, "lat")} / ${formatCoordinate(active.long, "long")}`}
+                                    icon={TrendIcon}
+                                    label="Tendenza"
+                                    value={trendLabel}
                                 />
-                                <SignalBox
-                                    icon={Clock3}
-                                    label="Silenzio"
-                                    value={`${active.silence_hours}h`}
-                                />
-                                <SignalBox
-                                    icon={RadioTower}
-                                    label="Stato"
-                                    value={active.radio_silence_label}
-                                />
+                                <div className="col-span-2">
+                                    <SignalBox
+                                        icon={MapPin}
+                                        label="Coordinate"
+                                        value={`${formatCoordinate(active.lat, "lat")} / ${formatCoordinate(active.long, "long")}`}
+                                    />
+                                </div>
                             </div>
 
                             <ArticleCoverImage

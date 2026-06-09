@@ -60,18 +60,12 @@ class HomeController extends Controller
             ->where('risk_score', '>=', (int) config('ai_news.tensions.min_active_risk_score', 30))
             ->take(6)
             ->values();
-        $historicalOperations = $operations
-            ->filter(fn(array $item) => (int) ($item['risk_score'] ?? 0) >= (int) config('ai_news.tensions.min_active_risk_score', 30))
-            ->where('current_tension', '=', 0)
-            ->take(5)
-            ->values();
         $fallbackArticle = $articles->first();
         $latestPublishedAt = ($activeOperations->first()['published_at'] ?? null)
             ?? ($fallbackArticle['published_at'] ?? null);
 
         return Inertia::render('Welcome', [
             'locations' => $activeOperations,
-            'historicalOperations' => $historicalOperations,
             'feedItems' => $activeOperations->isNotEmpty() ? $activeOperations : $articles->take(6)->values(),
             'latestItems' => $articles->take(3)->values(),
             'stats' => [

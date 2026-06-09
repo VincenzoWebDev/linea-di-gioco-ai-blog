@@ -1,5 +1,5 @@
 import { jsxs, jsx } from "react/jsx-runtime";
-import { A as Authenticated } from "./AuthenticatedLayout-Bc07UTqA.mjs";
+import { A as Authenticated } from "./AuthenticatedLayout-dpwVNFAu.mjs";
 import { Head } from "@inertiajs/react";
 import { C as Card, c as CardHeader, d as CardTitle, b as CardDescription, a as CardContent } from "./card-DRB3Bbat.mjs";
 import "react";

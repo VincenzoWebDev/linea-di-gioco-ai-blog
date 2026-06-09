@@ -1,7 +1,7 @@
 import { jsxs, Fragment, jsx } from "react/jsx-runtime";
 import { Link } from "@inertiajs/react";
 import { ArrowRight, Newspaper, ShieldCheck, Mail } from "lucide-react";
-import { B as BlogLayout } from "./BlogLayout-CcevzCzS.mjs";
+import { B as BlogLayout } from "./BlogLayout-Do41-7kv.mjs";
 import { S as SeoHead } from "./SeoHead-9Gv-Y1Y7.mjs";
 import "react";
 function Newsletter({ stats = {} }) {

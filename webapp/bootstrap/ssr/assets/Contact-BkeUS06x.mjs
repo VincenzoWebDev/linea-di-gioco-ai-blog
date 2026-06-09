@@ -1,5 +1,5 @@
 import { jsxs, Fragment, jsx } from "react/jsx-runtime";
-import { B as BlogLayout } from "./BlogLayout-CcevzCzS.mjs";
+import { B as BlogLayout } from "./BlogLayout-Do41-7kv.mjs";
 import { S as SeoHead } from "./SeoHead-9Gv-Y1Y7.mjs";
 import { Link } from "@inertiajs/react";
 import "react";
@@ -26,7 +26,7 @@ function Contact() {
     ),
     /* @__PURE__ */ jsx(BlogLayout, { children: /* @__PURE__ */ jsxs("div", { className: "max-w-3xl mx-auto px-4 py-16 text-zinc-200", children: [
       /* @__PURE__ */ jsx("h1", { className: "text-3xl font-bold text-white", children: "Contatti" }),
-      /* @__PURE__ */ jsx("p", { className: "mt-4 text-sm leading-relaxed text-zinc-300", children: "Per segnalazioni, richieste o informazioni e possibile contattare la redazione tramite email." }),
+      /* @__PURE__ */ jsx("p", { className: "mt-4 text-sm leading-relaxed text-zinc-300", children: "Per segnalazioni, richieste o informazioni è possibile contattare la redazione tramite email." }),
       /* @__PURE__ */ jsxs("div", { className: "mt-8 space-y-4 text-sm", children: [
         /* @__PURE__ */ jsxs("div", { children: [
           /* @__PURE__ */ jsx("p", { className: "text-zinc-400", children: "Email" }),

@@ -3,7 +3,7 @@ import { useState, createContext, useContext, Fragment as Fragment$1 } from "rea
 import { A as ApplicationLogo } from "./ApplicationLogo-VXSMMN2A.mjs";
 import { Link, usePage } from "@inertiajs/react";
 import { Transition } from "@headlessui/react";
-import { LayoutDashboard, FileText, Newspaper, Tags, Globe2, Settings, Image, Users } from "lucide-react";
+import { LayoutDashboard, Newspaper, Tags, Globe2, FileText, Settings, Image, Users } from "lucide-react";
 import { S as SeoHead } from "./SeoHead-9Gv-Y1Y7.mjs";
 const DropDownContext = createContext();
 const Dropdown = ({ children }) => {
@@ -99,12 +99,6 @@ function Sidebar() {
       isActive: (path) => path === "/admin/dashboard" || path === "/admin"
     },
     {
-      label: "Pagine",
-      href: route("admin.pages.index"),
-      Icon: FileText,
-      isActive: (path) => path.startsWith("/admin/pages")
-    },
-    {
       label: "Articoli",
       href: route("admin.posts.index"),
       Icon: Newspaper,
@@ -121,6 +115,12 @@ function Sidebar() {
       href: route("admin.tensions.index"),
       Icon: Globe2,
       isActive: (path) => path.startsWith("/admin/tensions")
+    },
+    {
+      label: "Pagine",
+      href: route("admin.pages.index"),
+      Icon: FileText,
+      isActive: (path) => path.startsWith("/admin/pages")
     },
     {
       label: "Impostazioni",

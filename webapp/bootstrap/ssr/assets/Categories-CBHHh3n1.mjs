@@ -1,6 +1,6 @@
 import { jsxs, jsx } from "react/jsx-runtime";
 import { useState, useRef, useMemo, useEffect } from "react";
-import { A as Authenticated } from "./AuthenticatedLayout-Bc07UTqA.mjs";
+import { A as Authenticated } from "./AuthenticatedLayout-dpwVNFAu.mjs";
 import { useForm, Head, Link, router } from "@inertiajs/react";
 import { C as Card, c as CardHeader, d as CardTitle, b as CardDescription, a as CardContent } from "./card-DRB3Bbat.mjs";
 import { M as Modal } from "./Modal-BnFbDATV.mjs";

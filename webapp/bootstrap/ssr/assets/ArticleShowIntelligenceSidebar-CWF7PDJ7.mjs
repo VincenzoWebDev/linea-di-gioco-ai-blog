@@ -1,6 +1,6 @@
 import { jsxs, jsx } from "react/jsx-runtime";
 import { motion } from "framer-motion";
-import { Crosshair, Target, Shield, Clock3 } from "lucide-react";
+import { Crosshair, Target, Shield } from "lucide-react";
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from "recharts";
 import { g as getTrendConfig } from "./trendCopy-BRLsGmW-.mjs";
 function IntelligenceMetricBlock({ icon: Icon, label, value }) {
@@ -105,24 +105,6 @@ function ArticleShowIntelligenceSidebar({
               label: "Fonte",
               value: intelligence.qualityScore,
               icon: Shield
-            }
-          )
-        ] }),
-        article.tension && /* @__PURE__ */ jsxs("div", { className: "mt-5 grid grid-cols-2 gap-3", children: [
-          /* @__PURE__ */ jsx(
-            IntelligenceMetricBlock,
-            {
-              label: "Silenzio",
-              value: `${article.tension.silence_hours}h`,
-              icon: Clock3
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            IntelligenceMetricBlock,
-            {
-              label: "Decay",
-              value: `${article.tension.decay_days}g`,
-              icon: Clock3
             }
           )
         ] }),

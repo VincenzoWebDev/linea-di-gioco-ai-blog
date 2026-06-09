@@ -1,6 +1,6 @@
 import { jsxs, jsx, Fragment } from "react/jsx-runtime";
-import { B as BlogLayout } from "./BlogLayout-CcevzCzS.mjs";
-import { a as ArticleIntelligenceCard } from "./ArticleIntelligenceCard-Dth2VJvG.mjs";
+import { B as BlogLayout } from "./BlogLayout-Do41-7kv.mjs";
+import { a as ArticleIntelligenceCard } from "./ArticleIntelligenceCard-6E8fd8fc.mjs";
 import { MapPin, Clock3, ChevronLeft, ChevronRight, ArrowLeft, FileSearch } from "lucide-react";
 import { b as formatPublishedAt, s as severityBadge } from "./geopoliticalSeverity-B4PJR-9p.mjs";
 import { t as trendCopy } from "./trendCopy-BRLsGmW-.mjs";
@@ -9,7 +9,7 @@ import { S as SeoHead } from "./SeoHead-9Gv-Y1Y7.mjs";
 import "react";
 function buildArticleChips(article) {
   const chips = [];
-  const region = article.region_name || article.topic || (Array.isArray(article.categories) ? article.categories[0] : null);
+  const region = article.display_region_name || article.region_name || article.topic || (Array.isArray(article.categories) ? article.categories[0] : null);
   if (region) {
     chips.push({ icon: MapPin, value: region });
   }

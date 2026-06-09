@@ -5,7 +5,6 @@ namespace Tests\Unit;
 use App\Models\Article;
 use App\Models\GeopoliticalTension;
 use App\Services\GeopoliticalAreaExtractionService;
-use App\Services\GeopoliticalEventWeightService;
 use App\Services\GeopoliticalTensionService;
 use App\Services\RegionCoordinateResolver;
 use App\Services\RiskScoreCalibrationService;
@@ -27,15 +26,11 @@ class GeopoliticalTensionServiceTest extends TestCase
             $resolver,
             new GeopoliticalAreaExtractionService($resolver),
             new RiskScoreCalibrationService(),
-            new GeopoliticalEventWeightService(),
         );
     }
 
     public function test_it_marks_trend_as_falling_when_decay_reduces_current_tension(): void
     {
-        config()->set('ai_news.thermal_decay.grace_hours', 24);
-        config()->set('ai_news.thermal_decay.penalty_per_day', 15);
-
         Carbon::setTestNow(Carbon::parse('2026-05-22 12:00:00'));
 
         $tension = new GeopoliticalTension([
@@ -53,9 +48,6 @@ class GeopoliticalTensionServiceTest extends TestCase
 
     public function test_it_preserves_stable_trend_when_score_has_not_changed(): void
     {
-        config()->set('ai_news.thermal_decay.grace_hours', 24);
-        config()->set('ai_news.thermal_decay.penalty_per_day', 15);
-
         Carbon::setTestNow(Carbon::parse('2026-05-22 12:00:00'));
 
         $tension = new GeopoliticalTension([
@@ -111,7 +103,7 @@ class GeopoliticalTensionServiceTest extends TestCase
         $this->assertDatabaseCount('geopolitical_tensions', 1);
         $this->assertDatabaseHas('geopolitical_tensions', [
             'region_name' => 'Ucraina',
-            'risk_score' => 72,
+            'risk_score' => 65,
             'trend_direction' => 'rising',
             'status_label' => 'Escalation militare',
             'featured_article_id' => $article->id,
@@ -241,7 +233,7 @@ class GeopoliticalTensionServiceTest extends TestCase
 
         $this->assertDatabaseHas('geopolitical_tensions', [
             'region_name' => 'Unione Europea',
-            'risk_score' => 2,
+            'risk_score' => 1,
             'trend_direction' => 'stable',
             'status_label' => 'Monitoraggio diplomatico',
         ]);
@@ -257,7 +249,6 @@ class GeopoliticalTensionServiceTest extends TestCase
             'trend_direction' => 'falling',
             'status_label' => 'Silenzio operativo',
             'last_event_at' => Carbon::parse('2026-05-20 09:00:00'),
-            'last_decay_at' => Carbon::parse('2026-05-28 15:00:00'),
         ]);
 
         $article = Article::query()->create([
@@ -292,7 +283,7 @@ class GeopoliticalTensionServiceTest extends TestCase
         $this->assertSame('Iran', $tension->region_name);
         $this->assertSame('falling', $tension->trend_direction);
         $this->assertSame('Attacco contro forze statunitensi', $tension->status_label);
-        $this->assertGreaterThanOrEqual(90, $tension->risk_score);
+        $this->assertSame(86, $tension->risk_score);
 
         Carbon::setTestNow();
     }

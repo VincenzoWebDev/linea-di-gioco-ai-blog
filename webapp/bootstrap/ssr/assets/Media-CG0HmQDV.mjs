@@ -1,5 +1,5 @@
 import { jsxs, jsx } from "react/jsx-runtime";
-import { A as Authenticated } from "./AuthenticatedLayout-Bc07UTqA.mjs";
+import { A as Authenticated } from "./AuthenticatedLayout-dpwVNFAu.mjs";
 import { Head } from "@inertiajs/react";
 import { C as Card, c as CardHeader, d as CardTitle, b as CardDescription, a as CardContent } from "./card-DRB3Bbat.mjs";
 import "react";
@@ -7,18 +7,18 @@ import "./ApplicationLogo-VXSMMN2A.mjs";
 import "@headlessui/react";
 import "lucide-react";
 import "./SeoHead-9Gv-Y1Y7.mjs";
-function Users({ auth }) {
+function Media({ auth }) {
   return /* @__PURE__ */ jsxs(
     Authenticated,
     {
       user: auth.user,
-      header: /* @__PURE__ */ jsx("h2", { className: "font-semibold text-xl text-gray-800 leading-tight", children: "Utenti" }),
+      header: /* @__PURE__ */ jsx("h2", { className: "font-semibold text-xl text-gray-800 leading-tight", children: "Media" }),
       children: [
-        /* @__PURE__ */ jsx(Head, { title: "Utenti" }),
+        /* @__PURE__ */ jsx(Head, { title: "Media" }),
         /* @__PURE__ */ jsx("div", { className: "py-10", children: /* @__PURE__ */ jsx("div", { className: "max-w-7xl mx-auto sm:px-6 lg:px-8", children: /* @__PURE__ */ jsxs(Card, { children: [
           /* @__PURE__ */ jsxs(CardHeader, { children: [
-            /* @__PURE__ */ jsx(CardTitle, { children: "Gestione utenti" }),
-            /* @__PURE__ */ jsx(CardDescription, { children: "Qui aggiungeremo ruoli, permessi e inviti." })
+            /* @__PURE__ */ jsx(CardTitle, { children: "Libreria media" }),
+            /* @__PURE__ */ jsx(CardDescription, { children: "Qui aggiungeremo upload e gestione file." })
           ] }),
           /* @__PURE__ */ jsx(CardContent, { children: /* @__PURE__ */ jsx("div", { className: "text-sm text-slate-600", children: "Layout di base pronto." }) })
         ] }) }) })
@@ -27,5 +27,5 @@ function Users({ auth }) {
   );
 }
 export {
-  Users as default
+  Media as default
 };

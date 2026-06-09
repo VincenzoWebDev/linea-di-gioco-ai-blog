@@ -1,10 +1,8 @@
 import { jsxs, jsx, Fragment } from "react/jsx-runtime";
-import { useState, useEffect, Suspense, lazy } from "react";
+import { useState, useRef, useEffect, Suspense, lazy } from "react";
 import { Link } from "@inertiajs/react";
-import * as Tooltip from "@radix-ui/react-tooltip";
-import { Info, ExternalLink, MapPin, Clock3, RadioTower, FileSearch, ArrowLeft } from "lucide-react";
-import { B as BlogLayout } from "./BlogLayout-CcevzCzS.mjs";
-import { motion } from "framer-motion";
+import { Info, ExternalLink, MapPin, Clock3, RadioTower, History, Tags, FileSearch, ArrowLeft } from "lucide-react";
+import { B as BlogLayout } from "./BlogLayout-Do41-7kv.mjs";
 import { b as formatPublishedAt, f as formatDateTime, r as resolveSeverityThresholds, a as alertFromRiskScore } from "./geopoliticalSeverity-B4PJR-9p.mjs";
 import { S as SeoHead } from "./SeoHead-9Gv-Y1Y7.mjs";
 function safeText(value) {
@@ -20,29 +18,21 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 function TooltipPanel({ term, entry }) {
-  return /* @__PURE__ */ jsxs(
-    motion.div,
-    {
-      initial: { opacity: 0, scale: 0.92, y: 4 },
-      animate: { opacity: 1, scale: 1, y: 0 },
-      transition: { duration: 0.16, ease: "easeOut" },
-      className: "z-50 max-w-xs border border-[#D7B56D]/40 bg-[#0B0F15]/95 px-4 py-3 font-mono text-sm text-[#D7DEE8] shadow-2xl shadow-black/40 backdrop-blur",
-      children: [
-        /* @__PURE__ */ jsx("div", { className: "text-[11px] uppercase tracking-[0.24em] text-[#D7B56D]", children: safeText(term) }),
-        /* @__PURE__ */ jsx("p", { className: "mt-2 leading-6", children: safeText(entry?.definition) }),
-        entry?.importance && /* @__PURE__ */ jsxs("div", { className: "mt-3 border-t border-[#202A3D] pt-2 text-[11px] uppercase tracking-[0.2em] text-[#8FA0B6]", children: [
-          "Importanza:",
-          " ",
-          /* @__PURE__ */ jsx("span", { className: "text-[#F3F4F6]", children: safeText(entry.importance) })
-        ] })
-      ]
-    }
-  );
+  return /* @__PURE__ */ jsxs("div", { className: "z-50 max-w-xs border border-[#D7B56D]/40 bg-[#0B0F15]/95 px-4 py-3 font-mono text-sm text-[#D7DEE8] shadow-2xl shadow-black/40 backdrop-blur", children: [
+    /* @__PURE__ */ jsx("div", { className: "text-[11px] uppercase tracking-[0.24em] text-[#D7B56D]", children: safeText(term) }),
+    /* @__PURE__ */ jsx("p", { className: "mt-2 leading-6", children: safeText(entry?.definition) }),
+    entry?.importance && /* @__PURE__ */ jsxs("div", { className: "mt-3 border-t border-[#202A3D] pt-2 text-[11px] uppercase tracking-[0.2em] text-[#8FA0B6]", children: [
+      "Importanza:",
+      " ",
+      /* @__PURE__ */ jsx("span", { className: "text-[#F3F4F6]", children: safeText(entry.importance) })
+    ] })
+  ] });
 }
 function GlossaryTooltip({ term, entry }) {
   const [isMounted, setIsMounted] = useState(false);
   const [usePopover, setUsePopover] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useRef(null);
   useEffect(() => {
     setIsMounted(true);
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
@@ -60,6 +50,22 @@ function GlossaryTooltip({ term, entry }) {
     mediaQuery.addListener(syncMode);
     return () => mediaQuery.removeListener(syncMode);
   }, []);
+  useEffect(() => {
+    if (!isMounted || !isOpen) {
+      return void 0;
+    }
+    const handlePointerDown = (event) => {
+      if (!wrapperRef.current?.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+    };
+  }, [isMounted, isOpen]);
   const triggerClassName = "group inline-flex cursor-help items-baseline gap-1 border-b border-dotted border-[#D7B56D]/80 text-left text-[#F3F4F6] decoration-transparent transition hover:text-[#FDE68A]";
   if (!isMounted) {
     return /* @__PURE__ */ jsxs("span", { className: triggerClassName, children: [
@@ -73,68 +79,44 @@ function GlossaryTooltip({ term, entry }) {
       )
     ] });
   }
-  const trigger = /* @__PURE__ */ jsxs(
-    "button",
+  return /* @__PURE__ */ jsxs(
+    "span",
     {
-      type: "button",
-      onClick: () => {
-        if (usePopover) {
-          setIsOpen((current) => !current);
+      ref: wrapperRef,
+      className: "relative inline-flex",
+      onMouseEnter: () => {
+        if (!usePopover) {
+          setIsOpen(true);
         }
       },
-      className: triggerClassName,
+      onMouseLeave: () => {
+        if (!usePopover) {
+          setIsOpen(false);
+        }
+      },
       children: [
-        /* @__PURE__ */ jsx("span", { children: term }),
-        /* @__PURE__ */ jsx(Info, { className: "h-3 w-3 translate-y-[1px] opacity-70 transition group-hover:opacity-100" })
-      ]
-    }
-  );
-  if (usePopover) {
-    return /* @__PURE__ */ jsxs(Fragment, { children: [
-      trigger,
-      isOpen && /* @__PURE__ */ jsxs(Fragment, { children: [
-        /* @__PURE__ */ jsx(
+        /* @__PURE__ */ jsxs(
           "button",
           {
             type: "button",
-            "aria-label": `Chiudi dettaglio ${safeText(term)}`,
-            className: "fixed inset-0 z-40 bg-black/30",
-            onClick: () => setIsOpen(false)
+            onClick: () => setIsOpen((current) => !current),
+            className: triggerClassName,
+            children: [
+              /* @__PURE__ */ jsx("span", { children: term }),
+              /* @__PURE__ */ jsx(Info, { className: "h-3 w-3 translate-y-[1px] opacity-70 transition group-hover:opacity-100" })
+            ]
           }
         ),
-        /* @__PURE__ */ jsx("div", { className: "fixed inset-x-4 bottom-4 z-50", children: /* @__PURE__ */ jsxs("div", { className: "relative border border-[#D7B56D]/40 bg-[#0B0F15]/95 px-4 py-3 font-mono text-sm text-[#D7DEE8] shadow-2xl shadow-black/40 backdrop-blur", children: [
-          /* @__PURE__ */ jsx(
-            "button",
-            {
-              type: "button",
-              "aria-label": `Chiudi dettaglio ${safeText(term)}`,
-              className: "absolute right-3 top-3 text-xs uppercase tracking-[0.2em] text-[#8FA0B6]",
-              onClick: () => setIsOpen(false),
-              children: "Chiudi"
-            }
-          ),
-          /* @__PURE__ */ jsx(TooltipPanel, { term, entry })
-        ] }) })
-      ] })
-    ] });
-  }
-  return /* @__PURE__ */ jsxs(Tooltip.Root, { delayDuration: 120, children: [
-    /* @__PURE__ */ jsx(Tooltip.Trigger, { asChild: true, children: trigger }),
-    /* @__PURE__ */ jsx(Tooltip.Portal, { children: /* @__PURE__ */ jsx(
-      Tooltip.Content,
-      {
-        side: "top",
-        align: "center",
-        sideOffset: 10,
-        collisionPadding: 16,
-        asChild: true,
-        children: /* @__PURE__ */ jsxs(Fragment, { children: [
-          /* @__PURE__ */ jsx(TooltipPanel, { term, entry }),
-          /* @__PURE__ */ jsx(Tooltip.Arrow, { className: "fill-[#D7B56D]/40" })
-        ] })
-      }
-    ) })
-  ] });
+        isOpen && /* @__PURE__ */ jsx(
+          "span",
+          {
+            className: usePopover ? "fixed inset-x-4 bottom-4 z-50" : "absolute left-1/2 top-full z-50 mt-3 w-max max-w-[min(20rem,calc(100vw-2rem))] -translate-x-1/2",
+            children: /* @__PURE__ */ jsx("span", { className: "block relative", children: /* @__PURE__ */ jsx(TooltipPanel, { term, entry }) })
+          }
+        )
+      ]
+    }
+  );
 }
 function glossaryRegex(glossary) {
   const terms = Object.keys(glossary || {}).sort(
@@ -151,8 +133,8 @@ function glossaryRegex(glossary) {
 function splitContentBlocks(content) {
   return safeText(content).split(/\n{2,}/).map((block) => safeText(block).trim()).filter(Boolean);
 }
-function renderGlossaryText(text, glossary) {
-  const regex = glossaryRegex(glossary);
+function renderGlossaryText(text, glossary, enableInteractiveGlossary) {
+  const regex = enableInteractiveGlossary ? glossaryRegex(glossary) : null;
   const normalizedText = safeText(text);
   if (!regex) {
     return normalizedText;
@@ -177,6 +159,10 @@ function renderGlossaryText(text, glossary) {
   });
 }
 function ArticleGlossaryContent({ content, glossary = {} }) {
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
   return splitContentBlocks(content).map((text, index) => {
     const isHeading = text.length < 90 && !text.includes(".") && index > 0;
     if (isHeading) {
@@ -184,16 +170,16 @@ function ArticleGlossaryContent({ content, glossary = {} }) {
         "h2",
         {
           className: "mt-10 font-serif text-3xl leading-tight text-[#F3F4F6]",
-          children: renderGlossaryText(text, glossary)
+          children: renderGlossaryText(text, glossary, isClient)
         },
         `${text}-${index}`
       );
     }
     return /* @__PURE__ */ jsx(
-      "p",
+      "div",
       {
         className: "mt-6 whitespace-pre-line leading-[1.9] text-[#D7DEE8]",
-        children: renderGlossaryText(text, glossary)
+        children: renderGlossaryText(text, glossary, isClient)
       },
       `${text}-${index}`
     );
@@ -310,7 +296,7 @@ function ArticleShowHeader({ article, intelligence }) {
         {
           icon: RadioTower,
           label: "Area",
-          value: article.tension?.region_name || article.topic || "Dossier globale"
+          value: article.tension?.display_region_name || article.tension?.region_name || article.topic || "Dossier globale"
         }
       )
     ] })
@@ -353,17 +339,81 @@ function ArticleRelatedCard({ article }) {
     }
   );
 }
-function ArticleShowRelatedSection({ related = [] }) {
+const linkGroups = [
+  {
+    key: "area",
+    title: "Area geografica",
+    description: "Dossier sulla stessa area o regione monitorata.",
+    icon: MapPin
+  },
+  {
+    key: "previous",
+    title: "Eventi precedenti",
+    description: "Aggiornamenti utili per leggere l'evoluzione del dossier.",
+    icon: History
+  },
+  {
+    key: "categories",
+    title: "Temi collegati",
+    description: "Analisi con categorie e interessi strategici affini.",
+    icon: Tags
+  }
+];
+function InternalLinkGroup({ group, items = [] }) {
+  const Icon = group.icon;
+  if (!items.length) {
+    return null;
+  }
+  return /* @__PURE__ */ jsxs("div", { className: "border border-[#202A3D] bg-[#0B0F15] p-4", children: [
+    /* @__PURE__ */ jsxs("div", { className: "flex items-start gap-3", children: [
+      /* @__PURE__ */ jsx("div", { className: "flex h-9 w-9 shrink-0 items-center justify-center border border-[#D7B56D]/30 bg-[#D7B56D]/10 text-[#D7B56D]", children: /* @__PURE__ */ jsx(Icon, { className: "h-4 w-4" }) }),
+      /* @__PURE__ */ jsxs("div", { children: [
+        /* @__PURE__ */ jsx("h3", { className: "font-mono text-xs uppercase tracking-[0.2em] text-[#F3F4F6]", children: group.title }),
+        /* @__PURE__ */ jsx("p", { className: "mt-1 text-xs leading-5 text-[#7E8796]", children: group.description })
+      ] })
+    ] }),
+    /* @__PURE__ */ jsx("div", { className: "mt-4 space-y-3", children: items.map((item) => /* @__PURE__ */ jsxs(
+      Link,
+      {
+        href: route("blog.articles.show", {
+          id: item.id,
+          slug: item.slug
+        }),
+        className: "block border-l border-[#2A354D] pl-3 transition hover:border-[#D7B56D]",
+        children: [
+          /* @__PURE__ */ jsx("span", { className: "line-clamp-2 text-sm font-semibold leading-5 text-[#E8EDF5]", children: item.title }),
+          /* @__PURE__ */ jsx("span", { className: "mt-1 block font-mono text-[10px] uppercase tracking-[0.16em] text-[#D7B56D]", children: item.match_reason })
+        ]
+      },
+      `${group.key}-${item.id}`
+    )) })
+  ] });
+}
+function ArticleShowRelatedSection({
+  related = [],
+  internalLinks = {}
+}) {
+  const hasInternalLinks = linkGroups.some(
+    (group) => internalLinks[group.key]?.length > 0
+  );
   return /* @__PURE__ */ jsxs("section", { className: "mt-12 border border-[#202A3D] bg-[#101620] p-4 sm:mt-16 sm:p-6", children: [
     /* @__PURE__ */ jsxs("div", { className: "flex flex-col gap-4 md:flex-row md:items-start md:justify-between", children: [
       /* @__PURE__ */ jsxs("div", { children: [
         /* @__PURE__ */ jsx("p", { className: "font-mono text-xs uppercase tracking-[0.28em] text-[#7E8796]", children: "Prossimi passaggi" }),
         /* @__PURE__ */ jsx("h2", { className: "mt-2 font-serif text-3xl text-[#F3F4F6]", children: "Prossimi step consigliati" }),
-        /* @__PURE__ */ jsx("p", { className: "mt-3 max-w-2xl text-[#AAB3C2]", children: "Selezione di dossier affini per area, categoria o lessico operativo, così il contesto resta coerente e confrontabile." })
+        /* @__PURE__ */ jsx("p", { className: "mt-3 max-w-2xl text-[#AAB3C2]", children: "Percorsi di lettura per collegare area geografica, categorie strategiche ed eventi precedenti." })
       ] }),
       /* @__PURE__ */ jsx("div", { className: "flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#D7B56D]/40 bg-[#D7B56D]/10 text-[#D7B56D]", children: /* @__PURE__ */ jsx(FileSearch, { className: "h-5 w-5" }) })
     ] }),
-    related.length > 0 ? /* @__PURE__ */ jsx("div", { className: "mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3", children: related.map((item) => /* @__PURE__ */ jsx(ArticleRelatedCard, { article: item }, item.id)) }) : /* @__PURE__ */ jsx("p", { className: "mt-6 text-sm text-[#9CA3AF]", children: "Nessun dossier affine disponibile al momento." })
+    hasInternalLinks && /* @__PURE__ */ jsx("div", { className: "mt-6 grid gap-4 lg:grid-cols-3", children: linkGroups.map((group) => /* @__PURE__ */ jsx(
+      InternalLinkGroup,
+      {
+        group,
+        items: internalLinks[group.key] || []
+      },
+      group.key
+    )) }),
+    related.length > 0 ? /* @__PURE__ */ jsx("div", { className: "mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3", children: related.map((item) => /* @__PURE__ */ jsx(ArticleRelatedCard, { article: item }, item.id)) }) : /* @__PURE__ */ jsx("p", { className: "mt-6 text-sm text-[#9CA3AF]", children: "Nessun dossier affine disponibile al momento." })
   ] });
 }
 const regionCoordinates = [
@@ -380,6 +430,7 @@ const regionCoordinates = [
 ];
 function findCoordinates(article) {
   const region = [
+    article.tension?.display_region_name,
     article.tension?.region_name,
     article.topic,
     ...article.categories || [],
@@ -429,7 +480,7 @@ function buildIntelligence(article, riskThresholds = {}) {
   };
 }
 const ArticleShowIntelligenceSidebar = lazy(
-  () => import("./ArticleShowIntelligenceSidebar-q01Pav81.mjs")
+  () => import("./ArticleShowIntelligenceSidebar-CWF7PDJ7.mjs")
 );
 function buildMetaDescription(article) {
   if (article.summary) {
@@ -441,15 +492,21 @@ function buildMetaDescription(article) {
 function ArticlesShow({
   article,
   related = [],
+  internalLinks = {},
   glossary = {},
   riskThresholds = {},
   newsArticleSchema = null
 }) {
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
   const intelligence = buildIntelligence(article, riskThresholds);
   const canonicalUrl = route("blog.articles.show", {
     id: article.id,
     slug: article.slug
   });
+  const sidebarFallback = /* @__PURE__ */ jsx("aside", { className: "min-w-0 max-w-full lg:sticky lg:top-8 lg:self-start", children: /* @__PURE__ */ jsx("div", { className: "border border-[#202A3D] bg-[#0B0F15]/90 p-4 shadow-2xl shadow-black/20 sm:p-5", children: /* @__PURE__ */ jsx("div", { className: "h-[420px] animate-pulse border border-[#182234] bg-[#121722]" }) }) });
   return /* @__PURE__ */ jsxs(Fragment, { children: [
     /* @__PURE__ */ jsx(
       SeoHead,
@@ -466,7 +523,7 @@ function ArticlesShow({
         structuredData: newsArticleSchema
       }
     ),
-    /* @__PURE__ */ jsx(BlogLayout, { children: /* @__PURE__ */ jsxs(Tooltip.Provider, { children: [
+    /* @__PURE__ */ jsxs(BlogLayout, { children: [
       /* @__PURE__ */ jsxs("article", { children: [
         /* @__PURE__ */ jsxs(
           Link,
@@ -495,23 +552,23 @@ function ArticlesShow({
               glossary
             }
           ),
-          /* @__PURE__ */ jsx(
-            Suspense,
+          isClient ? /* @__PURE__ */ jsx(Suspense, { fallback: sidebarFallback, children: /* @__PURE__ */ jsx(
+            ArticleShowIntelligenceSidebar,
             {
-              fallback: /* @__PURE__ */ jsx("aside", { className: "min-w-0 max-w-full lg:sticky lg:top-8 lg:self-start", children: /* @__PURE__ */ jsx("div", { className: "border border-[#202A3D] bg-[#0B0F15]/90 p-4 shadow-2xl shadow-black/20 sm:p-5", children: /* @__PURE__ */ jsx("div", { className: "h-[420px] animate-pulse border border-[#182234] bg-[#121722]" }) }) }),
-              children: /* @__PURE__ */ jsx(
-                ArticleShowIntelligenceSidebar,
-                {
-                  article,
-                  intelligence
-                }
-              )
+              article,
+              intelligence
             }
-          )
+          ) }) : sidebarFallback
         ] })
       ] }),
-      /* @__PURE__ */ jsx(ArticleShowRelatedSection, { related })
-    ] }) })
+      /* @__PURE__ */ jsx(
+        ArticleShowRelatedSection,
+        {
+          related,
+          internalLinks
+        }
+      )
+    ] })
   ] });
 }
 export {

@@ -43,7 +43,7 @@ function TensionItem({ tension }) {
         return (
             <Link
                 href={tension.article_url}
-                title={`${tension.status_label} • ${tension.radio_silence_label}`}
+                title={tension.status_label}
                 className={`${className} transition hover:border-[#2C4667]`}
             >
                 {content}
@@ -53,7 +53,7 @@ function TensionItem({ tension }) {
 
     return (
         <div
-            title={`${tension.status_label} • ${tension.radio_silence_label}`}
+            title={tension.status_label}
             className={className}
         >
             {content}

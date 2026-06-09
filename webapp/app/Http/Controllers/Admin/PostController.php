@@ -226,23 +226,50 @@ class PostController extends Controller
         $paths = [];
         $basePath = "articles/{$article->id}";
         $slug = $article->slug;
+        $variantService = app(\App\Services\ArticleImageVariantService::class);
 
         if ($request->hasFile('cover')) {
             if ($article->cover_path) {
                 Storage::disk('public')->delete($article->cover_path);
             }
-            $ext = $request->file('cover')->getClientOriginalExtension();
-            $filename = "{$slug}-{$article->id}-cover.{$ext}";
-            $paths['cover_path'] = $request->file('cover')->storeAs($basePath, $filename, 'public');
+            $file = $request->file('cover');
+            $originalExt = strtolower($file->getClientOriginalExtension());
+            $mime = $file->getMimeType();
+
+            if ($originalExt === 'svg' || str_contains($mime, 'svg')) {
+                $filename = "{$slug}-{$article->id}-cover.{$originalExt}";
+                $paths['cover_path'] = $file->storeAs($basePath, $filename, 'public');
+            } else {
+                $sourceBytes = file_get_contents($file->getRealPath());
+                $converted = $variantService->makeCover($sourceBytes, $mime);
+                
+                $ext = $converted['mime'] === 'image/webp' ? 'webp' : $originalExt;
+                $filename = "{$slug}-{$article->id}-cover.{$ext}";
+                Storage::disk('public')->put("{$basePath}/{$filename}", $converted['bytes']);
+                $paths['cover_path'] = "{$basePath}/{$filename}";
+            }
         }
 
         if ($request->hasFile('thumb')) {
             if ($article->thumb_path) {
                 Storage::disk('public')->delete($article->thumb_path);
             }
-            $ext = $request->file('thumb')->getClientOriginalExtension();
-            $filename = "{$slug}-{$article->id}-thumb.{$ext}";
-            $paths['thumb_path'] = $request->file('thumb')->storeAs($basePath, $filename, 'public');
+            $file = $request->file('thumb');
+            $originalExt = strtolower($file->getClientOriginalExtension());
+            $mime = $file->getMimeType();
+
+            if ($originalExt === 'svg' || str_contains($mime, 'svg')) {
+                $filename = "{$slug}-{$article->id}-thumb.{$originalExt}";
+                $paths['thumb_path'] = $file->storeAs($basePath, $filename, 'public');
+            } else {
+                $sourceBytes = file_get_contents($file->getRealPath());
+                $converted = $variantService->makeThumb($sourceBytes, $mime);
+                
+                $ext = $converted['mime'] === 'image/webp' ? 'webp' : $originalExt;
+                $filename = "{$slug}-{$article->id}-thumb.{$ext}";
+                Storage::disk('public')->put("{$basePath}/{$filename}", $converted['bytes']);
+                $paths['thumb_path'] = "{$basePath}/{$filename}";
+            }
         }
 
         return $paths;

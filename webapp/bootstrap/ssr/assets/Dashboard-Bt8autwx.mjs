@@ -1,5 +1,5 @@
 import { jsxs, jsx } from "react/jsx-runtime";
-import { A as Authenticated } from "./AuthenticatedLayout-Bc07UTqA.mjs";
+import { A as Authenticated } from "./AuthenticatedLayout-dpwVNFAu.mjs";
 import { Head } from "@inertiajs/react";
 import { C as Card, c as CardHeader, b as CardDescription, d as CardTitle, a as CardContent } from "./card-DRB3Bbat.mjs";
 import "react";
@@ -140,13 +140,13 @@ function TensionsCard({ tensions = {} }) {
           className: "rounded-lg border border-slate-200 p-3",
           children: [
             /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between text-sm", children: [
-              /* @__PURE__ */ jsx("span", { className: "font-medium text-slate-900", children: item.region_name }),
+              /* @__PURE__ */ jsx("span", { className: "font-medium text-slate-900", children: item.display_region_name || item.region_name }),
               /* @__PURE__ */ jsx("span", { className: "text-slate-600", children: item.risk_score })
             ] }),
             /* @__PURE__ */ jsx("p", { className: "mt-1 text-xs text-slate-500", children: item.status_label })
           ]
         },
-        `${item.region_name}-${item.updated_at}`
+        `${item.region_key || item.region_name}-${item.updated_at}`
       ))
     ] })
   ] });

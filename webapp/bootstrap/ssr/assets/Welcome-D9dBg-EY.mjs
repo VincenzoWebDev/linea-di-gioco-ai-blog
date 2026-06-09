@@ -1,47 +1,13 @@
 import { jsxs, jsx, Fragment } from "react/jsx-runtime";
-import { B as BlogLayout } from "./BlogLayout-CcevzCzS.mjs";
-import { Link } from "@inertiajs/react";
-import { Archive, RadioTower, Activity, MapPin, ArrowRight, FileSearch, Target, Binary } from "lucide-react";
-import { A as ArticleCoverImage, a as ArticleIntelligenceCard } from "./ArticleIntelligenceCard-Dth2VJvG.mjs";
+import { B as BlogLayout } from "./BlogLayout-Do41-7kv.mjs";
 import { useState, useEffect, Suspense, lazy, memo } from "react";
+import { RadioTower, Activity, MapPin, ArrowRight, FileSearch, Target, Binary } from "lucide-react";
 import Marquee from "react-fast-marquee";
+import { Link } from "@inertiajs/react";
+import { a as ArticleIntelligenceCard } from "./ArticleIntelligenceCard-6E8fd8fc.mjs";
 import { s as severityBadge, c as formatShortDate } from "./geopoliticalSeverity-B4PJR-9p.mjs";
 import { t as trendCopy } from "./trendCopy-BRLsGmW-.mjs";
 import { S as SeoHead } from "./SeoHead-9Gv-Y1Y7.mjs";
-function HomeBriefingSection({ items = [] }) {
-  return /* @__PURE__ */ jsxs("section", { className: "mt-10 sm:mt-14 grid gap-6 border border-[#202A3D] bg-[#101620] p-4 sm:p-6 lg:grid-cols-[0.75fr_1.25fr]", children: [
-    /* @__PURE__ */ jsxs("div", { children: [
-      /* @__PURE__ */ jsx("div", { className: "flex h-12 w-12 items-center justify-center rounded-full border border-[#D7B56D]/40 bg-[#D7B56D]/10 text-[#D7B56D]", children: /* @__PURE__ */ jsx(Archive, { className: "h-5 w-5" }) }),
-      /* @__PURE__ */ jsx("p", { className: "mt-5 font-mono text-xs uppercase tracking-[0.3em] text-[#7E8796]", children: "Storico cronologico" }),
-      /* @__PURE__ */ jsx("h3", { className: "mt-2 font-serif text-3xl text-[#F3F4F6]", children: "Aree entrate in silenzio" })
-    ] }),
-    /* @__PURE__ */ jsx("div", { className: "grid gap-3", children: items.length > 0 ? items.slice(0, 5).map((item) => /* @__PURE__ */ jsxs(
-      Link,
-      {
-        href: item.url || route("blog.articles.index"),
-        className: "grid grid-cols-[64px_minmax(0,1fr)] items-center gap-3 border border-[#202A3D] bg-[#0B0F15] p-3 transition hover:border-[#D7B56D]/50 sm:grid-cols-[76px_minmax(0,1fr)_auto] sm:gap-4",
-        children: [
-          /* @__PURE__ */ jsx(
-            ArticleCoverImage,
-            {
-              item,
-              variant: "thumb",
-              compact: true,
-              className: "h-14 border border-[#182234]",
-              sizes: "76px"
-            }
-          ),
-          /* @__PURE__ */ jsxs("div", { className: "min-w-0", children: [
-            /* @__PURE__ */ jsx("span", { className: "block truncate text-sm text-[#D7DEE8]", children: item.title }),
-            /* @__PURE__ */ jsx("span", { className: "mt-1 block truncate font-mono text-[11px] uppercase tracking-[0.14em] text-[#7E8796]", children: item.radio_silence_label })
-          ] }),
-          /* @__PURE__ */ jsx(RadioTower, { className: "h-4 w-4 shrink-0 text-[#D7B56D]" })
-        ]
-      },
-      item.id
-    )) : /* @__PURE__ */ jsx("p", { className: "text-sm text-[#9CA3AF]", children: "Nessuna area storicizzata." }) })
-  ] });
-}
 function GlobalMapPlaceholder() {
   return /* @__PURE__ */ jsxs("section", { className: "relative overflow-hidden border border-[#202A3D] bg-[#080B10] shadow-[0_32px_90px_rgba(0,0,0,0.32)]", children: [
     /* @__PURE__ */ jsx("div", { className: "absolute inset-0 bg-[linear-gradient(rgba(215,181,109,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(215,181,109,0.04)_1px,transparent_1px)] bg-[size:44px_44px]" }),
@@ -80,29 +46,29 @@ function formatCoordinate(value, axis) {
   return `${Math.abs(numeric).toFixed(2)} ${direction}`;
 }
 function TacticalTicker({ items }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   if (items.length === 0) {
     return null;
   }
-  return /* @__PURE__ */ jsx("section", { className: "mt-6 overflow-hidden border-y border-[#202A3D] bg-[#0B0F15] py-3", children: /* @__PURE__ */ jsx(Marquee, { gradient: false, speed: 28, pauseOnHover: true, children: items.map((item) => /* @__PURE__ */ jsxs(
-    "div",
-    {
-      className: "mx-6 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.18em] text-[#9CA3AF]",
-      children: [
-        /* @__PURE__ */ jsx(RadioTower, { className: "h-4 w-4 text-[#D7B56D]" }),
-        /* @__PURE__ */ jsx("span", { className: "text-[#D7B56D]", children: item.operation_code }),
-        /* @__PURE__ */ jsxs("span", { children: [
-          formatCoordinate(item.lat, "lat"),
-          " /",
-          " ",
-          formatCoordinate(item.long, "long")
-        ] }),
-        /* @__PURE__ */ jsx("span", { className: "max-w-[420px] truncate text-[#E8EDF5]", children: item.title })
-      ]
-    },
-    `${item.id}-${item.title}`
-  )) }) });
+  return /* @__PURE__ */ jsx("section", { className: "mt-6 overflow-hidden border-y border-[#202A3D] bg-[#0B0F15] py-3", children: mounted ? /* @__PURE__ */ jsx(Marquee, { gradient: false, speed: 28, pauseOnHover: true, children: items.map((item) => /* @__PURE__ */ jsx(TickerItem, { item }, `${item.id}-${item.title}`)) }) : /* @__PURE__ */ jsx("div", { className: "flex overflow-hidden", children: items.slice(0, 4).map((item) => /* @__PURE__ */ jsx(TickerItem, { item }, `${item.id}-${item.title}`)) }) });
 }
-const GlobalMap = lazy(() => import("./GlobalMap-1F0qK9mY.mjs"));
+function TickerItem({ item }) {
+  return /* @__PURE__ */ jsxs("div", { className: "mx-6 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.18em] text-[#9CA3AF]", children: [
+    /* @__PURE__ */ jsx(RadioTower, { className: "h-4 w-4 text-[#D7B56D]" }),
+    /* @__PURE__ */ jsx("span", { className: "text-[#D7B56D]", children: item.operation_code }),
+    /* @__PURE__ */ jsxs("span", { children: [
+      formatCoordinate(item.lat, "lat"),
+      " /",
+      " ",
+      formatCoordinate(item.long, "long")
+    ] }),
+    /* @__PURE__ */ jsx("span", { className: "max-w-[420px] truncate text-[#E8EDF5]", children: item.title })
+  ] });
+}
+const GlobalMap = lazy(() => import("./GlobalMap-CSQL923n.mjs"));
 function HomeCommandCenter({ operations }) {
   const [mounted, setMounted] = useState(false);
   const [shouldLoadMap, setShouldLoadMap] = useState(false);
@@ -150,14 +116,10 @@ function OperationIntelligenceCard({ item, index }) {
       imageLoading: index === 0 ? "eager" : "lazy",
       imageFetchPriority: index === 0 ? "high" : "auto",
       chips: [
-        { icon: MapPin, value: item.region_name || "Hotspot" },
+        { icon: MapPin, value: item.display_region_name || item.region_name || "Hotspot" },
         {
           icon: TrendIcon,
           value: trendCopy[item.trend_direction]?.label || "Stabile"
-        },
-        {
-          icon: RadioTower,
-          value: item.radio_silence_label || "Silenzio radio: 0 ore"
         }
       ]
     }
@@ -165,7 +127,7 @@ function OperationIntelligenceCard({ item, index }) {
 }
 const OperationIntelligenceCard$1 = memo(OperationIntelligenceCard);
 function EmptyState$1() {
-  return /* @__PURE__ */ jsx("div", { className: "border border-dashed border-[#2A354D] bg-[#101620] p-8 text-[#9CA3AF]", children: "La sala operativa si popolerà automaticamente con le prime analisi pubblicate." });
+  return /* @__PURE__ */ jsx("div", { className: "border border-dashed border-[#2A354D] bg-[#101620] p-8 text-[#9CA3AF]", children: "La sala operativa resta pronta per le prime analisi pubblicate." });
 }
 function HomeFeedSection({ items }) {
   return /* @__PURE__ */ jsxs("section", { className: "mt-10 sm:mt-14", children: [
@@ -258,7 +220,7 @@ function HomeStatsSection({ stats, hotspotsCount }) {
     item.label
   )) });
 }
-const HOME_DESCRIPTION = "Analisi geopolitiche, dossier internazionali e briefing AI su crisi, sicurezza, energia e hotspot globali monitorati in tempo reale.";
+const HOME_DESCRIPTION = "Analisi geopolitiche, dossier internazionali e report strategici su crisi, sicurezza, energia e hotspot globali monitorati in tempo reale.";
 function buildHomeSeo(canonicalUrl) {
   const organizationName = "Linea di gioco";
   return {
@@ -286,7 +248,10 @@ function buildHomeSeo(canonicalUrl) {
         "@type": "Organization",
         name: organizationName,
         url: canonicalUrl,
-        logo: `${canonicalUrl.replace(/\/$/, "")}/favicon.ico`
+        logo: {
+          "@type": "ImageObject",
+          "url": `${canonicalUrl.replace(/\/$/, "")}/images/logo-schema.png`
+        }
       },
       {
         "@context": "https://schema.org",
@@ -314,7 +279,6 @@ function Welcome({
   feedItems = [],
   latestItems = [],
   locations = [],
-  historicalOperations = [],
   stats = {}
 }) {
   const lcpImageUrl = resolveLcpImageUrl(feedItems[0]);
@@ -338,8 +302,7 @@ function Welcome({
         }
       ),
       /* @__PURE__ */ jsx(HomeFeedSection, { items: feedItems }),
-      /* @__PURE__ */ jsx(HomeLatestNewsSection, { items: latestItems }),
-      /* @__PURE__ */ jsx(HomeBriefingSection, { items: historicalOperations })
+      /* @__PURE__ */ jsx(HomeLatestNewsSection, { items: latestItems })
     ] })
   ] });
 }
