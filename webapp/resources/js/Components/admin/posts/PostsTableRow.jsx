@@ -1,5 +1,6 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { STATUS_STYLES } from "@/lib/admin/posts";
+import { formatDateSlash } from "@/lib/blog/formatters";
 
 export default function PostsTableRow({ article, onEdit, onDelete }) {
     return (
@@ -24,14 +25,10 @@ export default function PostsTableRow({ article, onEdit, onDelete }) {
                 </span>
             </td>
             <td className="py-4 pr-4 text-slate-600">
-                {article.published_at
-                    ? new Date(article.published_at).toLocaleDateString("it-IT")
-                    : "-"}
+                {formatDateSlash(article.published_at)}
             </td>
             <td className="py-4 pr-4 text-slate-600">
-                {article.created_at
-                    ? new Date(article.created_at).toLocaleDateString("it-IT")
-                    : "-"}
+                {formatDateSlash(article.created_at)}
             </td>
             <td className="py-4 pr-4">
                 <div className="flex items-center justify-end gap-2">

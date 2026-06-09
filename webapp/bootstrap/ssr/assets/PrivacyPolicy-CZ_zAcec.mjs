@@ -15,11 +15,7 @@ function PrivacyPolicy() {
     ),
     /* @__PURE__ */ jsxs("div", { className: "max-w-4xl mx-auto px-4 py-16 text-zinc-200", children: [
       /* @__PURE__ */ jsx("h1", { className: "text-3xl font-bold text-white", children: "Privacy Policy" }),
-      /* @__PURE__ */ jsxs("p", { className: "mt-2 text-sm text-zinc-400", children: [
-        "Ultimo aggiornamento:",
-        " ",
-        (/* @__PURE__ */ new Date()).toLocaleDateString("it-IT")
-      ] }),
+      /* @__PURE__ */ jsx("p", { className: "mt-2 text-sm text-zinc-400", children: "Ultimo aggiornamento: 18/05/2026" }),
       /* @__PURE__ */ jsxs("div", { className: "mt-10 space-y-10 text-sm leading-relaxed text-zinc-300", children: [
         /* @__PURE__ */ jsxs("section", { children: [
           /* @__PURE__ */ jsx("h2", { className: "text-lg font-semibold text-white", children: "1. Titolare del trattamento" }),

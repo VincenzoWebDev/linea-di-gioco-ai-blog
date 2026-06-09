@@ -1,7 +1,7 @@
 import { jsxs, jsx } from "react/jsx-runtime";
 import { ComposableMap, Graticule, Geographies, Geography, Marker } from "react-simple-maps";
 import { useState } from "react";
-import { d as severityClasses } from "./geopoliticalSeverity-B4PJR-9p.mjs";
+import { b as severityClasses } from "./geopoliticalSeverity-BBhZMy0g.mjs";
 import { Satellite, Crosshair, MapPin, ArrowRight } from "lucide-react";
 import { Link } from "@inertiajs/react";
 import { A as ArticleCoverImage } from "./ArticleIntelligenceCard-6E8fd8fc.mjs";

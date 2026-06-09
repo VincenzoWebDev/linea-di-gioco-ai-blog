@@ -13,8 +13,7 @@ export default function CookiePolicy() {
                 <h1 className="text-3xl font-bold text-white">Cookie Policy</h1>
 
                 <p className="mt-2 text-sm text-zinc-400">
-                    Ultimo aggiornamento:{" "}
-                    {new Date().toLocaleDateString("it-IT")}
+                    Ultimo aggiornamento: 18/05/2026
                 </p>
 
                 <div className="mt-10 space-y-10 text-sm leading-relaxed text-zinc-300">

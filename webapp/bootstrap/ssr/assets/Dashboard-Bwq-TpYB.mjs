@@ -2,6 +2,7 @@ import { jsxs, jsx } from "react/jsx-runtime";
 import { A as Authenticated } from "./AuthenticatedLayout-dpwVNFAu.mjs";
 import { Head } from "@inertiajs/react";
 import { C as Card, c as CardHeader, b as CardDescription, d as CardTitle, a as CardContent } from "./card-DRB3Bbat.mjs";
+import { a as formatDateTime } from "./formatters-BAb3XZ2i.mjs";
 import "react";
 import "./ApplicationLogo-VXSMMN2A.mjs";
 import "@headlessui/react";
@@ -113,7 +114,7 @@ function RecentIncomingCard({ items = [] }) {
 }
 function TensionsCard({ tensions = {} }) {
   const items = tensions.top || [];
-  const latestUpdate = tensions.latest_update ? new Date(tensions.latest_update).toLocaleString("it-IT") : null;
+  const latestUpdate = tensions.latest_update ? formatDateTime(tensions.latest_update) : null;
   return /* @__PURE__ */ jsxs(Card, { children: [
     /* @__PURE__ */ jsxs(CardHeader, { children: [
       /* @__PURE__ */ jsx(CardTitle, { children: "Tensioni attive" }),

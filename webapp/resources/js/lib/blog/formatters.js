@@ -64,3 +64,13 @@ export function formatDateTime(value) {
         date.getUTCMinutes(),
     )} UTC`;
 }
+
+export function formatDateSlash(value) {
+    const date = parseDate(value);
+
+    if (!date) {
+        return "-";
+    }
+
+    return `${pad(date.getUTCDate())}/${pad(date.getUTCMonth() + 1)}/${date.getUTCFullYear()}`;
+}

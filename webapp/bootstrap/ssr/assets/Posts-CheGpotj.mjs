@@ -5,6 +5,7 @@ import { router, useForm, Head } from "@inertiajs/react";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { C as Card, c as CardHeader, d as CardTitle, b as CardDescription, a as CardContent } from "./card-DRB3Bbat.mjs";
 import { A as AdminPagination } from "./AdminPagination-D6_hrmXq.mjs";
+import { f as formatDateSlash } from "./formatters-BAb3XZ2i.mjs";
 import { M as Modal } from "./Modal-BnFbDATV.mjs";
 import { I as InputError } from "./InputError-cRVTeK4i.mjs";
 import "./ApplicationLogo-VXSMMN2A.mjs";
@@ -182,8 +183,8 @@ function PostsTableRow({ article, onEdit, onDelete }) {
         children: article.status
       }
     ) }),
-    /* @__PURE__ */ jsx("td", { className: "py-4 pr-4 text-slate-600", children: article.published_at ? new Date(article.published_at).toLocaleDateString("it-IT") : "-" }),
-    /* @__PURE__ */ jsx("td", { className: "py-4 pr-4 text-slate-600", children: article.created_at ? new Date(article.created_at).toLocaleDateString("it-IT") : "-" }),
+    /* @__PURE__ */ jsx("td", { className: "py-4 pr-4 text-slate-600", children: formatDateSlash(article.published_at) }),
+    /* @__PURE__ */ jsx("td", { className: "py-4 pr-4 text-slate-600", children: formatDateSlash(article.created_at) }),
     /* @__PURE__ */ jsx("td", { className: "py-4 pr-4", children: /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-end gap-2", children: [
       /* @__PURE__ */ jsx(
         "button",

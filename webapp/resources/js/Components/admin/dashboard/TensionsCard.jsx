@@ -5,11 +5,12 @@ import {
     CardHeader,
     CardTitle,
 } from "@/Components/ui/card";
+import { formatDateTime } from "@/lib/blog/formatters";
 
 export default function TensionsCard({ tensions = {} }) {
     const items = tensions.top || [];
     const latestUpdate = tensions.latest_update
-        ? new Date(tensions.latest_update).toLocaleString("it-IT")
+        ? formatDateTime(tensions.latest_update)
         : null;
 
     return (

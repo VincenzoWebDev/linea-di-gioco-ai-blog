@@ -3,8 +3,9 @@ import { useState, useRef, useEffect, Suspense, lazy } from "react";
 import { Link } from "@inertiajs/react";
 import { Info, ExternalLink, MapPin, Clock3, RadioTower, History, Tags, FileSearch, ArrowLeft } from "lucide-react";
 import { B as BlogLayout } from "./BlogLayout-98RL58NA.mjs";
-import { b as formatPublishedAt, f as formatDateTime, r as resolveSeverityThresholds, a as alertFromRiskScore } from "./geopoliticalSeverity-B4PJR-9p.mjs";
+import { b as formatPublishedAt, a as formatDateTime } from "./formatters-BAb3XZ2i.mjs";
 import { S as SeoHead } from "./SeoHead-9Gv-Y1Y7.mjs";
+import { r as resolveSeverityThresholds, a as alertFromRiskScore } from "./geopoliticalSeverity-BBhZMy0g.mjs";
 function safeText(value) {
   if (typeof value === "symbol") {
     return value.description || "";

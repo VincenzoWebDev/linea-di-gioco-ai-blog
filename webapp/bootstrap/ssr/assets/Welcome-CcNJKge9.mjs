@@ -6,8 +6,9 @@ import { Activity, ArrowDownRight, ArrowUpRight, RadioTower, MapPin, ArrowRight,
 import Marquee from "react-fast-marquee";
 import { Link } from "@inertiajs/react";
 import { a as ArticleIntelligenceCard } from "./ArticleIntelligenceCard-6E8fd8fc.mjs";
-import { s as severityBadge, c as formatShortDate } from "./geopoliticalSeverity-B4PJR-9p.mjs";
+import { s as severityBadge } from "./geopoliticalSeverity-BBhZMy0g.mjs";
 import { t as trendCopy } from "./trendCopy-BRLsGmW-.mjs";
+import { c as formatShortDate } from "./formatters-BAb3XZ2i.mjs";
 import { S as SeoHead } from "./SeoHead-9Gv-Y1Y7.mjs";
 function HomeTensionTrend({ trend }) {
   if (!trend || !trend.points || trend.points.length === 0) {
@@ -236,7 +237,7 @@ function TickerItem({ item }) {
     /* @__PURE__ */ jsx("span", { className: "max-w-[420px] truncate text-[#E8EDF5]", children: item.title })
   ] });
 }
-const GlobalMap = lazy(() => import("./GlobalMap-CSQL923n.mjs"));
+const GlobalMap = lazy(() => import("./GlobalMap-CFzbc2to.mjs"));
 function HomeCommandCenter({ operations }) {
   const [mounted, setMounted] = useState(false);
   const [shouldLoadMap, setShouldLoadMap] = useState(false);
