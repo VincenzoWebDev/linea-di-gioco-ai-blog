@@ -2,7 +2,7 @@ import { jsxs, jsx, Fragment } from "react/jsx-runtime";
 import { useState, useRef, useEffect, Suspense, lazy } from "react";
 import { Link } from "@inertiajs/react";
 import { Info, ExternalLink, MapPin, Clock3, RadioTower, History, Tags, FileSearch, ArrowLeft } from "lucide-react";
-import { B as BlogLayout } from "./BlogLayout-Do41-7kv.mjs";
+import { B as BlogLayout } from "./BlogLayout-98RL58NA.mjs";
 import { b as formatPublishedAt, f as formatDateTime, r as resolveSeverityThresholds, a as alertFromRiskScore } from "./geopoliticalSeverity-B4PJR-9p.mjs";
 import { S as SeoHead } from "./SeoHead-9Gv-Y1Y7.mjs";
 function safeText(value) {

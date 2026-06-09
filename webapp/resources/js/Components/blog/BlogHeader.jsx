@@ -133,20 +133,6 @@ export default function BlogHeader() {
     );
 }
 
-function firstAvailableRouteName(routeNames) {
-    if (typeof route !== "function") {
-        return null;
-    }
-
-    const ziggyRouter = route();
-
-    if (typeof ziggyRouter?.has !== "function") {
-        return null;
-    }
-
-    return routeNames.find((routeName) => ziggyRouter.has(routeName)) || null;
-}
-
 function normalizePath(url) {
     if (typeof url !== "string" || url.trim() === "") {
         return "/";

@@ -1,5 +1,5 @@
 import { jsxs, jsx, Fragment } from "react/jsx-runtime";
-import { B as BlogLayout } from "./BlogLayout-Do41-7kv.mjs";
+import { B as BlogLayout } from "./BlogLayout-98RL58NA.mjs";
 import { a as ArticleIntelligenceCard } from "./ArticleIntelligenceCard-6E8fd8fc.mjs";
 import { MapPin, Clock3, ChevronLeft, ChevronRight, ArrowLeft, FileSearch } from "lucide-react";
 import { b as formatPublishedAt, s as severityBadge } from "./geopoliticalSeverity-B4PJR-9p.mjs";

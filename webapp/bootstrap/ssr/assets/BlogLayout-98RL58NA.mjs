@@ -420,10 +420,11 @@ function CookieBanner() {
   ] });
 }
 function getConsent() {
-  const raw = document.cookie.split("; ").find((row) => row.startsWith("cookie_consent="));
-  if (!raw) return null;
+  if (typeof window === "undefined") {
+    return null;
+  }
   try {
-    return JSON.parse(decodeURIComponent(raw.split("=")[1]));
+    return JSON.parse(localStorage.getItem("cookie_consent") || "null");
   } catch {
     return null;
   }

@@ -1,5 +1,5 @@
 import { jsxs, Fragment, jsx } from "react/jsx-runtime";
-import { B as BlogLayout } from "./BlogLayout-Do41-7kv.mjs";
+import { B as BlogLayout } from "./BlogLayout-98RL58NA.mjs";
 import { S as SeoHead } from "./SeoHead-9Gv-Y1Y7.mjs";
 import { Link } from "@inertiajs/react";
 import "react";

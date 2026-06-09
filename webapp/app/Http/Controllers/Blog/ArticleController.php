@@ -24,7 +24,7 @@ class ArticleController extends Controller
         /** @var LengthAwarePaginator $published */
         $published = Article::query()
             ->where('status', 'published')
-            ->with('categories:id,name')
+            ->with(['categories:id,name', 'tension'])
             ->latest('published_at')
             ->paginate(9, [
                 'id',
@@ -37,22 +37,10 @@ class ArticleController extends Controller
                 'thumb_path',
             ]);
 
-        $tensions = GeopoliticalTension::query()
-            ->whereIn('featured_article_id', $published->pluck('id'))
-            ->get([
-                'featured_article_id',
-                'risk_score',
-                'trend_direction',
-                'region_name',
-                'last_event_at',
-                'updated_at',
-            ])
-            ->keyBy('featured_article_id');
-
         $articles = $published->getCollection()
-            ->map(function (Article $article) use ($tensions) {
+            ->map(function (Article $article) {
                 $categoryNames = $article->categories->pluck('name')->values();
-                $tension = $tensions->get($article->id);
+                $tension = $article->tension;
                 $currentTension = $tension
                     ? (int) (app(GeopoliticalTensionService::class)->lifecycleSnapshot($tension)['current_tension'] ?? $tension->risk_score ?? 0)
                     : null;
@@ -110,7 +98,7 @@ class ArticleController extends Controller
     ): Response|RedirectResponse {
         $article = Article::query()
             ->where('status', 'published')
-            ->with('categories:id,name')
+            ->with(['categories:id,name', 'tension'])
             ->findOrFail($id, [
                 'id',
                 'title',
@@ -135,9 +123,7 @@ class ArticleController extends Controller
             ]);
         }
 
-        $tension = GeopoliticalTension::query()
-            ->where('featured_article_id', $article->id)
-            ->first(['region_name', 'display_region_name', 'region_key', 'risk_score', 'trend_direction', 'status_label', 'last_event_at', 'updated_at']);
+        $tension = $article->tension;
         $lifecycle = $tension ? $geopoliticalTensionService->lifecycleSnapshot($tension) : null;
         $trendDirection = $tension ? $geopoliticalTensionService->resolveTrendDirection($tension) : 'stable';
         $resolvedRegionName = $tension
@@ -216,21 +202,16 @@ class ArticleController extends Controller
             ]))
         );
 
-        $tensionsByArticleId = GeopoliticalTension::query()
-            ->whereNotNull('featured_article_id')
-            ->get(['featured_article_id', 'region_name', 'display_region_name'])
-            ->keyBy('featured_article_id');
-
         return Article::query()
             ->where('status', 'published')
             ->where('id', '!=', $article->id)
-            ->with('categories:id,name')
+            ->with(['categories:id,name', 'tension'])
             ->latest('published_at')
             ->limit(30)
             ->get(['id', 'title', 'slug', 'summary', 'content', 'published_at', 'thumb_path'])
-            ->map(function (Article $candidate) use ($currentCategoryNames, $currentKeywords, $currentRegion, $tensionsByArticleId) {
+            ->map(function (Article $candidate) use ($currentCategoryNames, $currentKeywords, $currentRegion) {
                 $categoryNames = $candidate->categories->pluck('name')->values();
-                $candidateTension = $tensionsByArticleId->get($candidate->id);
+                $candidateTension = $candidate->tension;
                 $candidateRegion = mb_strtolower(trim((string) ($candidateTension?->region_name ?? '')));
                 $sharedCategories = $categoryNames
                     ->map(fn ($value) => mb_strtolower((string) $value))
@@ -290,23 +271,19 @@ class ArticleController extends Controller
             ->values();
         $currentRegion = mb_strtolower(trim((string) $tension?->region_name));
 
-        $tensionsByArticleId = GeopoliticalTension::query()
-            ->whereNotNull('featured_article_id')
-            ->get(['featured_article_id', 'region_name'])
-            ->keyBy('featured_article_id');
-
         $candidates = Article::query()
             ->where('status', 'published')
             ->where('id', '!=', $article->id)
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now())
-            ->with('categories:id,name')
+            ->with(['categories:id,name', 'tension'])
             ->latest('published_at')
             ->limit(60)
             ->get(['id', 'title', 'slug', 'summary', 'content', 'published_at'])
-            ->map(function (Article $candidate) use ($currentCategoryNames, $currentRegion, $tensionsByArticleId) {
+            ->map(function (Article $candidate) use ($currentCategoryNames, $currentRegion) {
                 $categoryNames = $candidate->categories->pluck('name')->values();
-                $candidateRegion = trim((string) ($tensionsByArticleId->get($candidate->id)?->region_name ?? ''));
+                $candidateTension = $candidate->tension;
+                $candidateRegion = trim((string) ($candidateTension?->region_name ?? ''));
                 $candidateRegionKey = mb_strtolower($candidateRegion);
                 $candidateText = implode(' ', array_filter([
                     $candidate->title,

@@ -27,7 +27,7 @@ class HomeController extends Controller
     {
         $publishedArticles = Article::query()
             ->where('status', 'published')
-            ->with('categories:id,name')
+            ->with(['categories:id,name', 'tension'])
             ->latest('published_at')
             ->limit(6)
             ->get([
@@ -40,28 +40,12 @@ class HomeController extends Controller
                 'thumb_path',
             ]);
 
-        $tensions = GeopoliticalTension::query()
-            ->whereIn('featured_article_id', $publishedArticles->pluck('id'))
-            ->get([
-                'featured_article_id',
-                'risk_score',
-                'trend_direction',
-                'region_name',
-                'last_event_at',
-                'updated_at',
-            ])
-            ->keyBy('featured_article_id');
-
         $articles = $publishedArticles
-            ->map(fn (Article $article) => $this->toArticleCardData($article, $tensions->get($article->id)))
+            ->map(fn (Article $article) => $this->toArticleCardData($article, $article->tension))
             ->values();
 
         $operations = $this->commandLocations();
-        $activeOperations = $operations
-            ->where('is_expired', false)
-            ->where('risk_score', '>=', (int) config('ai_news.tensions.min_active_risk_score', 30))
-            ->take(6)
-            ->values();
+        $activeOperations = $operations->take(6)->values();
         $fallbackArticle = $articles->first();
         $latestPublishedAt = ($activeOperations->first()['published_at'] ?? null)
             ?? ($fallbackArticle['published_at'] ?? null);
@@ -146,6 +130,7 @@ class HomeController extends Controller
     private function commandLocations()
     {
         return GeopoliticalTension::query()
+            ->active()
             ->with('featuredArticle:id,title,slug,status,published_at,summary,thumb_path,cover_path')
             ->get([
                 'id',

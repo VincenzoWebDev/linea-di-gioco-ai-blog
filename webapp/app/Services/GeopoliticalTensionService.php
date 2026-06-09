@@ -292,6 +292,7 @@ class GeopoliticalTensionService
     private function queryTopForHeader(int $limit): Collection
     {
         return GeopoliticalTension::query()
+            ->active()
             ->with('featuredArticle:id,title,slug,status')
             ->get()
             ->map(function (GeopoliticalTension $tension) {
@@ -316,8 +317,6 @@ class GeopoliticalTensionService
                     'is_expired' => $lifecycle['is_expired'],
                 ];
             })
-            ->filter(fn (array $tension) => ! ($tension['is_expired'] ?? false))
-            ->filter(fn (array $tension) => $tension['current_tension'] >= $this->minActiveRiskScore())
             ->sortBy([
                 ['current_tension', 'desc'],
                 ['display_region_name', 'asc'],

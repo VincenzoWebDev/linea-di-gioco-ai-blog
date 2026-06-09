@@ -29,6 +29,24 @@ class GeopoliticalTension extends Model
         'last_event_at' => 'datetime',
     ];
 
+    public function scopeActive($query)
+    {
+        $ttlHours = (int) config('ai_news.tensions.ttl_hours', 48);
+        $minActiveRiskScore = (int) config('ai_news.tensions.min_active_risk_score', 30);
+        $threshold = now()->subHours($ttlHours);
+
+        return $query->where('risk_score', '>=', $minActiveRiskScore)
+            ->where(function ($q) use ($threshold) {
+                $q->where(function ($sq) use ($threshold) {
+                    $sq->whereNotNull('last_event_at')
+                        ->where('last_event_at', '>', $threshold);
+                })->orWhere(function ($sq) use ($threshold) {
+                    $sq->whereNull('last_event_at')
+                        ->where('updated_at', '>', $threshold);
+                });
+            });
+    }
+
     public function hasMapCoordinates(): bool
     {
         return $this->latitude !== null && $this->longitude !== null;
