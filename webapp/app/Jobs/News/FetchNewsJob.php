@@ -5,13 +5,13 @@ namespace App\Jobs\News;
 use App\Models\NewsSource;
 use App\Services\Agents\NewsScoutAgent;
 use App\Services\News\AiNewsWorkflowService;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class FetchNewsJob implements ShouldQueue
 {
@@ -24,14 +24,12 @@ class FetchNewsJob implements ShouldQueue
     public function __construct(
         private readonly bool $forcePoll = false,
         private readonly ?string $triggeredAt = null
-    ) {
-    }
+    ) {}
 
     public function handle(
         NewsScoutAgent $newsScoutAgent,
         AiNewsWorkflowService $workflowService
-    ): void
-    {
+    ): void {
         $workflow = $workflowService->sessionMetadata($this->triggeredAt);
 
         if (! $this->forcePoll && ! $workflowService->isAllowedTriggerTime($workflow['triggered_at'])) {
@@ -60,6 +58,7 @@ class FetchNewsJob implements ShouldQueue
         foreach ($sources as $source) {
             if (! $this->shouldPollSource($source)) {
                 $skippedSources++;
+
                 continue;
             }
 
@@ -125,6 +124,6 @@ class FetchNewsJob implements ShouldQueue
 
     private function pollCacheKey(int $sourceId): string
     {
-        return 'ai_news:last_polled:' . $sourceId;
+        return 'ai_news:last_polled:'.$sourceId;
     }
 }

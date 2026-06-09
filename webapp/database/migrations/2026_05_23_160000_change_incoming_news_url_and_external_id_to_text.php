@@ -18,6 +18,6 @@ return new class extends Migration
         // Non-destructive rollback: during migrate:refresh the table will be dropped by the
         // original create migration, while shrinking TEXT back to VARCHAR(255) may fail on
         // existing data and would risk silent truncation.
-        return;
+
     }
 };

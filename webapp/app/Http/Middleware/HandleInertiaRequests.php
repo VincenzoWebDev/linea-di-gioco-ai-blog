@@ -20,7 +20,7 @@ class HandleInertiaRequests extends Middleware
     /**
      * Determine the current asset version.
      */
-    public function version(Request $request): string|null
+    public function version(Request $request): ?string
     {
         return parent::version($request);
     }
@@ -36,9 +36,9 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
-                'isLogged' => fn() => Auth::check(),
+                'isLogged' => fn () => Auth::check(),
             ],
-            'ziggy' => fn() => [
+            'ziggy' => fn () => [
                 ...(new Ziggy(null, $request->root()))->toArray(),
                 'location' => $request->fullUrl(),
             ],
@@ -56,7 +56,7 @@ class HandleInertiaRequests extends Middleware
                 'defaultImageAlt' => config('seo.default_image_alt'),
                 'organizationName' => config('seo.organization_name'),
             ],
-            'geopoliticalTensions' => fn() => app(GeopoliticalTensionService::class)
+            'geopoliticalTensions' => fn () => app(GeopoliticalTensionService::class)
                 ->topForHeader()
                 ->all(),
         ];

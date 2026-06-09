@@ -11,19 +11,43 @@ class RegionCoordinateResolver
      */
     public function resolve(string $regionName, string $context = ''): ?array
     {
-        $match = $this->resolveMatch($regionName, $context);
+        $regionName = trim($regionName);
+        $context = trim($context);
 
-        if ($match) {
-            return [
-                'lat' => $match['lat'],
-                'long' => $match['long'],
-            ];
+        // 1. Try direct static matching on the region name first
+        if ($regionName !== '') {
+            $match = $this->matchHaystack($this->normalizePlaceName($regionName), true);
+            if ($match !== null) {
+                return [
+                    'lat' => $match['lat'],
+                    'long' => $match['long'],
+                ];
+            }
         }
 
-        // Automatic AI-based geocoding fallback for places not in our static config!
-        $resolvedPlaceName = trim($regionName !== '' ? $regionName : $context);
-        if ($resolvedPlaceName !== '' && ! $this->isGenericRegionName($resolvedPlaceName)) {
-            $aiCoords = $this->resolveViaAi($resolvedPlaceName);
+        // 2. If the region name is specific (non-generic), try to geocode it via AI before falling back to context
+        if ($regionName !== '' && ! $this->isGenericRegionName($regionName)) {
+            $aiCoords = $this->resolveViaAi($regionName);
+            if ($aiCoords !== null) {
+                return $aiCoords;
+            }
+        }
+
+        // 3. Fall back to static matching on context (looks for any static regions mentioned in the text)
+        if ($context !== '') {
+            $match = $this->matchHaystack($this->normalizePlaceName($context), false);
+            if ($match !== null) {
+                return [
+                    'lat' => $match['lat'],
+                    'long' => $match['long'],
+                ];
+            }
+        }
+
+        // 4. If nothing else worked and we have context, try AI geocoding on the context/headline
+        $fallbackPlace = $regionName !== '' && ! $this->isGenericRegionName($regionName) ? $regionName : $context;
+        if ($fallbackPlace !== '' && ! $this->isGenericRegionName($fallbackPlace)) {
+            $aiCoords = $this->resolveViaAi($fallbackPlace);
             if ($aiCoords !== null) {
                 return $aiCoords;
             }
@@ -154,10 +178,10 @@ class RegionCoordinateResolver
 
                 if (! $isDirect) {
                     // 1. Frequency calculation: reward highly repeated places
-                    $pattern = '/(?<!\pL)' . preg_quote($normalizedAlias, '/') . '(?!\pL)/u';
+                    $pattern = '/(?<!\pL)'.preg_quote($normalizedAlias, '/').'(?!\pL)/u';
                     $occurrences = preg_match_all($pattern, $haystack);
                     $frequency = max(1, $occurrences);
-                    
+
                     $finalScore *= (1.0 + ($frequency - 1) * 0.5);
 
                     // 2. Position bonus: if found early in the text (first 300 characters), give it a 30% boost
@@ -224,13 +248,13 @@ class RegionCoordinateResolver
             return false;
         }
 
-        $pattern = '/(?:^|\s)' . preg_quote($alias, '/') . '(?:\s|$)/u';
+        $pattern = '/(?:^|\s)'.preg_quote($alias, '/').'(?:\s|$)/u';
 
         return preg_match($pattern, $haystack) === 1;
     }
 
     /**
-     * @param array{aliases: list<string>, lat: float, long: float, label?: string} $entry
+     * @param  array{aliases: list<string>, lat: float, long: float, label?: string}  $entry
      */
     private function entryLabel(array $entry): string
     {
@@ -279,10 +303,11 @@ class RegionCoordinateResolver
     private function resolveViaAi(string $placeName): ?array
     {
         $normalizedPlaceName = Str::lower(trim($placeName));
-        $cacheKey = 'ai_geocoding.' . md5($normalizedPlaceName);
+        $cacheKey = 'ai_geocoding.'.md5($normalizedPlaceName);
 
         if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
             $cached = \Illuminate\Support\Facades\Cache::get($cacheKey);
+
             return $cached === 'not_found' ? null : $cached;
         }
 
@@ -298,9 +323,10 @@ class RegionCoordinateResolver
             return null;
         }
 
-        $systemPrompt = 'Sei un geografo esperto. Rispondi solo con JSON valido.';
+        $systemPrompt = 'Sei un geografo esperto in geopolitica. Rispondi solo con JSON valido.';
         $userPrompt = <<<PROMPT
-Trova le coordinate geografiche (latitudine e longitudine) precise per questa localita: "{$placeName}".
+Trova le coordinate geografiche (latitudine e longitudine) precise per questa localita, Paese o teatro geopolitico descritto nel testo: "{$placeName}".
+Se il testo descrive un evento geopolitico complesso, identifica la citta, base, porto o Paese principale in cui si svolge l'evento e restituisci le sue coordinate.
 Rispondi esclusivamente con un oggetto JSON avente le seguenti chiavi numeriche:
 {
   "lat": 34.0522,

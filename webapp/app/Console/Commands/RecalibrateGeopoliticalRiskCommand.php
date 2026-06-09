@@ -23,7 +23,7 @@ class RecalibrateGeopoliticalRiskCommand extends Command
         GeopoliticalTension::query()
             ->with('featuredArticle:id,title,summary,content')
             ->orderBy('id')
-            ->chunkById(50, function ($tensions) use ($calibration, $tensionService, &$updated): void {
+            ->chunkById(50, function ($tensions) use ($calibration, &$updated): void {
                 foreach ($tensions as $tension) {
                     $article = $tension->featuredArticle;
                     $context = trim(implode(' ', array_filter([

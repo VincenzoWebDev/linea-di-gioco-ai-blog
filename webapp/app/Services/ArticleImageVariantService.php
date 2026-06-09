@@ -56,7 +56,7 @@ class ArticleImageVariantService
             ];
         }
 
-        if (!str_starts_with(strtolower($sourceMime), 'image/')) {
+        if (! str_starts_with(strtolower($sourceMime), 'image/')) {
             return [
                 'bytes' => $sourceBytes,
                 'mime' => $sourceMime,
@@ -126,7 +126,7 @@ class ArticleImageVariantService
         try {
             $src = @imagecreatefromstring($sourceBytes);
 
-            if (!$src) {
+            if (! $src) {
                 return [
                     'bytes' => $sourceBytes,
                     'mime' => $sourceMime,
@@ -190,7 +190,7 @@ class ArticleImageVariantService
 
             unset($src, $target);
 
-            if (!$success || $bytes === '') {
+            if (! $success || $bytes === '') {
                 return [
                     'bytes' => $sourceBytes,
                     'mime' => $sourceMime,
@@ -225,7 +225,7 @@ class ArticleImageVariantService
         int $quality
     ): array {
         try {
-            $image = new \Imagick();
+            $image = new \Imagick;
 
             $image->readImageBlob($sourceBytes);
 
@@ -265,7 +265,7 @@ class ArticleImageVariantService
             $image->clear();
             $image->destroy();
 
-            if (!is_string($bytes) || $bytes === '') {
+            if (! is_string($bytes) || $bytes === '') {
                 return [
                     'bytes' => $sourceBytes,
                     'mime' => $sourceMime,
@@ -330,8 +330,8 @@ class ArticleImageVariantService
     private function supportsGdWebp(): bool
     {
         if (
-            !extension_loaded('gd')
-            || !function_exists('imagewebp')
+            ! extension_loaded('gd')
+            || ! function_exists('imagewebp')
         ) {
             return false;
         }
@@ -346,8 +346,8 @@ class ArticleImageVariantService
     private function supportsImagickWebp(): bool
     {
         if (
-            !extension_loaded('imagick')
-            || !class_exists(\Imagick::class)
+            ! extension_loaded('imagick')
+            || ! class_exists(\Imagick::class)
         ) {
             return false;
         }

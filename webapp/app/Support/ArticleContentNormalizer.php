@@ -59,7 +59,6 @@ final class ArticleContentNormalizer
     }
 
     /**
-     * @param  mixed  $categories
      * @return array<int, string>
      */
     public static function normalizeCategories(mixed $categories, int $max = 5): array

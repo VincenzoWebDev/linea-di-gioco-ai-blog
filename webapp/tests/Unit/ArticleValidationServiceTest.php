@@ -11,7 +11,7 @@ class ArticleValidationServiceTest extends TestCase
     {
         config()->set('ai_news.min_quality_score', 70);
 
-        $service = new ArticleValidationService();
+        $service = new ArticleValidationService;
 
         $result = $service->validateSanitizedPayload([
             'title' => 'Il match di Champions League cambia il calendario europeo',
@@ -32,7 +32,7 @@ class ArticleValidationServiceTest extends TestCase
     {
         config()->set('ai_news.min_quality_score', 70);
 
-        $service = new ArticleValidationService();
+        $service = new ArticleValidationService;
 
         $result = $service->validateSanitizedPayload([
             'title' => 'Notizia non traducibile automaticamente',
@@ -53,7 +53,7 @@ class ArticleValidationServiceTest extends TestCase
     {
         config()->set('ai_news.min_quality_score', 70);
 
-        $service = new ArticleValidationService();
+        $service = new ArticleValidationService;
 
         $result = $service->validateSanitizedPayload([
             'title' => 'Diplomatic tensions rise after the summit',
@@ -82,7 +82,7 @@ class ArticleValidationServiceTest extends TestCase
     {
         config()->set('ai_news.min_quality_score', 70);
 
-        $service = new ArticleValidationService();
+        $service = new ArticleValidationService;
 
         $result = $service->validateSanitizedPayload([
             'title' => 'L\'Unione europea valuta nuove sanzioni energetiche',
@@ -103,7 +103,7 @@ class ArticleValidationServiceTest extends TestCase
     {
         config()->set('ai_news.min_quality_score', 70);
 
-        $service = new ArticleValidationService();
+        $service = new ArticleValidationService;
 
         $result = $service->validateSanitizedPayload([
             'title' => 'La Nato discute nuove misure di sicurezza regionale',

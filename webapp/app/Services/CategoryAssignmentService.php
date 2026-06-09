@@ -64,6 +64,7 @@ class CategoryAssignmentService
         if ($scored !== []) {
             usort($scored, fn ($a, $b) => $b['score'] <=> $a['score']);
             $top = array_slice($scored, 0, 3);
+
             return array_values(array_unique(array_map(fn ($item) => $item['id'], $top)));
         }
 
@@ -75,8 +76,8 @@ class CategoryAssignmentService
     }
 
     /**
-     * @param array<int, string> $suggestedCategories
-     * @param \Illuminate\Support\Collection<int, Category> $activeCategories
+     * @param  array<int, string>  $suggestedCategories
+     * @param  \Illuminate\Support\Collection<int, Category>  $activeCategories
      * @return array<int, int>
      */
     private function resolveSuggestedCategoryIds(array $suggestedCategories, $activeCategories): array
@@ -87,6 +88,7 @@ class CategoryAssignmentService
             ->map(fn ($value) => Str::limit($value, 120, ''))
             ->filter(function ($value) {
                 $key = mb_strtolower(trim((string) $value));
+
                 return ! in_array($key, ['news', 'notizie', 'varie', 'general', 'generale'], true);
             })
             ->unique(fn ($value) => mb_strtolower($value))

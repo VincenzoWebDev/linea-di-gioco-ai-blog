@@ -16,8 +16,7 @@ class SanitizerAgent
         private readonly ArticleInsightService $articleInsightService,
         private readonly CrewAiClient $crewAiClient,
         private readonly ArticleValidationService $articleValidationService
-    ) {
-    }
+    ) {}
 
     /**
      * @param  array<string, mixed>  $rawNews

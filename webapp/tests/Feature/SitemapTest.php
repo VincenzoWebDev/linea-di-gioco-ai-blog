@@ -3,8 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Article;
-use Illuminate\Support\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class SitemapTest extends TestCase

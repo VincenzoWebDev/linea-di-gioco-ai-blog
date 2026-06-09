@@ -10,7 +10,7 @@ use Throwable;
 class ArticleInsightService
 {
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
      */
     public function enrichPayload(array $payload): array
@@ -60,8 +60,7 @@ class ArticleInsightService
     }
 
     /**
-     * @param mixed $raw
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      * @return array<int, string>
      */
     public function normalizeFutureScenarios(mixed $raw, array $payload): array
@@ -87,7 +86,7 @@ class ArticleInsightService
     }
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      * @return array<int, string>
      */
     public function buildArticleFutureScenarios(array $payload): array
@@ -96,7 +95,6 @@ class ArticleInsightService
     }
 
     /**
-     * @param mixed $raw
      * @return array<int, string>
      */
     public function normalizeStoredFutureScenarios(mixed $raw): array
@@ -111,7 +109,7 @@ class ArticleInsightService
     }
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      * @return array<int, string>
      */
     private function generateFutureScenariosWithAi(array $payload): array
@@ -199,7 +197,7 @@ PROMPT;
     }
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      * @return array<int, string>
      */
     private function fallbackFutureScenarios(array $payload): array
@@ -235,9 +233,9 @@ PROMPT;
         };
 
         $trendLine = match ($trend) {
-            'rising' => "Se la traiettoria resterà in salita, saranno decisivi i prossimi aggiornamenti sul terreno e le reazioni degli attori regionali.",
-            'falling' => "Se la traiettoria discendente verrà confermata, il dossier potrebbe spostarsi verso una fase di contenimento più che di escalation immediata.",
-            default => "La traiettoria appare ancora interlocutoria e richiede conferme successive prima di parlare di svolta strutturale.",
+            'rising' => 'Se la traiettoria resterà in salita, saranno decisivi i prossimi aggiornamenti sul terreno e le reazioni degli attori regionali.',
+            'falling' => 'Se la traiettoria discendente verrà confermata, il dossier potrebbe spostarsi verso una fase di contenimento più che di escalation immediata.',
+            default => 'La traiettoria appare ancora interlocutoria e richiede conferme successive prima di parlare di svolta strutturale.',
         };
 
         $summaryLine = $summary !== ''

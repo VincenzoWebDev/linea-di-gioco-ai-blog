@@ -16,6 +16,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'isAdmin'])->group(f
         if (auth()->check()) {
             return redirect()->route('admin.dashboard');
         }
+
         return redirect()->route('admin.login');
     });
     Route::get('/dashboard', DashboardController::class)->name('dashboard');

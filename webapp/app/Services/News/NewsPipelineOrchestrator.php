@@ -16,8 +16,7 @@ class NewsPipelineOrchestrator
 
     public function __construct(
         private readonly IncomingNewsStateMachine $stateMachine
-    ) {
-    }
+    ) {}
 
     public function advance(IncomingNews|int $incoming): void
     {

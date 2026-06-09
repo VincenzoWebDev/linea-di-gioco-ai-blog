@@ -23,8 +23,7 @@ class ReceiveAiArticleJob implements ShouldQueue
     public function __construct(
         public array $payload,
         public string $idempotencyKey
-    ) {
-    }
+    ) {}
 
     public function handle(IncomingNewsIngestService $ingestService): void
     {

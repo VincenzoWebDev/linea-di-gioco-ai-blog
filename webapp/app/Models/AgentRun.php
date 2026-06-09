@@ -25,4 +25,3 @@ class AgentRun extends Model
         return $this->belongsTo(IncomingNews::class);
     }
 }
-

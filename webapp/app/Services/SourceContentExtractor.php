@@ -41,7 +41,7 @@ class SourceContentExtractor
         $clean = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', ' ', $html) ?? $html;
         $clean = preg_replace('/<style\b[^>]*>(.*?)<\/style>/is', ' ', $clean) ?? $clean;
 
-        $dom = new \DOMDocument();
+        $dom = new \DOMDocument;
         libxml_use_internal_errors(true);
         $dom->loadHTML($clean);
         libxml_clear_errors();
@@ -62,4 +62,3 @@ class SourceContentExtractor
         return Str::limit(trim(implode("\n\n", $chunks)), 12000, '');
     }
 }
-

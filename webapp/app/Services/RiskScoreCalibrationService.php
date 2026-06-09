@@ -139,7 +139,7 @@ class RiskScoreCalibrationService
 
     public function calibrate(int $rawScore, string $context, string $statusLabel = '', string $trendDirection = 'stable'): int
     {
-        $text = mb_strtolower(trim($context . ' ' . $statusLabel));
+        $text = mb_strtolower(trim($context.' '.$statusLabel));
         $score = max(1, min(100, $rawScore));
         $trendDirection = strtolower(trim($trendDirection));
 
@@ -246,7 +246,7 @@ class RiskScoreCalibrationService
     }
 
     /**
-     * @param list<string> $signals
+     * @param  list<string>  $signals
      */
     private function countSignals(string $text, array $signals): int
     {
@@ -262,7 +262,7 @@ class RiskScoreCalibrationService
     }
 
     /**
-     * @param list<string> $signals
+     * @param  list<string>  $signals
      */
     private function hasAny(string $text, array $signals): bool
     {

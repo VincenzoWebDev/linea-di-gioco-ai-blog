@@ -14,7 +14,7 @@ class GeopoliticalAreaExtractionService
     ) {}
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      * @return array{region_name: string, display_region_name: string}
      */
     public function extract(array $payload): array
@@ -35,7 +35,7 @@ class GeopoliticalAreaExtractionService
     }
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      * @return array{region_name: string, display_region_name: string}
      */
     public function extractFromArticle(?Article $article, array $payload = []): array
@@ -107,7 +107,7 @@ PROMPT;
         try {
             $response = Http::timeout((int) config('ai_news.ai.timeout_seconds', 30))
                 ->acceptJson()
-                ->post($baseUrl . '/api/chat', [
+                ->post($baseUrl.'/api/chat', [
                     'model' => $model,
                     'stream' => false,
                     'format' => 'json',
@@ -125,6 +125,7 @@ PROMPT;
             }
 
             $raw = (string) data_get($response->json(), 'message.content', '');
+
             return $this->decodeJsonPayload($raw);
         } catch (Throwable) {
             return [];
@@ -153,7 +154,7 @@ PROMPT;
     }
 
     /**
-     * @param array<string, mixed> $decoded
+     * @param  array<string, mixed>  $decoded
      * @return array{region_name: string, display_region_name: string}
      */
     private function normalizeExtraction(array $decoded, string $context, string $candidateRegion, string $candidateDisplay): array

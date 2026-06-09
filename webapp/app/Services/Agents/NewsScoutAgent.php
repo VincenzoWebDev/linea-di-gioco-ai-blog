@@ -37,17 +37,17 @@ class NewsScoutAgent
 
         return [
             [
-                'external_id' => $seed . '-' . $now->format('YmdHi') . '-1',
-                'title' => 'Ultima ora ' . $source->name . ': aggiornamento ' . $now->format('H:i'),
+                'external_id' => $seed.'-'.$now->format('YmdHi').'-1',
+                'title' => 'Ultima ora '.$source->name.': aggiornamento '.$now->format('H:i'),
                 'summary' => 'Segnalazione rapida generata in mock per testare la pipeline AI.',
-                'url' => rtrim($source->endpoint, '/') . '/' . $seed . '-' . $now->timestamp . '-1',
+                'url' => rtrim($source->endpoint, '/').'/'.$seed.'-'.$now->timestamp.'-1',
                 'published_at' => $now->toIso8601String(),
             ],
             [
-                'external_id' => $seed . '-' . $now->format('YmdHi') . '-2',
-                'title' => 'Approfondimento ' . $source->name . ' su sicurezza energetica europea',
+                'external_id' => $seed.'-'.$now->format('YmdHi').'-2',
+                'title' => 'Approfondimento '.$source->name.' su sicurezza energetica europea',
                 'summary' => 'Seconda notizia mock con focus geopolitico per controllare deduplica e sanitizzazione.',
-                'url' => rtrim($source->endpoint, '/') . '/' . $seed . '-' . $now->timestamp . '-2',
+                'url' => rtrim($source->endpoint, '/').'/'.$seed.'-'.$now->timestamp.'-2',
                 'published_at' => $now->subMinutes(2)->toIso8601String(),
             ],
         ];
@@ -69,8 +69,7 @@ class NewsScoutAgent
                     // 'User-Agent' => 'LineaDiGiocoBot/1.0 (+https://lineadigioco.local)',
 
                     // ✅ NUOVO (browser realistico)
-                    'User-Agent' =>
-                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36',
+                    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36',
 
                     'Accept' => 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8',
                 ])
@@ -134,6 +133,7 @@ class NewsScoutAgent
             // ✅ NUOVO: blocca HTML spazzatura (Cloudflare / error page)
             if (str_contains($xml, '<html') || str_contains($xml, '<!DOCTYPE html')) {
                 Log::warning('ai_news_rss_html_detected_instead_of_xml');
+
                 return [];
             }
 
@@ -143,6 +143,7 @@ class NewsScoutAgent
 
             if (! $feed) {
                 Log::warning('ai_news_rss_parse_failed');
+
                 return [];
             }
 
@@ -176,7 +177,7 @@ class NewsScoutAgent
                     $externalId = trim((string) ($item->guid ?? $item->id ?? ''));
 
                     if ($externalId === '') {
-                        $externalId = hash('sha256', $title . '|' . $url . '|' . $publishedAt);
+                        $externalId = hash('sha256', $title.'|'.$url.'|'.$publishedAt);
                     }
 
                     $normalized[] = [

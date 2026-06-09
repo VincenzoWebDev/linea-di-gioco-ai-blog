@@ -41,7 +41,7 @@ class GeopoliticalAreaExtractionServiceTest extends TestCase
             'quality_score' => 88,
         ]);
 
-        $service = new GeopoliticalAreaExtractionService(new RegionCoordinateResolver());
+        $service = new GeopoliticalAreaExtractionService(new RegionCoordinateResolver);
         $result = $service->extractFromArticle($article);
 
         $this->assertSame('Iran', $result['region_name']);
@@ -76,7 +76,7 @@ class GeopoliticalAreaExtractionServiceTest extends TestCase
             'quality_score' => 86,
         ]);
 
-        $service = new GeopoliticalAreaExtractionService(new RegionCoordinateResolver());
+        $service = new GeopoliticalAreaExtractionService(new RegionCoordinateResolver);
         $result = $service->extractFromArticle($article);
 
         $this->assertSame('Iran', $result['region_name']);

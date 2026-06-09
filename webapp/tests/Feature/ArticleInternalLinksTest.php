@@ -38,8 +38,8 @@ class ArticleInternalLinksTest extends TestCase
         ]);
 
         $response = $this->get(route('blog.articles.show', [
-                'id' => $currentArticle->id,
-                'slug' => $currentArticle->slug,
+            'id' => $currentArticle->id,
+            'slug' => $currentArticle->slug,
         ]));
 
         $response->assertOk();

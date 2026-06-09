@@ -1,4 +1,5 @@
 import BlogLayout from "@/Layouts/BlogLayout";
+import HomeTensionTrend from "@/Components/blog/home/HomeTensionTrend";
 import HomeCommandCenter from "@/Components/blog/home/HomeCommandCenter";
 import HomeFeedSection from "@/Components/blog/home/HomeFeedSection";
 import HomeLatestNewsSection from "@/Components/blog/home/HomeLatestNewsSection";
@@ -12,6 +13,7 @@ export default function Welcome({
     latestItems = [],
     locations = [],
     stats = {},
+    globalTrend = {},
 }) {
     const lcpImageUrl = resolveLcpImageUrl(feedItems[0]);
 
@@ -36,6 +38,7 @@ export default function Welcome({
                 />
                 <HomeFeedSection items={feedItems} />
                 <HomeLatestNewsSection items={latestItems} />
+                <HomeTensionTrend trend={globalTrend} />
             </BlogLayout>
         </>
     );

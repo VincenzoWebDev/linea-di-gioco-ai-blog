@@ -20,12 +20,12 @@ class GeopoliticalTensionServiceTest extends TestCase
     {
         config()->set('ai_news.ai.enabled', false);
 
-        $resolver = new RegionCoordinateResolver();
+        $resolver = new RegionCoordinateResolver;
 
         return new GeopoliticalTensionService(
             $resolver,
             new GeopoliticalAreaExtractionService($resolver),
-            new RiskScoreCalibrationService(),
+            new RiskScoreCalibrationService,
         );
     }
 

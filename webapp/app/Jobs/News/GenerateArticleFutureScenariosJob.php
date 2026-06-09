@@ -16,9 +16,7 @@ class GenerateArticleFutureScenariosJob implements ShouldQueue
 
     public int $tries = 2;
 
-    public function __construct(public int $articleId)
-    {
-    }
+    public function __construct(public int $articleId) {}
 
     public function handle(ArticleInsightService $articleInsightService): void
     {

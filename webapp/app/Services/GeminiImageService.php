@@ -68,7 +68,7 @@ class GeminiImageService
 
         if (! $response || ! $response->successful()) {
             $status = $response ? $response->status() : 0;
-            throw new RuntimeException('gemini_http_error_' . $status);
+            throw new RuntimeException('gemini_http_error_'.$status);
         }
 
         $data = $response->json();
@@ -114,11 +114,11 @@ class GeminiImageService
             : 'Composizione orizzontale da copertina editoriale.';
 
         return trim(
-            'Crea una immagine fotorealistica editoriale per un articolo di geopolitica. ' .
-                $shape . ' ' .
-                'Nessun logo, watermark, testo leggibile, bandiere inventate o volti di persone reali riconoscibili. ' .
-                ($style !== '' ? "Stile desiderato: {$style}. " : '') .
-                "Titolo: {$title}. " .
+            'Crea una immagine fotorealistica editoriale per un articolo di geopolitica. '.
+                $shape.' '.
+                'Nessun logo, watermark, testo leggibile, bandiere inventate o volti di persone reali riconoscibili. '.
+                ($style !== '' ? "Stile desiderato: {$style}. " : '').
+                "Titolo: {$title}. ".
                 "Descrizione: {$summary}."
         );
     }

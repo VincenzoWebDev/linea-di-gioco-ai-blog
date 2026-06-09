@@ -29,4 +29,3 @@ class VerifyAiIngestToken
         return $next($request);
     }
 }
-

@@ -30,8 +30,7 @@ class ParseAndStoreIncomingJob implements ShouldQueue
     public function __construct(
         public int $newsSourceId,
         public array $rawNews
-    ) {
-    }
+    ) {}
 
     public function handle(
         GeopoliticsScopeService $scopeService,

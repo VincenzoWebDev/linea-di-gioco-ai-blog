@@ -23,9 +23,7 @@ class SanitizeIncomingNewsJob implements ShouldQueue
 
     public array $backoff = [60, 180, 600];
 
-    public function __construct(public int $incomingNewsId)
-    {
-    }
+    public function __construct(public int $incomingNewsId) {}
 
     public function handle(
         SanitizerAgent $sanitizerAgent,

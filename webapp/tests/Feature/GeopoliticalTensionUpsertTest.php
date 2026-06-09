@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\Models\GeopoliticalTension;
 use App\Models\Article;
+use App\Models\GeopoliticalTension;
 use App\Services\GeopoliticalTensionService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class GeopoliticalTensionUpsertTest extends TestCase
 {
@@ -39,7 +39,7 @@ class GeopoliticalTensionUpsertTest extends TestCase
                 'risk_score' => 50,
                 'trend_direction' => 'rising',
                 'status_label' => 'war',
-            ]
+            ],
         ], $article1);
 
         $this->assertCount(1, GeopoliticalTension::all());
@@ -53,7 +53,7 @@ class GeopoliticalTensionUpsertTest extends TestCase
                 'risk_score' => 80,
                 'trend_direction' => 'rising',
                 'status_label' => 'escalation',
-            ]
+            ],
         ], $article2);
 
         $this->assertCount(1, GeopoliticalTension::all());

@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\GeopoliticalTension;
 use App\Services\ArticleInsightService;
 use App\Services\GeopoliticalTensionService;
+use App\Services\GlobalTensionTrendService;
 use App\Support\GeopoliticalSeverity;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -19,6 +20,7 @@ class HomeController extends Controller
     public function __construct(
         private readonly ArticleInsightService $articleInsightService,
         private readonly GeopoliticalTensionService $geopoliticalTensionService,
+        private readonly GlobalTensionTrendService $globalTensionTrendService,
     ) {}
 
     public function index(): Response
@@ -51,7 +53,7 @@ class HomeController extends Controller
             ->keyBy('featured_article_id');
 
         $articles = $publishedArticles
-            ->map(fn(Article $article) => $this->toArticleCardData($article, $tensions->get($article->id)))
+            ->map(fn (Article $article) => $this->toArticleCardData($article, $tensions->get($article->id)))
             ->values();
 
         $operations = $this->commandLocations();
@@ -68,6 +70,7 @@ class HomeController extends Controller
             'locations' => $activeOperations,
             'feedItems' => $activeOperations->isNotEmpty() ? $activeOperations : $articles->take(6)->values(),
             'latestItems' => $articles->take(3)->values(),
+            'globalTrend' => $this->globalTensionTrendService->getTrend($activeOperations),
             'stats' => [
                 'articlesCount' => Article::query()->where('status', 'published')->count(),
                 'categoriesCount' => Category::query()->count(),

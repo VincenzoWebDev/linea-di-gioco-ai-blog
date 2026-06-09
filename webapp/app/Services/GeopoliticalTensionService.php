@@ -13,7 +13,9 @@ use Illuminate\Support\Str;
 class GeopoliticalTensionService
 {
     private const HEADER_CACHE_KEY = 'geopolitical_tensions.header_top_5';
+
     private const DEFAULT_TTL_HOURS = 48;
+
     private const DEFAULT_MIN_ACTIVE_RISK_SCORE = 30;
 
     public function __construct(
@@ -23,7 +25,7 @@ class GeopoliticalTensionService
     ) {}
 
     /**
-     * @param array<string, mixed> $agentOutput
+     * @param  array<string, mixed>  $agentOutput
      */
     public function upsertFromAgentOutput(array $agentOutput, ?Article $featuredArticle = null): ?GeopoliticalTension
     {
@@ -58,7 +60,9 @@ class GeopoliticalTensionService
         $regionKey = $this->buildRegionKey($regionName, $displayRegionName);
 
         $coordinates = $this->resolveCoordinates(
-            trim(implode(' ', array_filter([$displayRegionName, $regionName]))),
+            $displayRegionName !== '' && ! $this->coordinateResolver->isGenericRegionName($displayRegionName)
+                ? $displayRegionName
+                : $regionName,
             $featuredArticle
         );
         $existingTension = $this->findExistingTension($featuredArticle, $regionKey);
@@ -106,13 +110,14 @@ class GeopoliticalTensionService
         return collect(Cache::remember(
             self::HEADER_CACHE_KEY,
             now()->addMinutes(1),
-            fn() => $this->queryTopForHeader(5)->all()
+            fn () => $this->queryTopForHeader(5)->all()
         ));
     }
 
     public function clearHeaderCache(): void
     {
         Cache::forget(self::HEADER_CACHE_KEY);
+        Cache::forget('global_tension_trend');
     }
 
     /**
@@ -256,7 +261,7 @@ class GeopoliticalTensionService
                     }
 
                     $coordinates = $this->resolveCoordinates(
-                        (string) $tension->region_name,
+                        (string) ($tension->display_region_name ?: $tension->region_name),
                         $tension->featuredArticle
                     );
                     $regionName = $this->normalizeRegionName((string) $tension->region_name, $tension->featuredArticle);
@@ -311,8 +316,8 @@ class GeopoliticalTensionService
                     'is_expired' => $lifecycle['is_expired'],
                 ];
             })
-            ->filter(fn(array $tension) => ! ($tension['is_expired'] ?? false))
-            ->filter(fn(array $tension) => $tension['current_tension'] >= $this->minActiveRiskScore())
+            ->filter(fn (array $tension) => ! ($tension['is_expired'] ?? false))
+            ->filter(fn (array $tension) => $tension['current_tension'] >= $this->minActiveRiskScore())
             ->sortBy([
                 ['current_tension', 'desc'],
                 ['display_region_name', 'asc'],
@@ -323,7 +328,7 @@ class GeopoliticalTensionService
     }
 
     /**
-     * @param array<string, mixed> $agentOutput
+     * @param  array<string, mixed>  $agentOutput
      * @return array<string, mixed>|null
      */
     private function extractTensionPayload(array $agentOutput): ?array
@@ -383,7 +388,7 @@ class GeopoliticalTensionService
 
             // fallback fuzzy: stesso prefisso
             $fuzzy = GeopoliticalTension::query()
-                ->where('region_key', 'like', $normalizedKey . '%')
+                ->where('region_key', 'like', $normalizedKey.'%')
                 ->first();
 
             if ($fuzzy !== null) {
@@ -488,7 +493,7 @@ class GeopoliticalTensionService
             return $this->updateExistingTension($existingTension, $attributes);
         }
 
-        if (!empty($attributes['region_key'])) {
+        if (! empty($attributes['region_key'])) {
             $existingTension = GeopoliticalTension::query()
                 ->where('region_key', $attributes['region_key'])
                 ->first();
@@ -533,7 +538,7 @@ class GeopoliticalTensionService
     }
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      * @return array<string, mixed>
      */
     private function storedTensionAttributes(array $attributes): array
@@ -629,7 +634,7 @@ class GeopoliticalTensionService
         $parts = preg_split('~\s*[-/:]\s*~u', $source) ?: [$source];
 
         $parts = array_values(array_filter(array_map(
-            fn(string $part) => $this->normalizeRegionKeyPart($part),
+            fn (string $part) => $this->normalizeRegionKeyPart($part),
             $parts
         )));
 

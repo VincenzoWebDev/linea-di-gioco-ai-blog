@@ -7,11 +7,11 @@ use App\Models\Article;
 use App\Models\Category;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Inertia\Response;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class PostController extends Controller
 {
@@ -23,8 +23,8 @@ class PostController extends Controller
         $publication = trim((string) $request->query('publication', ''));
         $categoryIdsInput = trim((string) $request->query('category_ids', ''));
         $categoryIds = collect(explode(',', $categoryIdsInput))
-            ->map(fn($id) => (int) trim($id))
-            ->filter(fn($id) => $id > 0)
+            ->map(fn ($id) => (int) trim($id))
+            ->filter(fn ($id) => $id > 0)
             ->values()
             ->all();
 
@@ -56,15 +56,15 @@ class PostController extends Controller
                     });
                 });
             })
-            ->when($status !== '', fn($query) => $query->where('status', $status))
-            ->when($createdBy !== '', fn($query) => $query->where('created_by', $createdBy))
+            ->when($status !== '', fn ($query) => $query->where('status', $status))
+            ->when($createdBy !== '', fn ($query) => $query->where('created_by', $createdBy))
             ->when($categoryIds !== [], function ($query) use ($categoryIds) {
                 $query->whereHas('categories', function ($q) use ($categoryIds) {
                     $q->whereIn('categories.id', $categoryIds);
                 });
             })
-            ->when($publication === 'published', fn($query) => $query->whereNotNull('published_at'))
-            ->when($publication === 'unpublished', fn($query) => $query->whereNull('published_at'))
+            ->when($publication === 'published', fn ($query) => $query->whereNotNull('published_at'))
+            ->when($publication === 'unpublished', fn ($query) => $query->whereNull('published_at'))
             ->with('categories:id,name,slug')
             ->orderBy($sort, $direction)
             ->orderBy('id', 'desc')
@@ -116,8 +116,8 @@ class PostController extends Controller
     {
         $this->authorize('create', Article::class);
         $categoryIds = collect((array) $request->input('category_ids', []))
-            ->map(fn($id) => (int) $id)
-            ->filter(fn($id) => $id > 0)
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
             ->values()
             ->all();
         $request->merge(['category_ids' => $categoryIds]);
@@ -168,8 +168,8 @@ class PostController extends Controller
     {
         $this->authorize('update', $post);
         $categoryIds = collect((array) $request->input('category_ids', []))
-            ->map(fn($id) => (int) $id)
-            ->filter(fn($id) => $id > 0)
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
             ->values()
             ->all();
         $request->merge(['category_ids' => $categoryIds]);
@@ -197,7 +197,7 @@ class PostController extends Controller
             $post->categories()->sync($categoryIds);
 
             $paths = $this->storeImages($post, $request);
-            if (!empty($paths)) {
+            if (! empty($paths)) {
                 $post->update($paths);
             }
         });
@@ -242,7 +242,7 @@ class PostController extends Controller
             } else {
                 $sourceBytes = file_get_contents($file->getRealPath());
                 $converted = $variantService->makeCover($sourceBytes, $mime);
-                
+
                 $ext = $converted['mime'] === 'image/webp' ? 'webp' : $originalExt;
                 $filename = "{$slug}-{$article->id}-cover.{$ext}";
                 Storage::disk('public')->put("{$basePath}/{$filename}", $converted['bytes']);
@@ -264,7 +264,7 @@ class PostController extends Controller
             } else {
                 $sourceBytes = file_get_contents($file->getRealPath());
                 $converted = $variantService->makeThumb($sourceBytes, $mime);
-                
+
                 $ext = $converted['mime'] === 'image/webp' ? 'webp' : $originalExt;
                 $filename = "{$slug}-{$article->id}-thumb.{$ext}";
                 Storage::disk('public')->put("{$basePath}/{$filename}", $converted['bytes']);

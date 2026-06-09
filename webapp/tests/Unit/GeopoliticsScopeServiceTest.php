@@ -9,7 +9,7 @@ class GeopoliticsScopeServiceTest extends TestCase
 {
     public function test_it_rejects_sports_articles_even_from_trusted_domains(): void
     {
-        $service = new GeopoliticsScopeService();
+        $service = new GeopoliticsScopeService;
 
         $this->assertFalse($service->isInScope(
             'Premier League: decisive match changes the title race',
@@ -20,7 +20,7 @@ class GeopoliticsScopeServiceTest extends TestCase
 
     public function test_it_accepts_geopolitics_articles_from_trusted_domains_with_supported_signals(): void
     {
-        $service = new GeopoliticsScopeService();
+        $service = new GeopoliticsScopeService;
 
         $this->assertTrue($service->isInScope(
             'Diplomatic tensions rise after new sanctions',

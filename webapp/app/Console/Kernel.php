@@ -22,7 +22,7 @@ class Kernel extends ConsoleKernel
             ->implode(',');
         $newsTriggerHours = $newsTriggerHours !== '' ? $newsTriggerHours : '5,9,13,17,21';
 
-        $schedule->job(new FetchNewsJob(), config('ai_news.queues.ingest', 'news-ingest'))
+        $schedule->job(new FetchNewsJob, config('ai_news.queues.ingest', 'news-ingest'))
             ->cron("0 {$newsTriggerHours} * * *")
             ->withoutOverlapping();
     }

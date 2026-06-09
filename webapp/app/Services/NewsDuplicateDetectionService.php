@@ -390,6 +390,7 @@ class NewsDuplicateDetectionService
 
     /**
      * @template T
+     *
      * @param  iterable<T>  $candidates
      * @param  callable(T): string  $textResolver
      * @param  (callable(T): bool)|null  $acceptCandidate

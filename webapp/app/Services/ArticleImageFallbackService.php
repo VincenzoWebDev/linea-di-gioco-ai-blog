@@ -44,7 +44,7 @@ class ArticleImageFallbackService
             : "<tspan x=\"50%\">{$safeLineOne}</tspan>";
         $logoMarkup = $logoDataUri !== ''
             ? "<image href=\"{$logoDataUri}\" x=\"{$headerInset}\" y=\"{$headerTop}\" width=\"{$logoWidth}\" height=\"{$logoHeight}\" preserveAspectRatio=\"xMinYMid meet\"/>"
-            : "<text x=\"{$headerInset}\" y=\"".($headerTop + (int) ($logoHeight * 0.7))."\" fill=\"#d6a85a\" font-size=\"".($isThumb ? 18 : 24)."\" font-family=\"Georgia, Times New Roman, serif\" font-weight=\"700\">LDG</text>";
+            : "<text x=\"{$headerInset}\" y=\"".($headerTop + (int) ($logoHeight * 0.7)).'" fill="#d6a85a" font-size="'.($isThumb ? 18 : 24).'" font-family="Georgia, Times New Roman, serif" font-weight="700">LDG</text>';
 
         $svg = <<<SVG
             <svg xmlns="http://www.w3.org/2000/svg" width="{$width}" height="{$height}" viewBox="0 0 {$width} {$height}">
@@ -195,6 +195,7 @@ class ArticleImageFallbackService
             $candidate = trim($firstLine === '' ? $word : "{$firstLine} {$word}");
             if ($firstLine === '' || mb_strlen($candidate) <= $maxCharsPerLine) {
                 $firstLine = $candidate;
+
                 continue;
             }
 
@@ -241,6 +242,6 @@ class ArticleImageFallbackService
             return $cached = '';
         }
 
-        return $cached = 'data:image/webp;base64,' . base64_encode($bytes);
+        return $cached = 'data:image/webp;base64,'.base64_encode($bytes);
     }
 }

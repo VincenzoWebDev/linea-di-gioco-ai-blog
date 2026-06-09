@@ -2,10 +2,10 @@
 
 namespace App\Jobs\News;
 
-use App\Services\ArticleImageFallbackService;
-use App\Services\ArticleImageVariantService;
 use App\Models\Article;
 use App\Models\PublicationLog;
+use App\Services\ArticleImageFallbackService;
+use App\Services\ArticleImageVariantService;
 use App\Services\GoogleImageService;
 use App\Services\News\AiNewsWorkflowService;
 use Illuminate\Bus\Queueable;
@@ -24,9 +24,6 @@ class GenerateArticleImagesJob implements ShouldQueue
 
     public array $backoff = [60, 180, 600, 1200];
 
-    /**
-     * @param  int  $articleId
-     */
     public function __construct(public int $articleId) {}
 
     public function handle(
@@ -57,9 +54,9 @@ class GenerateArticleImagesJob implements ShouldQueue
         }
 
         $basePath = "articles/{$article->id}";
-        $slug = $article->slug ?: 'article-' . $article->id;
+        $slug = $article->slug ?: 'article-'.$article->id;
         $updates = [];
-        // $provider = (string) config('ai_news.images.provider', 'gemini'); 
+        // $provider = (string) config('ai_news.images.provider', 'gemini');
         $aiImagesEnabled = (bool) config('ai_news.images.enabled', false);
 
         if (! $articleImageVariantService->supportsWebpConversion()) {

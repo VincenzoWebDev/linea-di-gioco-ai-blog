@@ -19,10 +19,10 @@ class GoogleAuthService
             throw new RuntimeException('invalid_google_credentials_file');
         }
 
-        putenv('GOOGLE_APPLICATION_CREDENTIALS=' . $credentialsPath);
+        putenv('GOOGLE_APPLICATION_CREDENTIALS='.$credentialsPath);
 
         $scopes = [
-            'https://www.googleapis.com/auth/cloud-platform'
+            'https://www.googleapis.com/auth/cloud-platform',
         ];
 
         $credentials = ApplicationDefaultCredentials::getCredentials($scopes);

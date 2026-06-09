@@ -23,9 +23,7 @@ class ExtractSourceContentJob implements ShouldQueue
 
     public array $backoff = [45, 120, 300];
 
-    public function __construct(public int $incomingNewsId)
-    {
-    }
+    public function __construct(public int $incomingNewsId) {}
 
     public function handle(
         SourceContentExtractor $extractor,

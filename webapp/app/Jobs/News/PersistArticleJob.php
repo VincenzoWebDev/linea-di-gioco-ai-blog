@@ -25,17 +25,14 @@ class PersistArticleJob implements ShouldQueue
 
     public int $tries = 2;
 
-    public function __construct(public int $incomingNewsId)
-    {
-    }
+    public function __construct(public int $incomingNewsId) {}
 
     public function handle(
         CategoryAssignmentService $categoryAssignmentService,
         GeopoliticalTensionService $geopoliticalTensionService,
         AiNewsWorkflowService $workflowService,
         IncomingNewsStateMachine $stateMachine
-    ): void
-    {
+    ): void {
         $incoming = IncomingNews::query()
             ->with('source')
             ->find($this->incomingNewsId);
@@ -162,5 +159,4 @@ class PersistArticleJob implements ShouldQueue
 
         return $slug;
     }
-
 }

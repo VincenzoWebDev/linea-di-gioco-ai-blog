@@ -10,7 +10,7 @@ use Throwable;
 class AiArticleWriter
 {
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      * @return array<string, mixed>|null
      */
     public function rewriteToItalian(array $payload): ?array
@@ -90,7 +90,7 @@ PROMPT;
     {
         $response = Http::timeout((int) config('ai_news.ai.timeout_seconds', 30))
             ->acceptJson()
-            ->post($baseUrl . '/api/chat', [
+            ->post($baseUrl.'/api/chat', [
                 'model' => $model,
                 'stream' => false,
                 'format' => 'json',
@@ -120,7 +120,7 @@ PROMPT;
         $response = Http::timeout((int) config('ai_news.ai.timeout_seconds', 30))
             ->withToken($apiKey)
             ->acceptJson()
-            ->post($baseUrl . '/chat/completions', [
+            ->post($baseUrl.'/chat/completions', [
                 'model' => $model,
                 'temperature' => (float) config('ai_news.ai.temperature', 0.4),
                 'messages' => [
@@ -207,5 +207,4 @@ PROMPT;
             'future_scenarios' => [],
         ];
     }
-
 }

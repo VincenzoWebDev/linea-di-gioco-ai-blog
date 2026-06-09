@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 class ArticleValidationService
 {
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      * @return array{valid: bool, errors: array<int, string>}
      */
     public function validateSanitizedPayload(array $payload): array
@@ -46,7 +46,7 @@ class ArticleValidationService
     }
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      * @return array{valid: bool, errors: array<int, string>}
      */
     public function validateContentPolicy(array $payload): array
@@ -76,7 +76,7 @@ class ArticleValidationService
     /**
      * Segnale di fallimento da CrewAI Python (_fallback_article con quality 0).
      *
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      */
     public function isTranslationFailurePayload(array $payload): bool
     {
@@ -104,7 +104,7 @@ class ArticleValidationService
     }
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      */
     public function needsItalianRewrite(array $payload): bool
     {
@@ -115,7 +115,7 @@ class ArticleValidationService
     }
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      */
     private function combinedText(array $payload): string
     {
@@ -211,7 +211,7 @@ class ArticleValidationService
     }
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      */
     private function isPublishableItalianPayload(array $payload): bool
     {

@@ -26,4 +26,3 @@ class NewsSource extends Model
         return $this->hasMany(IncomingNews::class);
     }
 }
-

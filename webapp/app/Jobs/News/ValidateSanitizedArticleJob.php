@@ -21,9 +21,7 @@ class ValidateSanitizedArticleJob implements ShouldQueue
 
     public int $tries = 2;
 
-    public function __construct(public int $incomingNewsId)
-    {
-    }
+    public function __construct(public int $incomingNewsId) {}
 
     public function handle(
         ArticleValidationService $validationService,

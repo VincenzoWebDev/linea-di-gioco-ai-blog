@@ -53,7 +53,7 @@ class GeopoliticsScopeService
     }
 
     /**
-     * @param array<int, string> $trustedDomains
+     * @param  array<int, string>  $trustedDomains
      */
     private function isTrustedDomain(string $url, array $trustedDomains): bool
     {
@@ -77,7 +77,7 @@ class GeopoliticsScopeService
     }
 
     /**
-     * @param array<int, string> $keywords
+     * @param  array<int, string>  $keywords
      */
     private function containsConfiguredKeyword(string $text, array $keywords): bool
     {

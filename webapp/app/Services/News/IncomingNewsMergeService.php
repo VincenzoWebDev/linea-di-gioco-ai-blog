@@ -12,8 +12,7 @@ class IncomingNewsMergeService
 {
     public function __construct(
         private readonly IncomingNewsStateMachine $stateMachine
-    ) {
-    }
+    ) {}
 
     /**
      * @param  array<string, mixed>  $duplicate

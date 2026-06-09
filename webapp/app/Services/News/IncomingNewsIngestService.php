@@ -15,8 +15,7 @@ class IncomingNewsIngestService
     public function __construct(
         private readonly ArticleValidationService $validationService,
         private readonly NewsPipelineOrchestrator $pipeline
-    ) {
-    }
+    ) {}
 
     /**
      * @param  array<string, mixed>  $payload

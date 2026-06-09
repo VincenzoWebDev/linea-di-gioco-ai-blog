@@ -158,7 +158,7 @@ PROMPT;
     {
         $response = Http::timeout((int) config('ai_news.glossary.timeout_seconds', 45))
             ->acceptJson()
-            ->post($baseUrl . '/api/chat', [
+            ->post($baseUrl.'/api/chat', [
                 'model' => $model,
                 'stream' => false,
                 'format' => 'json',
@@ -188,7 +188,7 @@ PROMPT;
         $response = Http::timeout((int) config('ai_news.glossary.timeout_seconds', 45))
             ->withToken($apiKey)
             ->acceptJson()
-            ->post($baseUrl . '/chat/completions', [
+            ->post($baseUrl.'/chat/completions', [
                 'model' => $model,
                 'temperature' => 0.2,
                 'messages' => [
@@ -212,13 +212,13 @@ PROMPT;
             return false;
         }
 
-        $pattern = '/(?<!\p{L})' . preg_quote($term, '/') . '(?!\p{L})/iu';
+        $pattern = '/(?<!\p{L})'.preg_quote($term, '/').'(?!\p{L})/iu';
 
         return preg_match($pattern, $content) === 1;
     }
 
     /**
-     * @param array<string, array{definition: string, importance: string}> $terms
+     * @param  array<string, array{definition: string, importance: string}>  $terms
      * @return array<string, array{definition: string, importance: string}>
      */
     private function sortAndLimit(array $terms): array
