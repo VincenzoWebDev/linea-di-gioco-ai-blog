@@ -241,9 +241,6 @@ class HomeController extends Controller
             ];
         }
 
-        return $this->geopoliticalTensionService->resolveCoordinates(
-            (string) ($tension->display_region_name ?: $tension->region_name),
-            $tension->featuredArticle
-        );
+        return null;
     }
 }

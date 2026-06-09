@@ -278,6 +278,14 @@ class RegionCoordinateResolver
 
     private function resolveViaAi(string $placeName): ?array
     {
+        $normalizedPlaceName = Str::lower(trim($placeName));
+        $cacheKey = 'ai_geocoding.' . md5($normalizedPlaceName);
+
+        if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
+            $cached = \Illuminate\Support\Facades\Cache::get($cacheKey);
+            return $cached === 'not_found' ? null : $cached;
+        }
+
         if (! (bool) config('ai_news.ai.enabled', false)) {
             return null;
         }
@@ -351,16 +359,23 @@ PROMPT;
                     $long = (float) $decoded['long'];
 
                     if ($lat >= -90 && $lat <= 90 && $long >= -180 && $long <= 180) {
-                        return [
+                        $coords = [
                             'lat' => round($lat, 4),
                             'long' => round($long, 4),
                         ];
+                        \Illuminate\Support\Facades\Cache::put($cacheKey, $coords, now()->addDays(30));
+
+                        return $coords;
                     }
                 }
             }
         } catch (\Throwable) {
+            \Illuminate\Support\Facades\Cache::put($cacheKey, 'not_found', now()->addHours(12));
+
             return null;
         }
+
+        \Illuminate\Support\Facades\Cache::put($cacheKey, 'not_found', now()->addDays(7));
 
         return null;
     }
