@@ -30,7 +30,7 @@ class SanitizerAgent
         $sourceContent = trim((string) ($rawNews['source_content'] ?? ''));
 
         $safeTitle = Str::limit(strip_tags($title), 140, '');
-        $safeSummary = Str::limit(strip_tags($summary), 240, '');
+        $safeSummary = Str::limit(strip_tags($summary), 350, '');
 
         $baseText = $sourceContent !== '' ? strip_tags($sourceContent) : $safeSummary;
         $baseText = trim(preg_replace('/\s+/', ' ', $baseText) ?? '');
@@ -38,7 +38,7 @@ class SanitizerAgent
         $intro = Str::limit($baseText, 280, '');
         $development = Str::limit(Str::after($baseText, $intro), 900, '');
         $body = trim($intro."\n\n".$development);
-        $finalSummary = $safeSummary !== '' ? $safeSummary : Str::limit($intro, 220, '');
+        $finalSummary = $safeSummary !== '' ? $safeSummary : Str::limit($intro, 300, '');
 
         $crewOutput = $this->crewAiClient->process([
             'title' => $safeTitle,

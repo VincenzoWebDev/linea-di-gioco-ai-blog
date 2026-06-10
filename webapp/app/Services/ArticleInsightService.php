@@ -46,6 +46,7 @@ class ArticleInsightService
             return '';
         }
 
+        // Se supera i 240 caratteri, tagliamo in modo intelligente al confine dell'ultima frase compiuta
         if (mb_strlen($candidate) > 240) {
             $candidate = $this->trimToSentenceBoundary($candidate, 240);
         }
@@ -56,7 +57,7 @@ class ArticleInsightService
             $candidate .= '.';
         }
 
-        return Str::limit($candidate, 240, '');
+        return $candidate;
     }
 
     /**
@@ -268,21 +269,36 @@ PROMPT;
     private function trimToSentenceBoundary(string $text, int $max): string
     {
         $normalized = $this->cleanInlineText($text);
+        
+        // Estrae tutte le frasi complete che terminano con . ! o ?
+        if (preg_match_all('/[^.!?]+[.!?]/u', $normalized, $matches) && !empty($matches[0])) {
+            $result = "";
+            foreach ($matches[0] as $sentence) {
+                $sentence = trim($sentence);
+                if ($result === "") {
+                    // La prima frase è obbligatoria e viene preservata INTERA per avere senso compiuto
+                    $result = $sentence;
+                } else {
+                    // Le frasi successive si aggiungono solo se stanno nel limite
+                    if (mb_strlen($result . " " . $sentence) <= $max) {
+                        $result .= " " . $sentence;
+                    } else {
+                        break; // Stop: evitiamo di spezzare la frase corrente a metà
+                    }
+                }
+            }
+            return $result;
+        }
+
+        // Fallback se non ci sono frasi con punteggiatura finale: taglia all'ultimo spazio nel limite
         if (mb_strlen($normalized) <= $max) {
             return $normalized;
         }
-
         $slice = mb_substr($normalized, 0, $max);
-
-        if (preg_match('/^(.+[.!?])[^.!?]*$/u', $slice, $matches) === 1) {
-            return trim($matches[1]);
-        }
-
         if (preg_match('/^(.+)\s+\S*$/u', $slice, $matches) === 1) {
-            return trim($matches[1]);
+            return trim($matches[1]) . '.';
         }
-
-        return trim($slice);
+        return trim($slice) . '.';
     }
 
     private function normalizeScenarioLine(string $text): string

@@ -91,7 +91,7 @@ class CrewAiClient
 
             $result = [
                 'title' => Str::limit($title, 140, ''),
-                'summary' => Str::limit($summary, 240, ''),
+                'summary' => Str::limit($summary, 350, ''),
                 'content' => Str::limit($content, 14000, ''),
                 'topic' => Str::limit($topic, 60, ''),
                 'categories' => $categories,

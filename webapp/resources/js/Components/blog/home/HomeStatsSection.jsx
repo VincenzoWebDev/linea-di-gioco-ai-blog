@@ -17,7 +17,7 @@ export default function HomeStatsSection({ stats, hotspotsCount }) {
     ];
 
     return (
-        <section className="mt-8 sm:mt-12 grid gap-4 md:grid-cols-3">
+        <section className="mt-10 sm:mt-14 grid gap-4 md:grid-cols-3">
             {items.map((item) => (
                 <div
                     key={item.label}

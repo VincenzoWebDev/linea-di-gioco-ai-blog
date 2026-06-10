@@ -157,7 +157,7 @@ function GlobalMap({ operations }) {
             sizes: "(min-width: 1024px) 320px, 100vw"
           }
         ),
-        /* @__PURE__ */ jsx("p", { className: "mt-5 min-h-[5.25rem] line-clamp-3 font-mono text-sm leading-7 text-[#B8C2D2]", children: active.title }),
+        /* @__PURE__ */ jsx("p", { className: "mt-5 mb-5 min-h-[5.25rem] line-clamp-3 font-mono text-sm leading-7 text-[#B8C2D2]", children: active.title }),
         active.url && /* @__PURE__ */ jsxs(
           Link,
           {

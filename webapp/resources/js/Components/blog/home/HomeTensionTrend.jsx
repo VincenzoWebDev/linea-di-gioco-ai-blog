@@ -1,6 +1,6 @@
 import { memo, useEffect, useState } from "react";
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from "recharts";
-import { Activity, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { Activity, ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 function HomeTensionTrend({ trend }) {
     if (!trend || !trend.points || trend.points.length === 0) {
@@ -81,7 +81,9 @@ function HomeTensionTrend({ trend }) {
                         <stop offset="95%" stopColor={theme.color} stopOpacity="0.0" />
                     </linearGradient>
                 </defs>
-                <line x1="0" y1={height / 2} x2={width} y2={height / 2} stroke="#202A3D" strokeDasharray="3,3" strokeOpacity="0.3" />
+                <line x1="0" y1={height * 0.25} x2={width} y2={height * 0.25} stroke="#384968" strokeDasharray="3,3" strokeOpacity="0.35" />
+                <line x1="0" y1={height * 0.5}  x2={width} y2={height * 0.5}  stroke="#384968" strokeDasharray="3,3" strokeOpacity="0.35" />
+                <line x1="0" y1={height * 0.75} x2={width} y2={height * 0.75} stroke="#384968" strokeDasharray="3,3" strokeOpacity="0.35" />
                 <path
                     d={`${d} L ${pointsCoords[pointsCoords.length - 1].x} ${height - padding} L ${pointsCoords[0].x} ${height - padding} Z`}
                     fill="url(#staticGrad)"
@@ -100,7 +102,7 @@ function HomeTensionTrend({ trend }) {
     };
 
     return (
-        <section className="mt-12 sm:mt-16 border-t border-[#202A3D]/50 pt-8 sm:pt-12">
+        <section className="mt-12 sm:mt-16 border-t border-[#202A3D]/50 pt-12 sm:pt-16">
             <div className="border border-[#202A3D] bg-[#101620] p-4 sm:p-6">
                 <div className="grid gap-6 lg:grid-cols-12 items-center">
                     {/* Pannello Analitico Sinistro */}
@@ -128,14 +130,14 @@ function HomeTensionTrend({ trend }) {
                             </div>
 
                             <div className="mt-3 flex flex-wrap gap-2">
-                                <span className={`inline-flex items-center gap-1.5 border px-2.5 py-0.5 font-mono text-[9px] uppercase tracking-wider ${theme.badge}`}>
+                                <span className={`inline-flex items-center gap-1.5 border px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider ${theme.badge}`}>
                                     <span className={`h-1.5 w-1.5 rounded-full ${theme.dot}`} />
                                     Trend: {direction === "rising" ? "In peggioramento" : direction === "falling" ? "In miglioramento" : "Stabile"}
                                 </span>
                             </div>
                         </div>
 
-                        <p className="mt-5 text-xs sm:text-[13px] leading-6 text-[#AAB3C2] border-t border-[#202A3D]/40 pt-4">
+                        <p className="mt-5 text-xs sm:text-[13px] leading-6 text-[#AAB3C2] border-b border-[#202A3D]/40 pb-4 lg:border-b-0 lg:pb-0">
                             {theme.desc}
                         </p>
                     </div>
@@ -151,6 +153,7 @@ function HomeTensionTrend({ trend }) {
                                             <stop offset="95%" stopColor={theme.color} stopOpacity={0.0}/>
                                         </linearGradient>
                                     </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#384968" opacity={0.4} vertical={false} />
                                     <XAxis 
                                         dataKey="name" 
                                         axisLine={false} 
@@ -191,6 +194,68 @@ function HomeTensionTrend({ trend }) {
                         ) : (
                             renderStaticSvg()
                         )}
+                    </div>
+                </div>
+
+                {/* NUOVA SEZIONE: STRESS TEST REGIONALI (SOTTO IL GRAFICO, FULL WIDTH) */}
+                <div className="mt-6 border-t border-[#202A3D]/50 pt-6">
+                    <div className="mb-4">
+                        <span className="font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.25em] text-[#7E8796] block">
+                            STRESS TEST REGIONALI & TRAIETTORIE
+                        </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3.5">
+                        {(trend.macro_regions || []).map((reg) => {
+                            const getRegionStyles = (score, dir) => {
+                                let scoreColor = "text-[#D7B56D]";
+                                if (score >= 75) scoreColor = "text-red-500";
+                                else if (score >= 50) scoreColor = "text-orange-500";
+
+                                let trendBadge = "border-[#202A3D]/60 bg-[#0E1116] text-[#7E8796]";
+                                let TrendIcon = Minus;
+                                let trendLabel = "Stabile";
+
+                                if (dir === "rising") {
+                                    trendBadge = "border-red-500/20 bg-red-950/15 text-red-400";
+                                    TrendIcon = TrendingUp;
+                                    trendLabel = "Crescente";
+                                } else if (dir === "falling") {
+                                    trendBadge = "border-emerald-500/20 bg-emerald-950/15 text-emerald-400";
+                                    TrendIcon = TrendingDown;
+                                    trendLabel = "In calo";
+                                }
+
+                                return { scoreColor, trendBadge, TrendIcon, trendLabel };
+                            };
+
+                            const styles = getRegionStyles(reg.score, reg.direction);
+                            const RegionIcon = styles.TrendIcon;
+
+                            return (
+                                <div 
+                                    key={reg.name} 
+                                    className="border border-[#202A3D]/40 bg-[#0B0F15]/30 p-4 flex flex-col justify-between transition-colors hover:border-[#202A3D] group"
+                                >
+                                    <div>
+                                        <h4 className="font-sans text-xs font-semibold text-[#AAB3C2] uppercase tracking-wider truncate group-hover:text-[#E8EDF5] transition-colors">
+                                            {reg.name}
+                                        </h4>
+                                        <span className={`font-mono text-3xl font-bold block mt-2 ${styles.scoreColor}`}>
+                                            {reg.score}
+                                            <span className="text-[10px] text-[#7E8796] font-normal ml-1">ITG</span>
+                                        </span>
+                                    </div>
+
+                                    <div className="mt-4 pt-3 border-t border-[#202A3D]/30">
+                                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 border font-mono text-[9px] uppercase tracking-wider ${styles.trendBadge}`}>
+                                            <RegionIcon className="h-3 w-3 shrink-0" />
+                                            {styles.trendLabel}
+                                        </span>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             </div>

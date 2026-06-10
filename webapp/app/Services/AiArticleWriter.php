@@ -163,7 +163,7 @@ PROMPT;
 
         return [
             'title' => Str::limit($title, 140, ''),
-            'summary' => Str::limit($summary, 240, ''),
+            'summary' => Str::limit($summary, 350, ''),
             'content' => Str::limit($body, 14000, ''),
             'topic' => Str::limit($topic, 60, ''),
             'categories' => ArticleContentNormalizer::normalizeCategories($decoded['categories'] ?? [$topic], 3),
@@ -200,7 +200,7 @@ PROMPT;
 
         return [
             'title' => Str::limit($title, 140, ''),
-            'summary' => Str::limit($plain, 240, ''),
+            'summary' => Str::limit($plain, 350, ''),
             'content' => Str::limit(ArticleContentNormalizer::stripSourceFooter($plain), 14000, ''),
             'topic' => 'news',
             'categories' => ['news'],

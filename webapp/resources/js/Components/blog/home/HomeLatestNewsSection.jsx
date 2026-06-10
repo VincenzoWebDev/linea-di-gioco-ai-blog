@@ -12,7 +12,7 @@ function EmptyState() {
 
 export default function HomeLatestNewsSection({ items = [] }) {
     return (
-        <section className="mt-10 sm:mt-14">
+        <section className="mt-12 sm:mt-16">
             <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
                 <div className="min-w-0">
                     <p className="font-mono text-xs uppercase tracking-[0.3em] text-[#7E8796]">

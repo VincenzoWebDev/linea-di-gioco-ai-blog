@@ -1,8 +1,8 @@
 import { jsx, jsxs, Fragment } from "react/jsx-runtime";
 import { B as BlogLayout } from "./BlogLayout-98RL58NA.mjs";
 import { memo, useState, useEffect, Suspense, lazy } from "react";
-import { ResponsiveContainer, AreaChart, XAxis, YAxis, Tooltip, Area } from "recharts";
-import { Activity, ArrowDownRight, ArrowUpRight, RadioTower, MapPin, ArrowRight, FileSearch, Target, Binary } from "lucide-react";
+import { ResponsiveContainer, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, Area } from "recharts";
+import { Activity, ArrowDownRight, ArrowUpRight, Minus, TrendingUp, TrendingDown, RadioTower, MapPin, ArrowRight, FileSearch, Target, Binary } from "lucide-react";
 import Marquee from "react-fast-marquee";
 import { Link } from "@inertiajs/react";
 import { a as ArticleIntelligenceCard } from "./ArticleIntelligenceCard-6E8fd8fc.mjs";
@@ -74,7 +74,9 @@ function HomeTensionTrend({ trend }) {
         /* @__PURE__ */ jsx("stop", { offset: "5%", stopColor: theme.color, stopOpacity: "0.1" }),
         /* @__PURE__ */ jsx("stop", { offset: "95%", stopColor: theme.color, stopOpacity: "0.0" })
       ] }) }),
-      /* @__PURE__ */ jsx("line", { x1: "0", y1: height / 2, x2: width, y2: height / 2, stroke: "#202A3D", strokeDasharray: "3,3", strokeOpacity: "0.3" }),
+      /* @__PURE__ */ jsx("line", { x1: "0", y1: height * 0.25, x2: width, y2: height * 0.25, stroke: "#384968", strokeDasharray: "3,3", strokeOpacity: "0.35" }),
+      /* @__PURE__ */ jsx("line", { x1: "0", y1: height * 0.5, x2: width, y2: height * 0.5, stroke: "#384968", strokeDasharray: "3,3", strokeOpacity: "0.35" }),
+      /* @__PURE__ */ jsx("line", { x1: "0", y1: height * 0.75, x2: width, y2: height * 0.75, stroke: "#384968", strokeDasharray: "3,3", strokeOpacity: "0.35" }),
       /* @__PURE__ */ jsx(
         "path",
         {
@@ -94,87 +96,135 @@ function HomeTensionTrend({ trend }) {
       pointsCoords.map((pt, i) => /* @__PURE__ */ jsx("circle", { cx: pt.x, cy: pt.y, r: "3", fill: theme.color }, i))
     ] });
   };
-  return /* @__PURE__ */ jsx("section", { className: "mt-12 sm:mt-16 border-t border-[#202A3D]/50 pt-8 sm:pt-12", children: /* @__PURE__ */ jsx("div", { className: "border border-[#202A3D] bg-[#101620] p-4 sm:p-6", children: /* @__PURE__ */ jsxs("div", { className: "grid gap-6 lg:grid-cols-12 items-center", children: [
-    /* @__PURE__ */ jsxs("div", { className: "lg:col-span-5 flex flex-col justify-between h-full min-w-0", children: [
-      /* @__PURE__ */ jsxs("div", { children: [
-        /* @__PURE__ */ jsxs("span", { className: "font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.25em] text-[#7E8796] flex items-center gap-2", children: [
-          /* @__PURE__ */ jsx(Activity, { className: "h-3.5 w-3.5 text-[#D7B56D]" }),
-          "INDICE DI ALLERTA GEOPOLITICA"
+  return /* @__PURE__ */ jsx("section", { className: "mt-12 sm:mt-16 border-t border-[#202A3D]/50 pt-12 sm:pt-16", children: /* @__PURE__ */ jsxs("div", { className: "border border-[#202A3D] bg-[#101620] p-4 sm:p-6", children: [
+    /* @__PURE__ */ jsxs("div", { className: "grid gap-6 lg:grid-cols-12 items-center", children: [
+      /* @__PURE__ */ jsxs("div", { className: "lg:col-span-5 flex flex-col justify-between h-full min-w-0", children: [
+        /* @__PURE__ */ jsxs("div", { children: [
+          /* @__PURE__ */ jsxs("span", { className: "font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.25em] text-[#7E8796] flex items-center gap-2", children: [
+            /* @__PURE__ */ jsx(Activity, { className: "h-3.5 w-3.5 text-[#D7B56D]" }),
+            "INDICE DI ALLERTA GEOPOLITICA"
+          ] }),
+          /* @__PURE__ */ jsx("h3", { className: "mt-2 font-serif text-lg sm:text-xl text-[#E8EDF5]", children: "Indice di Tensione Globale (ITG)" }),
+          /* @__PURE__ */ jsxs("div", { className: "mt-4 flex items-baseline gap-2.5", children: [
+            /* @__PURE__ */ jsx("span", { className: "font-mono text-3xl sm:text-4xl font-bold text-[#E8EDF5]", children: current_average.toFixed(1) }),
+            /* @__PURE__ */ jsx("span", { className: "font-mono text-[10px] text-[#7E8796]", children: "/100 ITG" }),
+            delta !== 0 && /* @__PURE__ */ jsxs("span", { className: `inline-flex items-center gap-0.5 font-mono text-xs ${delta > 0 ? "text-red-400" : "text-emerald-400"}`, children: [
+              /* @__PURE__ */ jsx(TrendIcon, { className: "h-3.5 w-3.5 shrink-0" }),
+              delta > 0 ? `+${delta}` : delta
+            ] })
+          ] }),
+          /* @__PURE__ */ jsx("div", { className: "mt-3 flex flex-wrap gap-2", children: /* @__PURE__ */ jsxs("span", { className: `inline-flex items-center gap-1.5 border px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider ${theme.badge}`, children: [
+            /* @__PURE__ */ jsx("span", { className: `h-1.5 w-1.5 rounded-full ${theme.dot}` }),
+            "Trend: ",
+            direction === "rising" ? "In peggioramento" : direction === "falling" ? "In miglioramento" : "Stabile"
+          ] }) })
         ] }),
-        /* @__PURE__ */ jsx("h3", { className: "mt-2 font-serif text-lg sm:text-xl text-[#E8EDF5]", children: "Indice di Tensione Globale (ITG)" }),
-        /* @__PURE__ */ jsxs("div", { className: "mt-4 flex items-baseline gap-2.5", children: [
-          /* @__PURE__ */ jsx("span", { className: "font-mono text-3xl sm:text-4xl font-bold text-[#E8EDF5]", children: current_average.toFixed(1) }),
-          /* @__PURE__ */ jsx("span", { className: "font-mono text-[10px] text-[#7E8796]", children: "/100 ITG" }),
-          delta !== 0 && /* @__PURE__ */ jsxs("span", { className: `inline-flex items-center gap-0.5 font-mono text-xs ${delta > 0 ? "text-red-400" : "text-emerald-400"}`, children: [
-            /* @__PURE__ */ jsx(TrendIcon, { className: "h-3.5 w-3.5 shrink-0" }),
-            delta > 0 ? `+${delta}` : delta
-          ] })
-        ] }),
-        /* @__PURE__ */ jsx("div", { className: "mt-3 flex flex-wrap gap-2", children: /* @__PURE__ */ jsxs("span", { className: `inline-flex items-center gap-1.5 border px-2.5 py-0.5 font-mono text-[9px] uppercase tracking-wider ${theme.badge}`, children: [
-          /* @__PURE__ */ jsx("span", { className: `h-1.5 w-1.5 rounded-full ${theme.dot}` }),
-          "Trend: ",
-          direction === "rising" ? "In peggioramento" : direction === "falling" ? "In miglioramento" : "Stabile"
-        ] }) })
+        /* @__PURE__ */ jsx("p", { className: "mt-5 text-xs sm:text-[13px] leading-6 text-[#AAB3C2] border-b border-[#202A3D]/40 pb-4 lg:border-b-0 lg:pb-0", children: theme.desc })
       ] }),
-      /* @__PURE__ */ jsx("p", { className: "mt-5 text-xs sm:text-[13px] leading-6 text-[#AAB3C2] border-t border-[#202A3D]/40 pt-4", children: theme.desc })
-    ] }),
-    /* @__PURE__ */ jsx("div", { className: "lg:col-span-7 h-44 sm:h-52 relative min-w-0", children: isMounted ? /* @__PURE__ */ jsx(ResponsiveContainer, { width: "100%", height: "100%", children: /* @__PURE__ */ jsxs(AreaChart, { data: points, margin: { top: 10, right: 10, left: -25, bottom: 0 }, children: [
-      /* @__PURE__ */ jsx("defs", { children: /* @__PURE__ */ jsxs("linearGradient", { id: "colorTension", x1: "0", y1: "0", x2: "0", y2: "1", children: [
-        /* @__PURE__ */ jsx("stop", { offset: "5%", stopColor: theme.color, stopOpacity: 0.15 }),
-        /* @__PURE__ */ jsx("stop", { offset: "95%", stopColor: theme.color, stopOpacity: 0 })
-      ] }) }),
-      /* @__PURE__ */ jsx(
-        XAxis,
-        {
-          dataKey: "name",
-          axisLine: false,
-          tickLine: false,
-          tick: { fill: "#7E8796", fontSize: 10, fontFamily: "monospace" }
-        }
-      ),
-      /* @__PURE__ */ jsx(
-        YAxis,
-        {
-          domain: ["dataMin - 3", "dataMax + 3"],
-          axisLine: false,
-          tickLine: false,
-          tick: { fill: "#7E8796", fontSize: 10, fontFamily: "monospace" }
-        }
-      ),
-      /* @__PURE__ */ jsx(
-        Tooltip,
-        {
-          content: ({ active, payload }) => {
-            if (active && payload && payload.length) {
-              return /* @__PURE__ */ jsxs("div", { className: "border border-[#202A3D] bg-[#0B0F15] p-2 font-mono text-[10px] text-[#E8EDF5]", children: [
-                /* @__PURE__ */ jsxs("p", { className: "text-[#7E8796] mb-0.5", children: [
-                  "DATA: ",
-                  payload[0].payload.date
-                ] }),
-                /* @__PURE__ */ jsxs("p", { className: "font-semibold uppercase tracking-wider text-[#D7B56D]", children: [
-                  "ITG: ",
-                  payload[0].value,
-                  " / 100"
-                ] })
-              ] });
-            }
-            return null;
+      /* @__PURE__ */ jsx("div", { className: "lg:col-span-7 h-44 sm:h-52 relative min-w-0", children: isMounted ? /* @__PURE__ */ jsx(ResponsiveContainer, { width: "100%", height: "100%", children: /* @__PURE__ */ jsxs(AreaChart, { data: points, margin: { top: 10, right: 10, left: -25, bottom: 0 }, children: [
+        /* @__PURE__ */ jsx("defs", { children: /* @__PURE__ */ jsxs("linearGradient", { id: "colorTension", x1: "0", y1: "0", x2: "0", y2: "1", children: [
+          /* @__PURE__ */ jsx("stop", { offset: "5%", stopColor: theme.color, stopOpacity: 0.15 }),
+          /* @__PURE__ */ jsx("stop", { offset: "95%", stopColor: theme.color, stopOpacity: 0 })
+        ] }) }),
+        /* @__PURE__ */ jsx(CartesianGrid, { strokeDasharray: "3 3", stroke: "#384968", opacity: 0.4, vertical: false }),
+        /* @__PURE__ */ jsx(
+          XAxis,
+          {
+            dataKey: "name",
+            axisLine: false,
+            tickLine: false,
+            tick: { fill: "#7E8796", fontSize: 10, fontFamily: "monospace" }
           }
-        }
-      ),
-      /* @__PURE__ */ jsx(
-        Area,
-        {
-          type: "monotone",
-          dataKey: "Tensione",
-          stroke: theme.color,
-          strokeWidth: 1.5,
-          fillOpacity: 1,
-          fill: "url(#colorTension)"
-        }
-      )
-    ] }) }) : renderStaticSvg() })
-  ] }) }) });
+        ),
+        /* @__PURE__ */ jsx(
+          YAxis,
+          {
+            domain: ["dataMin - 3", "dataMax + 3"],
+            axisLine: false,
+            tickLine: false,
+            tick: { fill: "#7E8796", fontSize: 10, fontFamily: "monospace" }
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          Tooltip,
+          {
+            content: ({ active, payload }) => {
+              if (active && payload && payload.length) {
+                return /* @__PURE__ */ jsxs("div", { className: "border border-[#202A3D] bg-[#0B0F15] p-2 font-mono text-[10px] text-[#E8EDF5]", children: [
+                  /* @__PURE__ */ jsxs("p", { className: "text-[#7E8796] mb-0.5", children: [
+                    "DATA: ",
+                    payload[0].payload.date
+                  ] }),
+                  /* @__PURE__ */ jsxs("p", { className: "font-semibold uppercase tracking-wider text-[#D7B56D]", children: [
+                    "ITG: ",
+                    payload[0].value,
+                    " / 100"
+                  ] })
+                ] });
+              }
+              return null;
+            }
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          Area,
+          {
+            type: "monotone",
+            dataKey: "Tensione",
+            stroke: theme.color,
+            strokeWidth: 1.5,
+            fillOpacity: 1,
+            fill: "url(#colorTension)"
+          }
+        )
+      ] }) }) : renderStaticSvg() })
+    ] }),
+    /* @__PURE__ */ jsxs("div", { className: "mt-6 border-t border-[#202A3D]/50 pt-6", children: [
+      /* @__PURE__ */ jsx("div", { className: "mb-4", children: /* @__PURE__ */ jsx("span", { className: "font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.25em] text-[#7E8796] block", children: "STRESS TEST REGIONALI & TRAIETTORIE" }) }),
+      /* @__PURE__ */ jsx("div", { className: "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3.5", children: (trend.macro_regions || []).map((reg) => {
+        const getRegionStyles = (score, dir) => {
+          let scoreColor = "text-[#D7B56D]";
+          if (score >= 75) scoreColor = "text-red-500";
+          else if (score >= 50) scoreColor = "text-orange-500";
+          let trendBadge = "border-[#202A3D]/60 bg-[#0E1116] text-[#7E8796]";
+          let TrendIcon2 = Minus;
+          let trendLabel = "Stabile";
+          if (dir === "rising") {
+            trendBadge = "border-red-500/20 bg-red-950/15 text-red-400";
+            TrendIcon2 = TrendingUp;
+            trendLabel = "Crescente";
+          } else if (dir === "falling") {
+            trendBadge = "border-emerald-500/20 bg-emerald-950/15 text-emerald-400";
+            TrendIcon2 = TrendingDown;
+            trendLabel = "In calo";
+          }
+          return { scoreColor, trendBadge, TrendIcon: TrendIcon2, trendLabel };
+        };
+        const styles = getRegionStyles(reg.score, reg.direction);
+        const RegionIcon = styles.TrendIcon;
+        return /* @__PURE__ */ jsxs(
+          "div",
+          {
+            className: "border border-[#202A3D]/40 bg-[#0B0F15]/30 p-4 flex flex-col justify-between transition-colors hover:border-[#202A3D] group",
+            children: [
+              /* @__PURE__ */ jsxs("div", { children: [
+                /* @__PURE__ */ jsx("h4", { className: "font-sans text-xs font-semibold text-[#AAB3C2] uppercase tracking-wider truncate group-hover:text-[#E8EDF5] transition-colors", children: reg.name }),
+                /* @__PURE__ */ jsxs("span", { className: `font-mono text-3xl font-bold block mt-2 ${styles.scoreColor}`, children: [
+                  reg.score,
+                  /* @__PURE__ */ jsx("span", { className: "text-[10px] text-[#7E8796] font-normal ml-1", children: "ITG" })
+                ] })
+              ] }),
+              /* @__PURE__ */ jsx("div", { className: "mt-4 pt-3 border-t border-[#202A3D]/30", children: /* @__PURE__ */ jsxs("span", { className: `inline-flex items-center gap-1 px-2 py-0.5 border font-mono text-[9px] uppercase tracking-wider ${styles.trendBadge}`, children: [
+                /* @__PURE__ */ jsx(RegionIcon, { className: "h-3 w-3 shrink-0" }),
+                styles.trendLabel
+              ] }) })
+            ]
+          },
+          reg.name
+        );
+      }) })
+    ] })
+  ] }) });
 }
 const HomeTensionTrend$1 = memo(HomeTensionTrend);
 function GlobalMapPlaceholder() {
@@ -237,7 +287,7 @@ function TickerItem({ item }) {
     /* @__PURE__ */ jsx("span", { className: "max-w-[420px] truncate text-[#E8EDF5]", children: item.title })
   ] });
 }
-const GlobalMap = lazy(() => import("./GlobalMap-CFzbc2to.mjs"));
+const GlobalMap = lazy(() => import("./GlobalMap-jYMm572D.mjs"));
 function HomeCommandCenter({ operations }) {
   const [mounted, setMounted] = useState(false);
   const [shouldLoadMap, setShouldLoadMap] = useState(false);
@@ -299,7 +349,7 @@ function EmptyState$1() {
   return /* @__PURE__ */ jsx("div", { className: "border border-dashed border-[#2A354D] bg-[#101620] p-8 text-[#9CA3AF]", children: "La sala operativa resta pronta per le prime analisi pubblicate." });
 }
 function HomeFeedSection({ items }) {
-  return /* @__PURE__ */ jsxs("section", { className: "mt-10 sm:mt-14", children: [
+  return /* @__PURE__ */ jsxs("section", { className: "mt-12 sm:mt-16", children: [
     /* @__PURE__ */ jsxs("div", { className: "mb-6 flex flex-wrap items-end justify-between gap-4", children: [
       /* @__PURE__ */ jsxs("div", { className: "min-w-0", children: [
         /* @__PURE__ */ jsx("p", { className: "font-mono text-xs uppercase tracking-[0.3em] text-[#7E8796]", children: "Flusso analisi" }),
@@ -331,7 +381,7 @@ function EmptyState() {
   return /* @__PURE__ */ jsx("div", { className: "border border-dashed border-[#2A354D] bg-[#101620] p-8 text-[#9CA3AF]", children: "Nessuna notizia recente disponibile." });
 }
 function HomeLatestNewsSection({ items = [] }) {
-  return /* @__PURE__ */ jsxs("section", { className: "mt-10 sm:mt-14", children: [
+  return /* @__PURE__ */ jsxs("section", { className: "mt-12 sm:mt-16", children: [
     /* @__PURE__ */ jsxs("div", { className: "mb-6 flex flex-wrap items-end justify-between gap-4", children: [
       /* @__PURE__ */ jsxs("div", { className: "min-w-0", children: [
         /* @__PURE__ */ jsx("p", { className: "font-mono text-xs uppercase tracking-[0.3em] text-[#7E8796]", children: "Ultime notizie" }),
@@ -374,7 +424,7 @@ function HomeStatsSection({ stats, hotspotsCount }) {
       icon: Binary
     }
   ];
-  return /* @__PURE__ */ jsx("section", { className: "mt-8 sm:mt-12 grid gap-4 md:grid-cols-3", children: items.map((item) => /* @__PURE__ */ jsxs(
+  return /* @__PURE__ */ jsx("section", { className: "mt-10 sm:mt-14 grid gap-4 md:grid-cols-3", children: items.map((item) => /* @__PURE__ */ jsxs(
     "div",
     {
       className: "border border-[#202A3D] bg-[#101620] p-5",
