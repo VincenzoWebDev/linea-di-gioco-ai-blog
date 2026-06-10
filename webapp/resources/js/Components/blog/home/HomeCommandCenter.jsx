@@ -17,19 +17,44 @@ export default function HomeCommandCenter({ operations }) {
             return undefined;
         }
 
-        const loadMap = () => setShouldLoadMap(true);
-
-        if ("requestIdleCallback" in window) {
-            const idleId = window.requestIdleCallback(loadMap, {
-                timeout: 1200,
-            });
-
-            return () => window.cancelIdleCallback(idleId);
+        if (typeof window === "undefined") {
+            return undefined;
         }
 
-        const timeoutId = window.setTimeout(loadMap, 450);
+        if (!("IntersectionObserver" in window)) {
+            setShouldLoadMap(true);
+            return undefined;
+        }
 
-        return () => window.clearTimeout(timeoutId);
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting) {
+                    const loadMap = () => setShouldLoadMap(true);
+
+                    if ("requestIdleCallback" in window) {
+                        const idleId = window.requestIdleCallback(loadMap, {
+                            timeout: 2000,
+                        });
+                        observer.disconnect();
+                        return () => window.cancelIdleCallback(idleId);
+                    } else {
+                        const timeoutId = window.setTimeout(loadMap, 1000);
+                        observer.disconnect();
+                        return () => window.clearTimeout(timeoutId);
+                    }
+                }
+            },
+            {
+                rootMargin: "150px",
+            }
+        );
+
+        const element = document.getElementById("command-center-map-container");
+        if (element) {
+            observer.observe(element);
+        }
+
+        return () => observer.disconnect();
     }, [mounted]);
 
     const tickerItems = operations?.length > 0 ? operations : [];
@@ -37,13 +62,15 @@ export default function HomeCommandCenter({ operations }) {
     return (
         <>
             {/* Keep the first paint cheap, then load the interactive map chunk. */}
-            {mounted && shouldLoadMap ? (
-                <Suspense fallback={<GlobalMapPlaceholder />}>
-                    <GlobalMap operations={operations} />
-                </Suspense>
-            ) : (
-                <GlobalMapPlaceholder />
-            )}
+            <div id="command-center-map-container" className="min-w-0">
+                {mounted && shouldLoadMap ? (
+                    <Suspense fallback={<GlobalMapPlaceholder />}>
+                        <GlobalMap operations={operations} />
+                    </Suspense>
+                ) : (
+                    <GlobalMapPlaceholder />
+                )}
+            </div>
 
             <TacticalTicker items={tickerItems} />
         </>

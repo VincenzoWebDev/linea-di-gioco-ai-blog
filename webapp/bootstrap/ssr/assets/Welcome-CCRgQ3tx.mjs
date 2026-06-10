@@ -1,7 +1,6 @@
 import { jsx, jsxs, Fragment } from "react/jsx-runtime";
 import { B as BlogLayout } from "./BlogLayout-98RL58NA.mjs";
 import { memo, useState, useEffect, Suspense, lazy } from "react";
-import { ResponsiveContainer, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, Area } from "recharts";
 import { Activity, ArrowDownRight, ArrowUpRight, Minus, TrendingUp, TrendingDown, RadioTower, MapPin, ArrowRight, FileSearch, Target, Binary } from "lucide-react";
 import Marquee from "react-fast-marquee";
 import { Link } from "@inertiajs/react";
@@ -10,6 +9,7 @@ import { s as severityBadge } from "./geopoliticalSeverity-BBhZMy0g.mjs";
 import { t as trendCopy } from "./trendCopy-BRLsGmW-.mjs";
 import { c as formatShortDate } from "./formatters-BAb3XZ2i.mjs";
 import { S as SeoHead } from "./SeoHead-9Gv-Y1Y7.mjs";
+const HomeTensionTrendChart = lazy(() => import("./HomeTensionTrendChart-jpd_e7C4.mjs"));
 function HomeTensionTrend({ trend }) {
   if (!trend || !trend.points || trend.points.length === 0) {
     return null;
@@ -46,6 +46,7 @@ function HomeTensionTrend({ trend }) {
     }
   }[direction] || {
     color: "#D7B56D",
+    bgGradient: "rgba(215, 181, 109, 0.05)",
     badge: "border-[#D7B56D]/30 bg-amber-950/10 text-[#D7B56D]",
     dot: "bg-[#D7B56D]",
     desc: "L'equilibrio strategico del pianeta si attesta su una soglia di tesa stabilità.",
@@ -121,63 +122,7 @@ function HomeTensionTrend({ trend }) {
         ] }),
         /* @__PURE__ */ jsx("p", { className: "mt-5 text-xs sm:text-[13px] leading-6 text-[#AAB3C2] border-b border-[#202A3D]/40 pb-4 lg:border-b-0 lg:pb-0", children: theme.desc })
       ] }),
-      /* @__PURE__ */ jsx("div", { className: "lg:col-span-7 h-44 sm:h-52 relative min-w-0", children: isMounted ? /* @__PURE__ */ jsx(ResponsiveContainer, { width: "100%", height: "100%", children: /* @__PURE__ */ jsxs(AreaChart, { data: points, margin: { top: 10, right: 10, left: -25, bottom: 0 }, children: [
-        /* @__PURE__ */ jsx("defs", { children: /* @__PURE__ */ jsxs("linearGradient", { id: "colorTension", x1: "0", y1: "0", x2: "0", y2: "1", children: [
-          /* @__PURE__ */ jsx("stop", { offset: "5%", stopColor: theme.color, stopOpacity: 0.15 }),
-          /* @__PURE__ */ jsx("stop", { offset: "95%", stopColor: theme.color, stopOpacity: 0 })
-        ] }) }),
-        /* @__PURE__ */ jsx(CartesianGrid, { strokeDasharray: "3 3", stroke: "#384968", opacity: 0.4, vertical: false }),
-        /* @__PURE__ */ jsx(
-          XAxis,
-          {
-            dataKey: "name",
-            axisLine: false,
-            tickLine: false,
-            tick: { fill: "#7E8796", fontSize: 10, fontFamily: "monospace" }
-          }
-        ),
-        /* @__PURE__ */ jsx(
-          YAxis,
-          {
-            domain: ["dataMin - 3", "dataMax + 3"],
-            axisLine: false,
-            tickLine: false,
-            tick: { fill: "#7E8796", fontSize: 10, fontFamily: "monospace" }
-          }
-        ),
-        /* @__PURE__ */ jsx(
-          Tooltip,
-          {
-            content: ({ active, payload }) => {
-              if (active && payload && payload.length) {
-                return /* @__PURE__ */ jsxs("div", { className: "border border-[#202A3D] bg-[#0B0F15] p-2 font-mono text-[10px] text-[#E8EDF5]", children: [
-                  /* @__PURE__ */ jsxs("p", { className: "text-[#7E8796] mb-0.5", children: [
-                    "DATA: ",
-                    payload[0].payload.date
-                  ] }),
-                  /* @__PURE__ */ jsxs("p", { className: "font-semibold uppercase tracking-wider text-[#D7B56D]", children: [
-                    "ITG: ",
-                    payload[0].value,
-                    " / 100"
-                  ] })
-                ] });
-              }
-              return null;
-            }
-          }
-        ),
-        /* @__PURE__ */ jsx(
-          Area,
-          {
-            type: "monotone",
-            dataKey: "Tensione",
-            stroke: theme.color,
-            strokeWidth: 1.5,
-            fillOpacity: 1,
-            fill: "url(#colorTension)"
-          }
-        )
-      ] }) }) : renderStaticSvg() })
+      /* @__PURE__ */ jsx("div", { className: "lg:col-span-7 h-44 sm:h-52 relative min-w-0", children: isMounted ? /* @__PURE__ */ jsx(Suspense, { fallback: renderStaticSvg(), children: /* @__PURE__ */ jsx(HomeTensionTrendChart, { points, theme }) }) : renderStaticSvg() })
     ] }),
     /* @__PURE__ */ jsxs("div", { className: "mt-6 border-t border-[#202A3D]/50 pt-6", children: [
       /* @__PURE__ */ jsx("div", { className: "mb-4", children: /* @__PURE__ */ jsx("span", { className: "font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.25em] text-[#7E8796] block", children: "STRESS TEST REGIONALI & TRAIETTORIE" }) }),
@@ -298,19 +243,43 @@ function HomeCommandCenter({ operations }) {
     if (!mounted) {
       return void 0;
     }
-    const loadMap = () => setShouldLoadMap(true);
-    if ("requestIdleCallback" in window) {
-      const idleId = window.requestIdleCallback(loadMap, {
-        timeout: 1200
-      });
-      return () => window.cancelIdleCallback(idleId);
+    if (typeof window === "undefined") {
+      return void 0;
     }
-    const timeoutId = window.setTimeout(loadMap, 450);
-    return () => window.clearTimeout(timeoutId);
+    if (!("IntersectionObserver" in window)) {
+      setShouldLoadMap(true);
+      return void 0;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          const loadMap = () => setShouldLoadMap(true);
+          if ("requestIdleCallback" in window) {
+            const idleId = window.requestIdleCallback(loadMap, {
+              timeout: 2e3
+            });
+            observer.disconnect();
+            return () => window.cancelIdleCallback(idleId);
+          } else {
+            const timeoutId = window.setTimeout(loadMap, 1e3);
+            observer.disconnect();
+            return () => window.clearTimeout(timeoutId);
+          }
+        }
+      },
+      {
+        rootMargin: "150px"
+      }
+    );
+    const element = document.getElementById("command-center-map-container");
+    if (element) {
+      observer.observe(element);
+    }
+    return () => observer.disconnect();
   }, [mounted]);
   const tickerItems = operations?.length > 0 ? operations : [];
   return /* @__PURE__ */ jsxs(Fragment, { children: [
-    mounted && shouldLoadMap ? /* @__PURE__ */ jsx(Suspense, { fallback: /* @__PURE__ */ jsx(GlobalMapPlaceholder, {}), children: /* @__PURE__ */ jsx(GlobalMap, { operations }) }) : /* @__PURE__ */ jsx(GlobalMapPlaceholder, {}),
+    /* @__PURE__ */ jsx("div", { id: "command-center-map-container", className: "min-w-0", children: mounted && shouldLoadMap ? /* @__PURE__ */ jsx(Suspense, { fallback: /* @__PURE__ */ jsx(GlobalMapPlaceholder, {}), children: /* @__PURE__ */ jsx(GlobalMap, { operations }) }) : /* @__PURE__ */ jsx(GlobalMapPlaceholder, {}) }),
     /* @__PURE__ */ jsx(TacticalTicker, { items: tickerItems })
   ] });
 }

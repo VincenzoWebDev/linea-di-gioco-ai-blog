@@ -1,6 +1,7 @@
-import { memo, useEffect, useState } from "react";
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { memo, useEffect, useState, lazy, Suspense } from "react";
 import { Activity, ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown, Minus } from "lucide-react";
+
+const HomeTensionTrendChart = lazy(() => import("./HomeTensionTrendChart"));
 
 function HomeTensionTrend({ trend }) {
     if (!trend || !trend.points || trend.points.length === 0) {
@@ -145,52 +146,9 @@ function HomeTensionTrend({ trend }) {
                     {/* Area Grafico Destra (Recharts Client-only / SVG Fallback SSR) */}
                     <div className="lg:col-span-7 h-44 sm:h-52 relative min-w-0">
                         {isMounted ? (
-                            <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={points} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                                    <defs>
-                                        <linearGradient id="colorTension" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor={theme.color} stopOpacity={0.15}/>
-                                            <stop offset="95%" stopColor={theme.color} stopOpacity={0.0}/>
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#384968" opacity={0.4} vertical={false} />
-                                    <XAxis 
-                                        dataKey="name" 
-                                        axisLine={false} 
-                                        tickLine={false}
-                                        tick={{ fill: '#7E8796', fontSize: 10, fontFamily: 'monospace' }}
-                                    />
-                                    <YAxis 
-                                        domain={['dataMin - 3', 'dataMax + 3']} 
-                                        axisLine={false} 
-                                        tickLine={false}
-                                        tick={{ fill: '#7E8796', fontSize: 10, fontFamily: 'monospace' }}
-                                    />
-                                    <Tooltip 
-                                        content={({ active, payload }) => {
-                                            if (active && payload && payload.length) {
-                                                return (
-                                                    <div className="border border-[#202A3D] bg-[#0B0F15] p-2 font-mono text-[10px] text-[#E8EDF5]">
-                                                        <p className="text-[#7E8796] mb-0.5">DATA: {payload[0].payload.date}</p>
-                                                        <p className="font-semibold uppercase tracking-wider text-[#D7B56D]">
-                                                            ITG: {payload[0].value} / 100
-                                                        </p>
-                                                    </div>
-                                                );
-                                            }
-                                            return null;
-                                        }}
-                                    />
-                                    <Area 
-                                        type="monotone" 
-                                        dataKey="Tensione" 
-                                        stroke={theme.color} 
-                                        strokeWidth={1.5}
-                                        fillOpacity={1} 
-                                        fill="url(#colorTension)" 
-                                    />
-                                </AreaChart>
-                            </ResponsiveContainer>
+                            <Suspense fallback={renderStaticSvg()}>
+                                <HomeTensionTrendChart points={points} theme={theme} />
+                            </Suspense>
                         ) : (
                             renderStaticSvg()
                         )}
