@@ -16,9 +16,38 @@ function HomeTensionTrend({ trend }) {
   }
   const { points, direction, current_average, delta } = trend;
   const [isMounted, setIsMounted] = useState(false);
+  const [shouldLoadChart, setShouldLoadChart] = useState(false);
   useEffect(() => {
     setIsMounted(true);
   }, []);
+  useEffect(() => {
+    if (!isMounted) {
+      return void 0;
+    }
+    if (typeof window === "undefined") {
+      return void 0;
+    }
+    if (!("IntersectionObserver" in window)) {
+      setShouldLoadChart(true);
+      return void 0;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setShouldLoadChart(true);
+          observer.disconnect();
+        }
+      },
+      {
+        rootMargin: "250px"
+      }
+    );
+    const element = document.getElementById("home-tension-trend-chart-container");
+    if (element) {
+      observer.observe(element);
+    }
+    return () => observer.disconnect();
+  }, [isMounted]);
   const theme = {
     rising: {
       color: "#EF4444",
@@ -122,7 +151,7 @@ function HomeTensionTrend({ trend }) {
         ] }),
         /* @__PURE__ */ jsx("p", { className: "mt-5 text-xs sm:text-[13px] leading-6 text-[#AAB3C2] border-b border-[#202A3D]/40 pb-4 lg:border-b-0 lg:pb-0", children: theme.desc })
       ] }),
-      /* @__PURE__ */ jsx("div", { className: "lg:col-span-7 h-44 sm:h-52 relative min-w-0", children: isMounted ? /* @__PURE__ */ jsx(Suspense, { fallback: renderStaticSvg(), children: /* @__PURE__ */ jsx(HomeTensionTrendChart, { points, theme }) }) : renderStaticSvg() })
+      /* @__PURE__ */ jsx("div", { id: "home-tension-trend-chart-container", className: "lg:col-span-7 h-44 sm:h-52 relative min-w-0", children: isMounted && shouldLoadChart ? /* @__PURE__ */ jsx(Suspense, { fallback: renderStaticSvg(), children: /* @__PURE__ */ jsx(HomeTensionTrendChart, { points, theme }) }) : renderStaticSvg() })
     ] }),
     /* @__PURE__ */ jsxs("div", { className: "mt-6 border-t border-[#202A3D]/50 pt-6", children: [
       /* @__PURE__ */ jsx("div", { className: "mb-4", children: /* @__PURE__ */ jsx("span", { className: "font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.25em] text-[#7E8796] block", children: "STRESS TEST REGIONALI & TRAIETTORIE" }) }),
@@ -246,36 +275,35 @@ function HomeCommandCenter({ operations }) {
     if (typeof window === "undefined") {
       return void 0;
     }
-    if (!("IntersectionObserver" in window)) {
-      setShouldLoadMap(true);
-      return void 0;
-    }
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          const loadMap = () => setShouldLoadMap(true);
-          if ("requestIdleCallback" in window) {
-            const idleId = window.requestIdleCallback(loadMap, {
-              timeout: 2e3
-            });
-            observer.disconnect();
-            return () => window.cancelIdleCallback(idleId);
-          } else {
-            const timeoutId = window.setTimeout(loadMap, 1e3);
-            observer.disconnect();
-            return () => window.clearTimeout(timeoutId);
-          }
-        }
-      },
-      {
-        rootMargin: "150px"
+    let isLoaded = false;
+    let safetyTimeoutId = null;
+    const loadMap = () => {
+      if (isLoaded) return;
+      isLoaded = true;
+      if ("requestIdleCallback" in window) {
+        window.requestIdleCallback(() => setShouldLoadMap(true), {
+          timeout: 2e3
+        });
+      } else {
+        setTimeout(() => setShouldLoadMap(true), 200);
       }
-    );
-    const element = document.getElementById("command-center-map-container");
-    if (element) {
-      observer.observe(element);
-    }
-    return () => observer.disconnect();
+      cleanupListeners();
+    };
+    const cleanupListeners = () => {
+      if (safetyTimeoutId) {
+        clearTimeout(safetyTimeoutId);
+      }
+      window.removeEventListener("touchstart", loadMap, { passive: true });
+      window.removeEventListener("mousemove", loadMap, { passive: true });
+      window.removeEventListener("scroll", loadMap, { passive: true });
+      window.removeEventListener("pointerdown", loadMap, { passive: true });
+    };
+    window.addEventListener("touchstart", loadMap, { passive: true });
+    window.addEventListener("mousemove", loadMap, { passive: true });
+    window.addEventListener("scroll", loadMap, { passive: true });
+    window.addEventListener("pointerdown", loadMap, { passive: true });
+    safetyTimeoutId = setTimeout(loadMap, 5e3);
+    return cleanupListeners;
   }, [mounted]);
   const tickerItems = operations?.length > 0 ? operations : [];
   return /* @__PURE__ */ jsxs(Fragment, { children: [

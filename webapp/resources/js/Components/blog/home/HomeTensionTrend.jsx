@@ -10,10 +10,45 @@ function HomeTensionTrend({ trend }) {
 
     const { points, direction, current_average, delta } = trend;
     const [isMounted, setIsMounted] = useState(false);
+    const [shouldLoadChart, setShouldLoadChart] = useState(false);
 
     useEffect(() => {
         setIsMounted(true);
     }, []);
+
+    useEffect(() => {
+        if (!isMounted) {
+            return undefined;
+        }
+
+        if (typeof window === "undefined") {
+            return undefined;
+        }
+
+        if (!("IntersectionObserver" in window)) {
+            setShouldLoadChart(true);
+            return undefined;
+        }
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting) {
+                    setShouldLoadChart(true);
+                    observer.disconnect();
+                }
+            },
+            {
+                rootMargin: "250px",
+            }
+        );
+
+        const element = document.getElementById("home-tension-trend-chart-container");
+        if (element) {
+            observer.observe(element);
+        }
+
+        return () => observer.disconnect();
+    }, [isMounted]);
 
     const theme = {
         rising: {
@@ -144,8 +179,8 @@ function HomeTensionTrend({ trend }) {
                     </div>
 
                     {/* Area Grafico Destra (Recharts Client-only / SVG Fallback SSR) */}
-                    <div className="lg:col-span-7 h-44 sm:h-52 relative min-w-0">
-                        {isMounted ? (
+                    <div id="home-tension-trend-chart-container" className="lg:col-span-7 h-44 sm:h-52 relative min-w-0">
+                        {isMounted && shouldLoadChart ? (
                             <Suspense fallback={renderStaticSvg()}>
                                 <HomeTensionTrendChart points={points} theme={theme} />
                             </Suspense>

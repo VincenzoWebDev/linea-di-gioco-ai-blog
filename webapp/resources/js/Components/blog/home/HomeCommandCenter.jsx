@@ -21,40 +21,43 @@ export default function HomeCommandCenter({ operations }) {
             return undefined;
         }
 
-        if (!("IntersectionObserver" in window)) {
-            setShouldLoadMap(true);
-            return undefined;
-        }
+        let isLoaded = false;
+        let safetyTimeoutId = null;
 
-        const observer = new IntersectionObserver(
-            (entries) => {
-                if (entries[0].isIntersecting) {
-                    const loadMap = () => setShouldLoadMap(true);
+        const loadMap = () => {
+            if (isLoaded) return;
+            isLoaded = true;
 
-                    if ("requestIdleCallback" in window) {
-                        const idleId = window.requestIdleCallback(loadMap, {
-                            timeout: 2000,
-                        });
-                        observer.disconnect();
-                        return () => window.cancelIdleCallback(idleId);
-                    } else {
-                        const timeoutId = window.setTimeout(loadMap, 1000);
-                        observer.disconnect();
-                        return () => window.clearTimeout(timeoutId);
-                    }
-                }
-            },
-            {
-                rootMargin: "150px",
+            if ("requestIdleCallback" in window) {
+                window.requestIdleCallback(() => setShouldLoadMap(true), {
+                    timeout: 2000,
+                });
+            } else {
+                setTimeout(() => setShouldLoadMap(true), 200);
             }
-        );
 
-        const element = document.getElementById("command-center-map-container");
-        if (element) {
-            observer.observe(element);
-        }
+            cleanupListeners();
+        };
 
-        return () => observer.disconnect();
+        const cleanupListeners = () => {
+            if (safetyTimeoutId) {
+                clearTimeout(safetyTimeoutId);
+            }
+            window.removeEventListener("touchstart", loadMap, { passive: true });
+            window.removeEventListener("mousemove", loadMap, { passive: true });
+            window.removeEventListener("scroll", loadMap, { passive: true });
+            window.removeEventListener("pointerdown", loadMap, { passive: true });
+        };
+
+        window.addEventListener("touchstart", loadMap, { passive: true });
+        window.addEventListener("mousemove", loadMap, { passive: true });
+        window.addEventListener("scroll", loadMap, { passive: true });
+        window.addEventListener("pointerdown", loadMap, { passive: true });
+
+        // Safety net: load map anyway after 5 seconds of inactivity
+        safetyTimeoutId = setTimeout(loadMap, 5000);
+
+        return cleanupListeners;
     }, [mounted]);
 
     const tickerItems = operations?.length > 0 ? operations : [];
