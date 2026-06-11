@@ -106,6 +106,7 @@ class TensionController extends Controller
                 (string) $validated['region_name'],
                 $displayRegionName !== '' ? $displayRegionName : (string) $validated['region_name']
             ),
+            'last_event_at' => now(),
         ]);
         $service->clearHeaderCache();
 

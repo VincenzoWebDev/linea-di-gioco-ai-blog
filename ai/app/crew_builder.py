@@ -171,6 +171,10 @@ def _run_crewai(payload: ProcessRequest) -> Tuple[ArticleOut, Dict[str, Any]]:
             "Usa termini comprensibili e concreti: per esempio preferisci "
             "'Rischio Forniture Gas' a 'Instabilita geoeconomica delle pipeline'. "
             "Se il luogo non è deducibile, usa un fallback minimale e trasparente, ma non inventare localizzazioni. "
+            "Assegna trend_direction basandoti con precisione sul contesto reale della notizia:\n"
+            "- 'rising': se la notizia descrive un chiaro peggioramento, attacchi recenti, nuove ritorsioni, nuove sanzioni, minacce concrete o escalation in corso;\n"
+            "- 'falling': se la notizia descrive un chiaro miglioramento, accordi di cessate il fuoco, ritiro di truppe, distensione diplomatica o risoluzione positiva della crisi;\n"
+            "- 'stable': se la notizia descrive routine diplomatica, vertici programmati, dichiarazioni generiche, o se la situazione non mostra cambiamenti significativi.\n"
             "Non aggiungere testo fuori dal JSON. "
             f"\n\nMATERIALE:\n{source_blob}"
         ),
@@ -208,7 +212,8 @@ def _run_crewai(payload: ProcessRequest) -> Tuple[ArticleOut, Dict[str, Any]]:
             "quality_score deve essere un numero 0-100. "
             "Verifica rigorosamente che title/summary/content siano in italiano. "
             "geopolitical_tension deve restare un oggetto JSON pulito con region_name, risk_score 1-100, "
-            "trend_direction rising/falling/stable, status_label accessibile, tension_summary di 10 parole, "
+            "trend_direction rising (per peggioramento/escalation), falling (per distensione/accordo), stable (per routine/status quo), "
+            "status_label accessibile, tension_summary di 10 parole, "
             "display_region_name leggibile e region_key stabile. "
             "future_scenarios deve essere un array di due frasi brevi in italiano."
         ),

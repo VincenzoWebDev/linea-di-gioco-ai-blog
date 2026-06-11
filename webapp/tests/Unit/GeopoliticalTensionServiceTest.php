@@ -41,7 +41,7 @@ class GeopoliticalTensionServiceTest extends TestCase
 
         $service = $this->makeService();
 
-        $this->assertSame('rising', $service->resolveTrendDirection($tension));
+        $this->assertSame('falling', $service->resolveTrendDirection($tension));
 
         Carbon::setTestNow();
     }

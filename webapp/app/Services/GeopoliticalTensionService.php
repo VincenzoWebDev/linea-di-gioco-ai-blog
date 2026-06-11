@@ -81,7 +81,7 @@ class GeopoliticalTensionService
             'trend_direction' => $trendDirection,
             'status_label' => Str::limit($statusLabel !== '' ? $statusLabel : 'Tensione geopolitica', 255, ''),
             'featured_article_id' => $featuredArticle?->id,
-            'last_event_at' => $existingTension?->last_event_at ?? now(),
+            'last_event_at' => now(),
             'updated_at' => now(),
             'latitude' => $coordinates['lat'] ?? null,
             'longitude' => $coordinates['long'] ?? null,
@@ -160,6 +160,13 @@ class GeopoliticalTensionService
 
     public function resolveTrendDirection(GeopoliticalTension $tension): string
     {
+        $ttlHours = $this->tensionTtlHours();
+        $referenceAt = $tension->last_event_at ?? $tension->updated_at;
+
+        if ($referenceAt && now()->greaterThanOrEqualTo($referenceAt->copy()->addHours($ttlHours))) {
+            return 'falling';
+        }
+
         return $this->normalizeTrendDirection($tension->trend_direction);
     }
 
@@ -527,7 +534,7 @@ class GeopoliticalTensionService
             'trend_direction' => (string) $attributes['trend_direction'],
             'status_label' => (string) $attributes['status_label'],
             'featured_article_id' => $attributes['featured_article_id'],
-            'last_event_at' => $existingTension->last_event_at ?? $attributes['last_event_at'],
+            'last_event_at' => $attributes['last_event_at'],
             'updated_at' => $attributes['updated_at'],
         ];
 
