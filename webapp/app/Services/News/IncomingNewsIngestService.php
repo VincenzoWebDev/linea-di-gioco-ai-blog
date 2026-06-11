@@ -116,7 +116,7 @@ class IncomingNewsIngestService
         return $result;
     }
 
-    private function computeQualityScore(string $title, string $content, string $topic, string $sourceUrl): float
+    public function computeQualityScore(string $title, string $content, string $topic, string $sourceUrl): float
     {
         $score = 35.0;
 
