@@ -43,6 +43,7 @@ export default function ArticleShowIntelligenceSidebar({
                         label="Tensione"
                         value={article.tension?.current_tension ?? intelligence.riskScore}
                         icon={Crosshair}
+                        isExpired={article.tension?.is_expired}
                     />
                     <IntelligenceMetricBlock
                         label="Impatto"

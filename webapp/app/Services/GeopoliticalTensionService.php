@@ -515,26 +515,45 @@ class GeopoliticalTensionService
 
     private function updateExistingTension(GeopoliticalTension $existingTension, array $attributes): GeopoliticalTension
     {
+        $existingArticle = $existingTension->featuredArticle;
+        $newArticle = $attributes['featured_article_id'] ? Article::find($attributes['featured_article_id']) : null;
+
+        $isOlder = false;
+        if ($existingArticle !== null && $newArticle !== null) {
+            $existingPublishedAt = $existingArticle->published_at ?? $existingArticle->created_at;
+            $newPublishedAt = $newArticle->published_at ?? $newArticle->created_at;
+
+            if ($existingPublishedAt && $newPublishedAt && $newPublishedAt->lessThan($existingPublishedAt)) {
+                $isOlder = true;
+            }
+        }
+
         $updates = [
-            'region_name' => $this->preferredRegionName(
-                (string) $existingTension->region_name,
-                (string) $attributes['region_name']
-            ),
-            'display_region_name' => $this->preferredDisplayRegionName(
-                (string) ($existingTension->display_region_name ?? $existingTension->region_name),
-                (string) ($attributes['display_region_name'] ?? $attributes['region_name'])
-            ),
-            'region_key' => $this->preferredRegionKey(
-                (string) ($existingTension->region_key ?? ''),
-                (string) ($attributes['region_key'] ?? '')
-            ),
-            'latitude' => $attributes['latitude'] ?? $existingTension->latitude,
-            'longitude' => $attributes['longitude'] ?? $existingTension->longitude,
-            'risk_score' => (int) $attributes['risk_score'],
-            'trend_direction' => (string) $attributes['trend_direction'],
-            'status_label' => (string) $attributes['status_label'],
-            'featured_article_id' => $attributes['featured_article_id'],
-            'last_event_at' => $attributes['last_event_at'],
+            'region_name' => $isOlder 
+                ? $existingTension->region_name 
+                : $this->preferredRegionName(
+                    (string) $existingTension->region_name,
+                    (string) $attributes['region_name']
+                ),
+            'display_region_name' => $isOlder 
+                ? $existingTension->display_region_name 
+                : $this->preferredDisplayRegionName(
+                    (string) ($existingTension->display_region_name ?? $existingTension->region_name),
+                    (string) ($attributes['display_region_name'] ?? $attributes['region_name'])
+                ),
+            'region_key' => $isOlder 
+                ? $existingTension->region_key 
+                : $this->preferredRegionKey(
+                    (string) ($existingTension->region_key ?? ''),
+                    (string) ($attributes['region_key'] ?? '')
+                ),
+            'latitude' => $isOlder ? $existingTension->latitude : ($attributes['latitude'] ?? $existingTension->latitude),
+            'longitude' => $isOlder ? $existingTension->longitude : ($attributes['longitude'] ?? $existingTension->longitude),
+            'risk_score' => $isOlder ? (int) $existingTension->risk_score : (int) $attributes['risk_score'],
+            'trend_direction' => $isOlder ? (string) $existingTension->trend_direction : (string) $attributes['trend_direction'],
+            'status_label' => $isOlder ? (string) $existingTension->status_label : (string) $attributes['status_label'],
+            'featured_article_id' => $isOlder ? $existingTension->featured_article_id : $attributes['featured_article_id'],
+            'last_event_at' => $isOlder ? $existingTension->last_event_at : $attributes['last_event_at'],
             'updated_at' => $attributes['updated_at'],
         ];
 

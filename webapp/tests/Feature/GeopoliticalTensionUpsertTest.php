@@ -69,4 +69,64 @@ class GeopoliticalTensionUpsertTest extends TestCase
         // ✔️ status aggiornato
         $this->assertEquals('escalation', $updated->status_label);
     }
+
+    public function test_it_does_not_overwrite_tension_with_older_news(): void
+    {
+        $now = now();
+
+        $recentArticle = Article::create([
+            'title' => 'Guerra e invasione nello Stretto di Hormuz',
+            'summary' => 'Notizia freschissima di guerra ed invasione',
+            'content' => 'Grave guerra ed invasione militare con bombardamento confermato nello stretto.',
+            'slug' => 'recent-news',
+            'status' => 'published',
+            'published_at' => $now,
+        ]);
+
+        $olderArticle = Article::create([
+            'title' => 'Tensione Vecchia',
+            'summary' => 'Notizia di ieri',
+            'content' => 'Contenuto di ieri',
+            'slug' => 'older-news',
+            'status' => 'published',
+            'published_at' => $now->copy()->subDays(1),
+        ]);
+
+        $service = app(GeopoliticalTensionService::class);
+
+        // 1. Inseriamo la notizia recente con tensione 80
+        $service->upsertFromAgentOutput([
+            'geopolitical_tension' => [
+                'region_name' => 'Stretto di Hormuz',
+                'display_region_name' => 'Stretto di Hormuz',
+                'risk_score' => 80,
+                'trend_direction' => 'rising',
+                'status_label' => 'Critical Escalation',
+            ],
+        ], $recentArticle);
+
+        $this->assertCount(1, GeopoliticalTension::all());
+        $tension = GeopoliticalTension::first();
+        $calibratedScore = $tension->risk_score;
+        $this->assertGreaterThanOrEqual(50, $calibratedScore);
+        $this->assertEquals($recentArticle->id, $tension->featured_article_id);
+
+        // 2. Proviamo a inserire la notizia più vecchia con tensione 38
+        $service->upsertFromAgentOutput([
+            'geopolitical_tension' => [
+                'region_name' => 'Stretto di Hormuz',
+                'display_region_name' => 'Stretto di Hormuz',
+                'risk_score' => 38,
+                'trend_direction' => 'stable',
+                'status_label' => 'Routine Update',
+            ],
+        ], $olderArticle);
+
+        // 3. Verifichiamo che i dati critici siano rimasti quelli della notizia più recente
+        $tensionFresh = $tension->fresh();
+        $this->assertEquals($calibratedScore, $tensionFresh->risk_score);
+        $this->assertEquals('rising', $tensionFresh->trend_direction);
+        $this->assertEquals('Critical Escalation', $tensionFresh->status_label);
+        $this->assertEquals($recentArticle->id, $tensionFresh->featured_article_id);
+    }
 }
