@@ -494,4 +494,40 @@ class GeopoliticalTensionServiceTest extends TestCase
             'featured_article_id' => $olderArticle->id,
         ]);
     }
+
+    public function test_it_assigns_appropriate_score_for_belfast_clashes_and_civil_unrest(): void
+    {
+        $article = Article::query()->create([
+            'title' => 'Scontri tra manifestanti di estrema destra e forze dell\'ordine a Belfast',
+            'slug' => 'scontri-belfast',
+            'summary' => 'Scontri a Belfast evidenziano la crescente instabilità sociale legata ai flussi migratori in una regione storicamente fragile.',
+            'content' => 'Scontri violenti tra manifestanti e forze dell\'ordine hanno scosso Belfast.',
+            'status' => 'published',
+            'publication_status' => 'published',
+            'created_by' => 'ai',
+            'source_url' => 'https://example.com/belfast',
+            'source_name' => 'test',
+            'ai_generated' => true,
+            'quality_score' => 80,
+        ]);
+
+        $service = $this->makeService();
+
+        $service->upsertFromAgentOutput([
+            'geopolitical_tension' => [
+                'region_name' => 'Belfast',
+                'risk_score' => 1,
+                'trend_direction' => 'stable',
+                'status_label' => 'Scontri e disordini',
+            ],
+        ], $article);
+
+        $tension = GeopoliticalTension::query()
+            ->where('featured_article_id', $article->id)
+            ->firstOrFail();
+
+        // Dovrebbe salire grazie alle nuove parole chiave dei disordini/scontri sociali (scontr, manifestant, forze dell'ordine, instabilit)
+        $this->assertGreaterThanOrEqual(30, $tension->risk_score);
+        $this->assertSame(47, $tension->risk_score);
+    }
 }

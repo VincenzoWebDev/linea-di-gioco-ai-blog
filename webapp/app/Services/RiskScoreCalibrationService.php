@@ -63,6 +63,12 @@ class RiskScoreCalibrationService
         'military base',
         'retaliation',
         'ritorsione',
+        'scontr',
+        'sommoss',
+        'disordin',
+        'guerrigli',
+        'violenz',
+        'rivolt',
     ];
 
     /** @var list<string> */
@@ -135,6 +141,11 @@ class RiskScoreCalibrationService
         'base statunitense',
         'forze statunitensi',
         'us base',
+        'manifestant',
+        'protest',
+        'instabilit',
+        'polizia',
+        'forze dell\'ordine',
     ];
 
     public function calibrate(int $rawScore, string $context, string $statusLabel = '', string $trendDirection = 'stable'): int

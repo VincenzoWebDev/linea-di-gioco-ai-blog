@@ -401,6 +401,7 @@ def _calibrate_risk_score(raw_score: int, context: str, status_label: str = "") 
         "sanzioni", "embargo", "escalation", "truppe", "drone", "artiglieria",
         "violazione del cessate il fuoco", "rottura diplomatica", "intercett",
         "minaccia", "attacco", "conflitto", "fronte", "deterrenza",
+        "scontr", "sommoss", "disordin", "guerrigli", "violenz", "rivolt",
     )
     routine_signals = ("vertice", "summit", "trattativa", "accordo", "comunicato", "monitoraggio")
     speculative_signals = ("potrebbe", "rischia", "timori", "non confermato", "specul")
@@ -408,6 +409,7 @@ def _calibrate_risk_score(raw_score: int, context: str, status_label: str = "") 
         "sicurezza", "difesa", "confine", "militare", "diplomatic", "negoziati",
         "colloqui", "cessate il fuoco", "nato", "onu", "missile", "drone",
         "truppe", "raid", "deterrenza", "conflitto",
+        "manifestant", "protest", "instabilit", "polizia", "forze dell'ordine",
     )
 
     high_count = sum(1 for signal in high_signals if signal in text)
