@@ -2,7 +2,7 @@ import { jsxs, jsx, Fragment } from "react/jsx-runtime";
 import { useState, useRef, useEffect, Suspense, lazy } from "react";
 import { Link } from "@inertiajs/react";
 import { Info, ExternalLink, MapPin, Clock3, RadioTower, History, Tags, FileSearch, ArrowLeft } from "lucide-react";
-import { B as BlogLayout } from "./BlogLayout-98RL58NA.mjs";
+import { B as BlogLayout } from "./BlogLayout-CO22dMjS.mjs";
 import { b as formatPublishedAt, a as formatDateTime } from "./formatters-BAb3XZ2i.mjs";
 import { S as SeoHead } from "./SeoHead-9Gv-Y1Y7.mjs";
 import { r as resolveSeverityThresholds, a as alertFromRiskScore } from "./geopoliticalSeverity-BBhZMy0g.mjs";
@@ -481,7 +481,7 @@ function buildIntelligence(article, riskThresholds = {}) {
   };
 }
 const ArticleShowIntelligenceSidebar = lazy(
-  () => import("./ArticleShowIntelligenceSidebar-CWF7PDJ7.mjs")
+  () => import("./ArticleShowIntelligenceSidebar-FNlkyE_d.mjs")
 );
 function buildMetaDescription(article) {
   if (article.summary) {

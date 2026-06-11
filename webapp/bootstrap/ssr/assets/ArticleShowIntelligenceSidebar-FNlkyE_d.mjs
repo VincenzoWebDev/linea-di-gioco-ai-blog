@@ -3,13 +3,14 @@ import { motion } from "framer-motion";
 import { Crosshair, Target, Shield } from "lucide-react";
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from "recharts";
 import { g as getTrendConfig } from "./trendCopy-BRLsGmW-.mjs";
-function IntelligenceMetricBlock({ icon: Icon, label, value }) {
-  return /* @__PURE__ */ jsxs("div", { className: "border border-[#202A3D] bg-[#121722] p-3", children: [
+function IntelligenceMetricBlock({ icon: Icon, label, value, isExpired }) {
+  return /* @__PURE__ */ jsxs("div", { className: `border border-[#202A3D] bg-[#121722] p-3 ${isExpired ? "opacity-60" : ""}`, children: [
     /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between text-[#7E8796]", children: [
       /* @__PURE__ */ jsx("span", { className: "font-mono text-[10px] uppercase tracking-[0.2em]", children: label }),
       /* @__PURE__ */ jsx(Icon, { className: "h-3.5 w-3.5" })
     ] }),
-    /* @__PURE__ */ jsx("div", { className: "mt-3 font-mono text-2xl font-semibold text-[#E8EDF5]", children: value })
+    /* @__PURE__ */ jsx("div", { className: `mt-3 font-mono text-2xl font-semibold ${isExpired ? "line-through text-slate-500" : "text-[#E8EDF5]"}`, children: value }),
+    isExpired && /* @__PURE__ */ jsx("div", { className: "mt-1 font-mono text-[8px] uppercase tracking-wider text-red-500 font-bold leading-none", children: "Scaduta" })
   ] });
 }
 function IntelligenceRadarChart({ metrics }) {
@@ -88,7 +89,8 @@ function ArticleShowIntelligenceSidebar({
             {
               label: "Tensione",
               value: article.tension?.current_tension ?? intelligence.riskScore,
-              icon: Crosshair
+              icon: Crosshair,
+              isExpired: article.tension?.is_expired
             }
           ),
           /* @__PURE__ */ jsx(

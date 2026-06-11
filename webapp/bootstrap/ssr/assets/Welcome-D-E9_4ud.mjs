@@ -1,5 +1,5 @@
 import { jsx, jsxs, Fragment } from "react/jsx-runtime";
-import { B as BlogLayout } from "./BlogLayout-98RL58NA.mjs";
+import { B as BlogLayout } from "./BlogLayout-CO22dMjS.mjs";
 import { memo, useState, useEffect, Suspense, lazy } from "react";
 import { Activity, ArrowDownRight, ArrowUpRight, Minus, TrendingUp, TrendingDown, RadioTower, MapPin, ArrowRight, FileSearch, Target, Binary } from "lucide-react";
 import Marquee from "react-fast-marquee";
