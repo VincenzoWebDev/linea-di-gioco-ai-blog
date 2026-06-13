@@ -109,14 +109,17 @@ class GoogleImageService
 
     private function buildPrompt(string $title, string $summary): string
     {
-        return trim(
-            'Photorealistic geopolitical editorial news image. '.
-                'Wide cinematic composition, professional news cover style. '.
-                'Documentary photography, real-world geopolitical tension. '.
-                'High realism, natural lighting, 35mm photojournalism look. '.
-                'Strict constraints: no text, no logos, no watermarks. '.
-                'Global press agency aesthetic. '.
-                "Scene: {$summary}. Headline: {$title}."
-        );
+        return "You are an expert editorial photojournalist for a global news agency. ".
+            "Create a powerful, photorealistic documentary photograph representing this geopolitical event.\n\n".
+            "EVENT CONTEXT (in Italian):\n".
+            "Title: {$title}\n".
+            "Summary: {$summary}\n\n".
+            "VITAL DIRECTIVE - NO TEXT OVERLAYS:\n".
+            "- Absolutely NO text, letters, words, alphabets, headlines, subtitles, titles, captions, typography, logos, watermarks, symbols, signatures, or badges.\n".
+            "- The image must be a pure, clean, raw photograph. It is NOT a magazine cover, a designed poster, or a graphic layout. It must have NO graphic design elements, borders, or text of any kind.\n\n".
+            "VISUAL STYLE GUIDELINES:\n".
+            "- Style: Photorealistic editorial photojournalism, wide cinematic composition, dramatic natural lighting, 35mm camera look, high realism, documentary aesthetic, real-world geopolitical tension.\n".
+            "- Scene translation: Translate the Italian Title and Summary above into a purely visual, symbolic, and concrete scene description in English (focusing on realistic environments, people, or symbolic objects related to the event, like a summit room, high-tech control room, cargo port, border post, industrial facility, etc. without depicting any literal text).\n\n".
+            "Generate ONLY the image representing this pure visual scene. Do not include any text in the output image.";
     }
 }

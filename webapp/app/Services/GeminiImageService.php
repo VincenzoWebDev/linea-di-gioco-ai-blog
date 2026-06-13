@@ -110,16 +110,22 @@ class GeminiImageService
     private function buildPrompt(string $title, string $summary, string $variant, string $style): string
     {
         $shape = $variant === 'thumb'
-            ? 'Composizione quadrata per miniatura social/news.'
-            : 'Composizione orizzontale da copertina editoriale.';
+            ? 'Composizione quadrata (aspect ratio 1:1) per miniatura.'
+            : 'Composizione orizzontale (aspect ratio 16:9) per copertina.';
 
-        return trim(
-            'Crea una immagine fotorealistica editoriale per un articolo di geopolitica. '.
-                $shape.' '.
-                'Nessun logo, watermark, testo leggibile, bandiere inventate o volti di persone reali riconoscibili. '.
-                ($style !== '' ? "Stile desiderato: {$style}. " : '').
-                "Titolo: {$title}. ".
-                "Descrizione: {$summary}."
-        );
+        return "You are an expert editorial photojournalist for a global news agency. ".
+            "Create a powerful, photorealistic documentary photograph representing this geopolitical event.\n\n".
+            "EVENT CONTEXT (in Italian):\n".
+            "Title: {$title}\n".
+            "Summary: {$summary}\n\n".
+            "VITAL DIRECTIVE - NO TEXT OVERLAYS:\n".
+            "- Absolutely NO text, letters, words, alphabets, headlines, subtitles, titles, captions, typography, logos, watermarks, symbols, signatures, or badges.\n".
+            "- The image must be a pure, clean, raw photograph. It is NOT a magazine cover, a designed poster, or a graphic layout. It must have NO graphic design elements, borders, or text of any kind.\n\n".
+            "VISUAL STYLE GUIDELINES:\n".
+            "- Composition: {$shape}\n".
+            "- Style: Photorealistic editorial photojournalism, dramatic natural lighting, 35mm camera look, high realism, documentary aesthetic, real-world geopolitical tension.\n".
+            ($style !== '' ? "- Desired Style/Notes: {$style}\n" : '').
+            "- Scene translation: Translate the Italian Title and Summary above into a purely visual, symbolic, and concrete scene description in English (focusing on realistic environments, people, or symbolic objects related to the event, like a summit room, high-tech control room, cargo port, border post, industrial facility, etc. without depicting any literal text).\n\n".
+            "Generate ONLY the image representing this pure visual scene. Do not include any text in the output image.";
     }
 }
